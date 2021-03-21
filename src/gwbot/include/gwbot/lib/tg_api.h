@@ -11,6 +11,16 @@
 #define GWBOT__LIB__TG_API_H
 
 #include <gwbot/base.h>
-#include <gwbot/lib/tg_api/send_message.h>
+
+#ifdef INCLUDE_SUB_TG_API
+#  include <gwbot/lib/tg_api/send_message.h>
+#endif
+
+
+struct tg_api_res {
+	char		*res;
+	size_t		len;
+};
+
 
 #endif /* #ifndef GWBOT__LIB__TG_API_H */

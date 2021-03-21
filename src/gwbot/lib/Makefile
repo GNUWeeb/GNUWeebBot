@@ -11,7 +11,9 @@ DEP_DIRS	+= $(BASE_DEP_DIR)/src/gwbot/lib
 include $(BASE_DIR)/src/gwbot/lib/tg_api/Makefile
 
 OBJ_TMP_CC	:= \
-	$(BASE_DIR)/src/gwbot/lib/string.o
+	$(BASE_DIR)/src/gwbot/lib/arena.o \
+	$(BASE_DIR)/src/gwbot/lib/string.o \
+	$(BASE_DIR)/src/gwbot/lib/tg_api.o
 
 OBJ_PRE_CC	+= $(OBJ_TMP_CC)
 

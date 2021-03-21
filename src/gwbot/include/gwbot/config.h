@@ -11,6 +11,7 @@
 #define GWBOT__CONFIG_H
 
 struct gwbot_cfg {
+	char		*cfg_file;
 	char		*token;
 };
 

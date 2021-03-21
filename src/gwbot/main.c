@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include <gwbot/base.h>
+#include <gwbot/common.h>
 
 
 int main(int argc, char *argv[])

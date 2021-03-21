@@ -18,4 +18,6 @@
 #include <gwbot/config.h>
 #include <gwbot/argv.h>
 
+void print_gwbot_help(const char *app);
+
 #endif /* #ifndef GWBOT__COMMON_H */
