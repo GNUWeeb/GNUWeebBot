@@ -10,6 +10,9 @@
 #ifndef GWBOT__CPU_H
 #define GWBOT__CPU_H
 
+#include <gwbot/base.h>
+
+
 static __always_inline void __cpu_relax()
 {
 	asm volatile("rep; nop;");

@@ -6,19 +6,10 @@
 # https://github.com/GNUWeeb/GNUWeebBot
 #
 
-INCLUDE_DIR += -I$(BASE_DIR)/src/gwbot/include
-DEP_DIRS	+= $(BASE_DEP_DIR)/src/gwbot
-
-
-include $(BASE_DIR)/src/gwbot/lib/Makefile
-
+DEP_DIRS	+= $(BASE_DEP_DIR)/src/gwbot/lib/tg_api
 
 OBJ_TMP_CC	:= \
-	$(BASE_DIR)/src/gwbot/print.o
-
-ifneq ($(DO_TEST),1)
-	OBJ_TMP_CC += $(BASE_DIR)/src/gwbot/main.o
-endif
+	$(BASE_DIR)/src/gwbot/lib/tg_api/send_message.o
 
 OBJ_PRE_CC	+= $(OBJ_TMP_CC)
 

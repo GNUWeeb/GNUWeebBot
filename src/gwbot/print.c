@@ -57,7 +57,7 @@ again:
 }
 
 
-void teavpn_print_version(void)
+void gwbot_print_version(void)
 {
 	puts("GNUWeebBot " GWBOT_VERSION);
 }

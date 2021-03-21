@@ -16,6 +16,8 @@
 
 extern uint8_t __notice_level;
 
+void gwbot_print_version(void);
+
 void __pr_error(const char *fmt, ...)
 	__attribute__((format(printf, 1, 2)));
 

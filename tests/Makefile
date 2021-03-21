@@ -7,5 +7,17 @@
 #
 # Makefile for unit test
 #
+
+include $(BASE_DIR)/tests/001_string/Makefile
+
+export VG
+export VGFLAGS
+
+test:
+	@+$(MAKE) --no-print-directory \
+	&& $(MAKE) --no-print-directory __internal_do_test DO_TEST=1;
+
+__internal_do_test: $(TESTS)
+
 clean_test:
-	
+	@rm -vf $(TESTS)
