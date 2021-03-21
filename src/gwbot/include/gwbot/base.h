@@ -115,4 +115,7 @@ static_assert(sizeof(uint64_t) == 8, "Bad sizeof(uint64_t)");
 static_assert((sizeof(void *) == 8) || (sizeof(void *) == 4),
 	      "Bad sizeof(void *)");
 
+
+#include <gwbot/config.h>
+
 #endif /* #ifndef GWBOT__BASE_H */

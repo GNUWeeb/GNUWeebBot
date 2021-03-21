@@ -14,7 +14,8 @@ include $(BASE_DIR)/src/gwbot/lib/Makefile
 
 
 OBJ_TMP_CC	:= \
-	$(BASE_DIR)/src/gwbot/print.o
+	$(BASE_DIR)/src/gwbot/argv.o \
+	$(BASE_DIR)/src/gwbot/print.o \
 
 ifneq ($(DO_TEST),1)
 	OBJ_TMP_CC += $(BASE_DIR)/src/gwbot/main.o
