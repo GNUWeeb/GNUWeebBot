@@ -10,6 +10,7 @@ GNUWeeb Telegram Bot
 
 # Build
 ```
+sudo apt install gcc g++ make libcurl4-openssl-dev valgrind
 git clone https://github.com/GNUWeeb/GNUWeebBot
 cd GNUWeebBot
 make RELEASE_MODE=1 -j$(nproc)
@@ -37,7 +38,7 @@ We are usually online on Telegram, see: https://t.me/GNUWeeb
 - Criterion v2.3.3 (under MIT license) (https://github.com/Snaipe/Criterion)
 - OpenSSL 1.1.1 (under Apache-2.0 license) (https://github.com/openssl/openssl)
 - liburing-2.0 (under LGPG + MIT) (https://github.com/axboe/liburing)
-- https://github.com/curl/curl
+- libcurl4-openssl-dev 7.74.0 (MIT) (https://github.com/curl/curl)
 
 
 # Contributing

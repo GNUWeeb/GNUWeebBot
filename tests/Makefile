@@ -7,3 +7,5 @@
 #
 # Makefile for unit test
 #
+clean_test:
+	

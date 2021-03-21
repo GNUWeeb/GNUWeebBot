@@ -1,0 +1,10 @@
+*.o
+*.so
+*.swo
+*.swp
+*.tmp
+*.log
+*.lock
+/.deps
+/gwbot
+/libgwbot.so

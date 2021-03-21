@@ -79,7 +79,7 @@ endif
 DEPFLAGS	 = -MT "$@" -MMD -MP -MF "$(@:$(BASE_DIR)/%.o=$(BASE_DEP_DIR)/%.d)"
 LIB_LDFLAGS	:= -lpthread -lssl -lcrypto -lcurl
 LDFLAGS		:= -fPIE -fpie
-CFLAGS		:= -fPIE -fpie -std=c11
+CFLAGS		:= -fPIE -fpie
 CXXFLAGS	:= -fPIE -fpie -std=c++2a
 VGFLAGS		:= \
 	--leak-check=full \
@@ -202,7 +202,7 @@ SHARED_LIB	:=
 all: $(TARGET_BIN)
 	$(Q)echo $(REL)
 
-include $(BASE_DIR)/src/teavpn2/Makefile
+include $(BASE_DIR)/src/gwbot/Makefile
 include $(BASE_DIR)/src/ext/Makefile
 
 CFLAGS		:= $(INCLUDE_DIR) $(CFLAGS) $(CCXXFLAGS)
@@ -212,8 +212,8 @@ include $(BASE_DIR)/tests/Makefile
 
 $(TARGET_BIN): $(OBJ_CC) $(OBJ_PRE_CC) $(SHARED_LIB)
 	$(Q)echo "   LD		" "$(@)"
-	$(LD) $(LDFLAGS) $(OBJ_CC) $(OBJ_PRE_CC) -o "$@" $(LIB_LDFLAGS)
-	$(Q)chmod a+x teavpn2 || true
+	$(Q)$(LD) $(LDFLAGS) $(OBJ_CC) $(OBJ_PRE_CC) -o "$@" $(LIB_LDFLAGS)
+	$(Q)chmod a+x gwbot || true
 
 $(DEP_DIRS):
 	$(Q)echo "   MKDIR	" "$(@:$(BASE_DIR)/%=%)"
