@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  src/gwbot/include/gwbot/lib/string.h
+ *  src/gwbot/include/gwbot/lib/tg_api.h
  *
  *  String helpers header for TeaVPN2
  *

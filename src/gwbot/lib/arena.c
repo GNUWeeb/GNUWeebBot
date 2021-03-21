@@ -2,7 +2,7 @@
 /*
  *  src/gwbot/lib/arena.c
  *
- *  Arena memory manager for TeaVPN2
+ *  Arena memory manager for GNUWeebBot
  *
  *  Copyright (C) 2021  Ammar Faizi
  */
