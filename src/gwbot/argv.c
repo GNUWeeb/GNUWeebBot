@@ -16,7 +16,7 @@ struct parse_struct {
 static const struct option long_opt[] = {
 	{"help",          no_argument,       0, 'h'},
 	{"version",       no_argument,       0, 'v'},
-	{"thread",        required_argument, 0, 't'},
+	{"token",         required_argument, 0, 't'},
 	{"config",        required_argument, 0, 'c'},
 	{"data-dir",      required_argument, 0, 'D'},
 	{0, 0, 0, 0}
@@ -45,10 +45,13 @@ static __always_inline int getopt_handler(int argc, char *argv[],
 			print_gwbot_help(app);
 			goto out_exit;
 		case 'v':
-			break;
+			gwbot_print_version();
+			goto out_exit;
 		case 't':
+			cfg->token = trunc_str(optarg, 255);
 			break;
 		case 'c':
+			cfg->cfg_file = trunc_str(optarg, 255);
 			break;
 		case 'D':
 			break;
@@ -70,7 +73,7 @@ int gwbot_argv_parse(int argc, char *argv[], struct gwbot_cfg *cfg)
 
 	ctx.app = argv[0];
 	ctx.cfg = cfg;
-	ret = getopt_handler(argc - 1, argv + 1, &ctx);
+	ret = getopt_handler(argc, argv, &ctx);
 	if (ret < 0)
 		return ret;
 
