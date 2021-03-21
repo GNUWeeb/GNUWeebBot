@@ -6,6 +6,7 @@ GNUWeeb Telegram Bot
 - gcc 9.2.1+
 - GNU Make 4.3
 - OpenSSL 1.1.1
+- libcurl4-openssl-dev
 
 
 # Build
@@ -21,7 +22,7 @@ vim config.ini # Fix the config
 
 # Issues
 We welcome bug reports, feature requests and questions through GitHub
-repository https://github.com/TeaInside/teavpn2.
+repository https://github.com/GNUWeeb/GNUWeebBot
 
 
 # Project Maintainers
