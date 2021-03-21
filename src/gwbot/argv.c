@@ -3,7 +3,6 @@
 #include <getopt.h>
 #include <string.h>
 #include <gwbot/common.h>
-#include <gwbot/lib/arena.h>
 #include <gwbot/lib/string.h>
 
 
@@ -18,7 +17,6 @@ static const struct option long_opt[] = {
 	{"version",       no_argument,       0, 'v'},
 	{"token",         required_argument, 0, 't'},
 	{"config",        required_argument, 0, 'c'},
-	{"data-dir",      required_argument, 0, 'D'},
 	{0, 0, 0, 0}
 };
 
@@ -52,8 +50,6 @@ static __always_inline int getopt_handler(int argc, char *argv[],
 			break;
 		case 'c':
 			cfg->cfg_file = trunc_str(optarg, 255);
-			break;
-		case 'D':
 			break;
 		default:
 			return -EINVAL;

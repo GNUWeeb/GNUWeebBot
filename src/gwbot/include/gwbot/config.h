@@ -15,4 +15,8 @@ struct gwbot_cfg {
 	char		*token;
 };
 
+
+int gwbot_cfg_parse(struct gwbot_cfg *cfg);
+
+
 #endif /* #ifndef GWBOT__CONFIG_H */

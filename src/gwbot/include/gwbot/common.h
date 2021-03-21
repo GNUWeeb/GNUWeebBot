@@ -15,8 +15,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <gwbot/base.h>
-#include <gwbot/config.h>
 #include <gwbot/argv.h>
+#include <gwbot/config.h>
 
 void print_gwbot_help(const char *app);
 
