@@ -3,9 +3,9 @@ GNUWeeb Telegram Bot
 
 
 # Requirements
+- gcc 9.2.1+
 - GNU Make 4.3
 - OpenSSL 1.1.1
-- gcc 10.2.1 (other versions are not tested yet, but may work).
 
 
 # Build
