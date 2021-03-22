@@ -315,7 +315,7 @@ static int run_acceptor(int tcp_fd, struct gwbot_state *state)
 	socklen_t addr_len = sizeof(addr);
 
 	memset(&addr, 0, sizeof(addr));
-	chan_fd = accept(tcp_fd, &addr, &addr_len);
+	chan_fd = accept(tcp_fd, (struct sockaddr *)&addr, &addr_len);
 	if (unlikely(chan_fd < 0)) {
 		err = errno;
 		if (err == EAGAIN)
