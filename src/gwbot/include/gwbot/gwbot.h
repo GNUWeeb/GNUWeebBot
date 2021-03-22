@@ -2,7 +2,7 @@
 /*
  *  src/gwbot/include/gwbot/gwbot.h
  *
- *  Hexdump macro for GNUWeebBot
+ *  
  *
  *  Copyright (C) 2021  Ammar Faizi
  */

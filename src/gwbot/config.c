@@ -57,6 +57,9 @@ static int parser_handler(void *user, const char *section, const char *name,
 		} else
 		rmatch_n("backlog") {
 			cfg->sock.backlog = atoi(value);
+		} else 
+		rmatch_n("channels") {
+			cfg->sock.channels_n = (uint16_t)atoi(value);
 		} else {
 			goto out_invalid_name;
 		}

@@ -7,13 +7,19 @@
  *  Copyright (C) 2021  Ammar Faizi
  */
 
+#include <time.h>
 #include <errno.h>
+#include <assert.h>
 #include <signal.h>
+#include <stdlib.h>
 #include <unistd.h>
+#include <pthread.h>
+#include <inttypes.h>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <gwbot/common.h>
+#include <gwbot/gwchan.h>
 #include <gwbot/lib/tg_api/send_message.h>
 
 
@@ -30,6 +36,7 @@ struct gwbot_state {
 	int			tcp_fd;
 	int			epoll_fd;
 	struct gwbot_cfg	*cfg;
+	struct gwchan		*channels;
 };
 
 
@@ -52,19 +59,50 @@ static int validate_cfg(struct gwbot_cfg *cfg)
 
 	if (unlikely(sock->bind_addr == NULL || *sock->bind_addr == '\0')) {
 		pr_err("sock->bind_addr cannot be empty!");
-		return -1;
+		return -EINVAL;
 	}
 
 	if (unlikely(sock->bind_port == 0)) {
 		pr_err("sock->bind_port cannot be empty");
-		return -1;
+		return -EINVAL;
 	}
 
 	if (unlikely(cred->token == NULL || *cred->token == '\0')) {
 		pr_err("cred->token cannot be empty");
-		return -1;
+		return -EINVAL;
 	}
 
+	if (unlikely(sock->channels_n == 0)) {
+		pr_err("sock->channels_n cannot be zero");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
+
+static void *calloc_wrp(size_t nmemb, size_t size)
+{
+	void *ret = calloc(nmemb, size);
+	if (unlikely(ret == NULL)) {
+		int err = errno;
+		pr_err("calloc(): " PRERF, PREAR(err));
+		return NULL;
+	}
+
+	return ret;
+}
+
+
+static int init_channels(struct gwbot_state *state)
+{
+	struct gwchan *channels;
+
+	channels = calloc_wrp(state->cfg->sock.channels_n, sizeof(*channels));
+	if (unlikely(channels == NULL))
+		return -1;
+
+	state->channels = channels;
 	return 0;
 }
 
@@ -75,6 +113,10 @@ static int init_state(struct gwbot_state *state)
 	state->intr_sig        = 0;
 	state->tcp_fd          = -1;
 	state->epoll_fd        = -1;
+
+	if (unlikely(init_channels(state) < 0))
+		return -1;
+
 	return 0;
 }
 
@@ -212,7 +254,7 @@ static int init_epoll(struct gwbot_state *state)
 	int epoll_fd;
 
 	prl_notice(0, "Initializing epoll_fd...");
-	epoll_fd = epoll_create(10);
+	epoll_fd = epoll_create(255);
 	if (unlikely(epoll_fd < 0)) {
 		err = errno;
 		pr_err("epoll_create(): " PRERF, PREAR(err));
@@ -224,12 +266,60 @@ static int init_epoll(struct gwbot_state *state)
 }
 
 
-static int run_event_loop(struct gwbot_state *state)
+static int handle_event(struct epoll_event *event, struct gwbot_state *state)
 {
 	int ret = 0;
 
-
+	(void)event;
 	(void)state;
+	return ret;
+} 
+
+
+static int handle_events(int num_of_events, struct epoll_event *events,
+			 struct gwbot_state *state)
+{
+	int ret = 0;
+	for (int i = 0; i < num_of_events; i++) {
+		if (unlikely(handle_event(&events[i], state) < 0))
+			return -1;
+	}
+	return ret;
+}
+
+
+static int run_event_loop(struct gwbot_state *state)
+{
+	int err;
+	int ret = 0;
+	int epoll_ret;
+	int timeout = 500; /* in milliseconds */
+	int maxevents = 30;
+	int epoll_fd = state->epoll_fd;
+	struct epoll_event events[30];
+
+	while (likely(!state->stop_event_loop)) {
+		epoll_ret = epoll_wait(epoll_fd, events, maxevents, timeout);
+		if (unlikely(epoll_ret == 0)) {
+			continue;
+		}
+
+		if (unlikely(epoll_ret < 0)) {
+			err = errno;
+			if (err == EINTR) {
+				pr_notice("Interrupted!");
+				continue;
+			}
+
+			pr_err("epoll_wait(): " PRERF, PREAR(err));
+			break;
+		}
+
+		if (unlikely(handle_events(epoll_ret, events, state) < 0))
+			break;
+	}
+
+
 	return ret;
 }
 

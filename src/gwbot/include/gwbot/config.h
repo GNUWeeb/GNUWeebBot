@@ -15,7 +15,7 @@ struct gwbot_sock_cfg {
 	char			*bind_addr;
 	int			backlog;
 	uint16_t		bind_port;
-	struct_pad(0, 2);
+	uint16_t		channels_n;
 };
 
 struct gwbot_cred_cfg {
