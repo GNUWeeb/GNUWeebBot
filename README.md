@@ -10,14 +10,14 @@ GNUWeeb Telegram Bot
 
 
 # Build
-```
-sudo apt install -y gcc g++ make cmake libcurl4-openssl-dev valgrind doxygen
-git clone https://github.com/GNUWeeb/GNUWeebBot
-cd GNUWeebBot
-make RELEASE_MODE=1 -j$(nproc)
-cp config/example.ini config.ini
-vim config.ini # Fix the config
-./gwbot -c config.ini
+```sh
+sudo apt install -y gcc g++ make cmake libcurl4-openssl-dev valgrind doxygen;
+git clone https://github.com/GNUWeeb/GNUWeebBot;
+cd GNUWeebBot;
+make RELEASE_MODE=1 -j$(nproc);
+cp config/example.ini config.ini;
+vim config.ini; # Fix the config
+./gwbot -c config.ini;
 ```
 
 # Issues
