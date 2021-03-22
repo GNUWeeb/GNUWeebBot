@@ -21,7 +21,7 @@ struct tg_api_smsg {
 };
 
 
-int tg_api_send_message(struct tg_api_res *res, struct tg_api_smsg *req);
+int tga_send_message(struct tg_api_res *res, const struct tg_api_smsg *req);
 
 
 #endif /* #ifndef GWBOT__LIB__TG_API__SEND_MESSAGE_H */

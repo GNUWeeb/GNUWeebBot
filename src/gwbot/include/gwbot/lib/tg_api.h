@@ -16,11 +16,20 @@
 #  include <gwbot/lib/tg_api/send_message.h>
 #endif
 
+extern char *tg_bot_token;
 
 struct tg_api_res {
 	char		*res;
 	size_t		len;
 };
 
+
+struct tg_api_req {
+	const char	*method;
+	const char	*body;
+	size_t		len;
+};
+
+int tg_api_post(struct tg_api_res *res, const struct tg_api_req *req);
 
 #endif /* #ifndef GWBOT__LIB__TG_API_H */
