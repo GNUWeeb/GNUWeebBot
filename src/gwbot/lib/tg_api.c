@@ -48,9 +48,9 @@ int tg_api_post(struct tg_api_res *res, const struct tg_api_req *req)
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, res);
 
 	cres = curl_easy_perform(curl);
-	if(cres != CURLE_OK) {
-		fprintf(stderr, "curl_easy_perform() failed: %s\n",
-			curl_easy_strerror(cres));
+	if(unlikely(cres != CURLE_OK)) {
+		pr_err("curl_easy_perform() failed: %s\n",
+		       curl_easy_strerror(cres));
 		ret = -1;
 		goto out;
 	}
