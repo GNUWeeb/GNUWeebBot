@@ -17,7 +17,7 @@ cd GNUWeebBot
 make RELEASE_MODE=1 -j$(nproc)
 cp config/example.ini config.ini
 vim config.ini # Fix the config
-./gwbot config.ini
+./gwbot -c config.ini
 ```
 
 # Issues
