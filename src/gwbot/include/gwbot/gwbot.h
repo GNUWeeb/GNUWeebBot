@@ -7,18 +7,16 @@
  *  Copyright (C) 2021  Ammar Faizi
  */
 
-#ifndef GWBOT__COMMON_H
-#define GWBOT__COMMON_H
+#ifndef GWBOT__GWBOT_H
+#define GWBOT__GWBOT_H
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <gwbot/base.h>
-#include <gwbot/argv.h>
-#include <gwbot/gwbot.h>
 #include <gwbot/config.h>
 
-void print_gwbot_help(const char *app);
+int gwbot_run(struct gwbot_cfg *cfg);
 
-#endif /* #ifndef GWBOT__COMMON_H */
+#endif /* #ifndef GWBOT__GWBOT_H */

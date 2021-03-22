@@ -22,6 +22,7 @@ char *trim_cpy(char *str);
 char *trunc_str(char *str, size_t n);
 void *memzero_explicit(void *s, size_t n);
 int memcmp_explicit(const void *s1, const void *s2, size_t n);
+char *urlencode(char *alloc, const char *s, size_t len, bool raw);
 
 #if !defined(__clang__) && defined(__GNUC__)
 #  pragma GCC diagnostic push

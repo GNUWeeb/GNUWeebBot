@@ -25,7 +25,7 @@ struct parse_struct {
 static int parser_handler(void *user, const char *section, const char *name,
 			  const char *value, int lineno)
 {
-	struct parse_struct *ctx = (struct parse_struct *)user;
+	struct parse_struct *ctx = user;
 	struct gwbot_cfg *cfg = ctx->cfg;
 
 

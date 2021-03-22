@@ -17,6 +17,7 @@ OBJ_TMP_CC	:= \
 	$(BASE_DIR)/src/gwbot/argv.o \
 	$(BASE_DIR)/src/gwbot/config.o \
 	$(BASE_DIR)/src/gwbot/help.o \
+	$(BASE_DIR)/src/gwbot/gwbot.o \
 	$(BASE_DIR)/src/gwbot/print.o
 
 ifneq ($(DO_TEST),1)

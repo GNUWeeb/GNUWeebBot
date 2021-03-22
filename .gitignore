@@ -9,3 +9,6 @@
 /.deps
 /gwbot
 /libgwbot.so
+
+# Ignore used config
+/*.ini
