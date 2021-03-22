@@ -78,7 +78,7 @@ ifneq ($(DO_TEST),1)
 endif
 
 DEPFLAGS	 = -MT "$@" -MMD -MP -MF "$(@:$(BASE_DIR)/%.o=$(BASE_DEP_DIR)/%.d)"
-LIB_LDFLAGS	:= -lpthread -lssl -lcrypto -lcurl
+LIB_LDFLAGS	:= -lpthread -lcurl
 LDFLAGS		:= -fPIE -fpie
 CFLAGS		:= -fPIE -fpie
 CXXFLAGS	:= -fPIE -fpie -std=c++2a
@@ -111,7 +111,7 @@ CCXXFLAGS := \
 	-DVERSION=$(VERSION) \
 	-DPATCHLEVEL=$(PATCHLEVEL) \
 	-DSUBLEVEL=$(SUBLEVEL) \
-	-DEXTRAVERSION=\"$(EXTRAVERSION)\" \
+	-DEXTRAVERSION=\"$(EXTRAVERSION)\"
 
 ifeq ($(RELEASE_MODE),1)
 	REL := --- Build release mode

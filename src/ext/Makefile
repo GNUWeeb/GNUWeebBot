@@ -22,3 +22,8 @@ include $(BASE_DIR)/src/ext/openssl_1.1.1j/Makefile
 # $(BASE_DIR)/src/ext/liburing-2.0/src/liburing.so.2.0.0: __execute_make_io_uring
 
 # clean_ext: __clean_io_uring
+
+build-json-c: $(BASE_DIR)/lib
+	mkdir json-c-build
+	cd json-c-build
+	cmake ../json-c
