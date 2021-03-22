@@ -35,7 +35,7 @@ int tga_send_msg(tg_api_handle *handle, tg_api_smsg *ctx)
 		break;
 	default:
 		pr_err("Invalid parse_mode in tga_send_msg (%u)",
-			ctx->parse_mode);
+		       ctx->parse_mode);
 		return -EINVAL;
 	}
 

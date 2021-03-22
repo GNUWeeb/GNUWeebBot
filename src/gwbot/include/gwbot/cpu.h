@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  src/gwbot/include/gwbot/print.h
+ *  src/gwbot/include/gwbot/cpu.h
  *
  *  Hexdump macro for GNUWeebBot
  *

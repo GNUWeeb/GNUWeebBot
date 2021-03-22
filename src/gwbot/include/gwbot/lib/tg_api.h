@@ -10,6 +10,7 @@
 #ifndef GWBOT__LIB__TG_API_H
 #define GWBOT__LIB__TG_API_H
 
+#include <stdlib.h>
 #include <gwbot/base.h>
 
 #ifdef INCLUDE_SUB_TG_API

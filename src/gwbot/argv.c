@@ -46,7 +46,7 @@ static __always_inline int getopt_handler(int argc, char *argv[],
 			gwbot_print_version();
 			goto out_exit;
 		case 't':
-			cfg->token = trunc_str(optarg, 255);
+			cfg->cred.token = trunc_str(optarg, 255);
 			break;
 		case 'c':
 			cfg->cfg_file = trunc_str(optarg, 255);

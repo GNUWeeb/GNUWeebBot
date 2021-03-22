@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  src/gwbot/include/gwbot/print.h
+ *  src/gwbot/include/gwbot/config.h
  *
  *  Base header for GNUWeebBot
  *
@@ -10,9 +10,21 @@
 #ifndef GWBOT__CONFIG_H
 #define GWBOT__CONFIG_H
 
+
+struct gwbot_sock_cfg {
+	char			*bind_addr;
+	uint16_t		bind_port;
+	int			backlog;
+};
+
+struct gwbot_cred_cfg {
+	char			*token;
+};
+
 struct gwbot_cfg {
-	char		*cfg_file;
-	char		*token;
+	char			*cfg_file;
+	struct gwbot_cred_cfg	cred;
+	struct gwbot_sock_cfg	sock;
 };
 
 

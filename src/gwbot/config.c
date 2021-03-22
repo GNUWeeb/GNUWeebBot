@@ -38,7 +38,7 @@ static int parser_handler(void *user, const char *section, const char *name,
 
 	rmatch_s("credential") {
 		rmatch_n("token") {
-			cfg->token = ar_strndup(value, 255);
+			cfg->cred.token = ar_strndup(value, 255);
 		} else {
 			goto out_invalid_name;
 		}
