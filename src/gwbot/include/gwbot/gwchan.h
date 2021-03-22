@@ -25,12 +25,16 @@ struct chan_pkt {
  * Channel
  */
 struct gwchan {
-	int			cli_fd;
-	struct_pad(0, 4);
+	int			chan_fd;
+	uint16_t		chan_idx;
+	struct_pad(0, 2);
 	time_t			started_at;
 	size_t			recv_s;
 	pthread_t		thread;
-	struct chan_pkt		pkt;
+	union {
+		struct chan_pkt		pkt;
+		char			raw_buf[sizeof(struct chan_pkt)];
+	} uni_pkt;
 	struct_pad(1, 6);
 };
 
