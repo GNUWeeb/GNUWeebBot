@@ -279,12 +279,11 @@ static int handle_event(struct epoll_event *event, struct gwbot_state *state)
 static int handle_events(int num_of_events, struct epoll_event *events,
 			 struct gwbot_state *state)
 {
-	int ret = 0;
 	for (int i = 0; i < num_of_events; i++) {
 		if (unlikely(handle_event(&events[i], state) < 0))
 			return -1;
 	}
-	return ret;
+	return 0;
 }
 
 
