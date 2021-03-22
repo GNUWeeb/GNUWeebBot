@@ -11,7 +11,7 @@ GNUWeeb Telegram Bot
 
 # Build
 ```
-sudo apt install gcc g++ make libcurl4-openssl-dev valgrind
+sudo apt install -y gcc g++ make libcurl4-openssl-dev valgrind
 git clone https://github.com/GNUWeeb/GNUWeebBot
 cd GNUWeebBot
 make RELEASE_MODE=1 -j$(nproc)
