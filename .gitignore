@@ -12,3 +12,5 @@
 
 # Ignore used config
 /*.ini
+
+build.dir
