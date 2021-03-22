@@ -7,8 +7,8 @@
  *  Copyright (C) 2021  Ammar Faizi
  */
 
-#include <teavpn2/base.h>
-#include <teavpn2/lib/string.h>
+#include <gwbot/base.h>
+#include <gwbot/lib/string.h>
 #include <criterion/criterion.h>
 
 
