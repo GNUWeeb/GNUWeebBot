@@ -10,14 +10,19 @@
 #include <errno.h>
 #include <signal.h>
 #include <unistd.h>
+#include <sys/epoll.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <gwbot/common.h>
 #include <gwbot/lib/tg_api/send_message.h>
 
 
+#define EPOLL_INPUT_EVT		(EPOLLIN | EPOLLPRI)
+
+
 struct gwbot_state {
 	bool			stop_event_loop;
+	struct_pad(0, 3);
 
 	/* Interrupt signal */
 	int			intr_sig;
@@ -45,17 +50,17 @@ static int validate_cfg(struct gwbot_cfg *cfg)
 	struct gwbot_sock_cfg *sock = &cfg->sock;
 	struct gwbot_cred_cfg *cred = &cfg->cred;
 
-	if (sock->bind_addr == NULL || *sock->bind_addr == '\0') {
+	if (unlikely(sock->bind_addr == NULL || *sock->bind_addr == '\0')) {
 		pr_err("sock->bind_addr cannot be empty!");
 		return -1;
 	}
 
-	if (sock->bind_port == 0) {
+	if (unlikely(sock->bind_port == 0)) {
 		pr_err("sock->bind_port cannot be empty");
 		return -1;
 	}
 
-	if (cred->token == NULL || *cred->token == '\0') {
+	if (unlikely(cred->token == NULL || *cred->token == '\0')) {
 		pr_err("cred->token cannot be empty");
 		return -1;
 	}
@@ -76,7 +81,7 @@ static int init_state(struct gwbot_state *state)
 
 static int socket_setup(int tcp_fd, struct gwbot_state *state)
 {
-int y;
+	int y;
 	int err;
 	int retval;
 	const char *lv, *on; /* level and optname */
@@ -121,6 +126,25 @@ out_err:
 }
 
 
+static int epoll_add(int epl_fd, int fd, uint32_t events)
+{
+	int err;
+	struct epoll_event event;
+
+	/* Shut the valgrind up! */
+	memset(&event, 0, sizeof(struct epoll_event));
+
+	event.events  = events;
+	event.data.fd = fd;
+	if (unlikely(epoll_ctl(epl_fd, EPOLL_CTL_ADD, fd, &event) < 0)) {
+		err = errno;
+		pr_err("epoll_ctl(EPOLL_CTL_ADD): " PRERF, PREAR(err));
+		return -1;
+	}
+	return 0;
+}
+
+
 static int init_socket(struct gwbot_state *state)
 {
 	int err;
@@ -129,6 +153,7 @@ static int init_socket(struct gwbot_state *state)
 	struct sockaddr_in addr;
 	socklen_t addr_len = sizeof(addr);
 
+	prl_notice(0, "Creating TCP socket...");
 	tcp_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, IPPROTO_TCP);
 	if (unlikely(tcp_fd < 0)) {
 		err = errno;
@@ -136,6 +161,7 @@ static int init_socket(struct gwbot_state *state)
 		return -1;
 	}
 
+	prl_notice(0, "Setting socket file descriptor up...");
 	ret = socket_setup(tcp_fd, state);
 	if (unlikely(ret < 0)) {
 		ret = -1;
@@ -163,6 +189,12 @@ static int init_socket(struct gwbot_state *state)
 		goto out;
 	}
 
+	ret = epoll_add(state->epoll_fd, tcp_fd, EPOLL_INPUT_EVT);
+	if (unlikely(ret < 0)) {
+		ret = -1;
+		goto out;
+	}
+
 	pr_notice("Listening on %s:%d...", state->cfg->sock.bind_addr,
 		  state->cfg->sock.bind_port);
 
@@ -170,6 +202,34 @@ static int init_socket(struct gwbot_state *state)
 out:
 	if (unlikely(ret != 0))
 		close(tcp_fd);
+	return ret;
+}
+
+
+static int init_epoll(struct gwbot_state *state)
+{
+	int err;
+	int epoll_fd;
+
+	prl_notice(0, "Initializing epoll_fd...");
+	epoll_fd = epoll_create(10);
+	if (unlikely(epoll_fd < 0)) {
+		err = errno;
+		pr_err("epoll_create(): " PRERF, PREAR(err));
+		return -1;
+	}
+
+	state->epoll_fd = epoll_fd;
+	return 0;
+}
+
+
+static int run_event_loop(struct gwbot_state *state)
+{
+	int ret = 0;
+
+
+	(void)state;
 	return ret;
 }
 
@@ -215,35 +275,15 @@ int gwbot_run(struct gwbot_cfg *cfg)
 	ret = init_state(&state);
 	if (unlikely(ret < 0))
 		goto out;
+	ret = init_epoll(&state);
+	if (unlikely(ret < 0))
+		goto out;
 	ret = init_socket(&state);
 	if (unlikely(ret < 0))
 		goto out;
+	ret = run_event_loop(&state);
 out:
 	tg_api_global_destroy();
 	destroy_state(&state);
 	return ret;
-
-	// /* Minimal working example */
-	// tg_api_handle *handle;
-
-	// tg_api_smsg msg = {
-	// 	.chat_id = -1001422514298, /* GNU/Weeb TDD group */
-	// 	.reply_to_msg_id = 312, /* 0 means don't reply to msg */
-	// 	.parse_mode = PARSE_MODE_HTML,
-	// 	.text = "AAAAA\n<b>Test reply to message</b>"
-	// };
-
-
-	// handle = tg_api_hcreate(cfg->token);
-	// tga_send_msg(handle, &msg);
-
-	// printf("%s\n", tg_api_res_get_body(&handle->res));
-
-
-	// /*
-	//  * Must destroy the handle if it is not used anymore.
-	//  */
-	// tg_api_destroy(handle);
-
-	return 0;
 }
