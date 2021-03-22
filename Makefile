@@ -15,8 +15,8 @@ EXTRAVERSION = -rc1
 NAME = Useless Servant
 PACKAGE_NAME = gwbot-$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 
-CC	:= clang
-CXX	:= clang++
+CC	:= cc
+CXX	:= c++
 LD	:= $(CXX)
 VG	:= valgrind
 
@@ -58,7 +58,8 @@ ifneq ($(DO_TEST),1)
 				-Weverything \
 				-Wno-disabled-macro-expansion \
 				-Wno-unused-macros \
-				-Wno-language-extension-token
+				-Wno-language-extension-token \
+				-Wno-covered-switch-default
 		else
 			# Pure GCC
 			WARN_FLAGS	:= \

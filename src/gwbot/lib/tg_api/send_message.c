@@ -20,11 +20,23 @@ int tga_send_msg(tg_api_handle *handle, tg_api_smsg *ctx)
 					ctx->reply_to_msg_id);
 	}
 
-	if (ctx->parse_mode) {
-		strcpy(buf + pos, "&parse_mode=");
-		pos += sizeof("&parse_mode=") - 1u;
-		pos += (size_t)snprintf(buf + pos, space - pos, "%s",
-					ctx->parse_mode);
+	switch (ctx->parse_mode) {
+	case PARSE_MODE_OFF:
+		break;
+	case PARSE_MODE_HTML:
+		text_len = sizeof("&parse_mode=html") - 1u;
+		strncpy(buf + pos, "&parse_mode=html", text_len);
+		pos += text_len;
+		break;
+	case PARSE_MODE_MARKDOWN:
+		text_len = sizeof("&parse_mode=markdown") - 1u;
+		strncpy(buf + pos, "&parse_mode=markdown", text_len);
+		pos += text_len;
+		break;
+	default:
+		pr_err("Invalid parse_mode in tga_send_msg (%d)",
+			ctx->parse_mode);
+		return -EINVAL;
 	}
 
 	strcpy(buf + pos, "&text=");

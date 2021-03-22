@@ -13,10 +13,18 @@
 #include <gwbot/lib/tg_api.h>
 
 
+typedef enum _parse_mode_t {
+	PARSE_MODE_OFF = 0,
+	PARSE_MODE_HTML = 1,
+	PARSE_MODE_MARKDOWN = 2
+} parse_mode_t;
+
+
 typedef struct _tg_api_smsg {
 	int64_t		chat_id;
 	uint64_t	reply_to_msg_id;
-	const char	*parse_mode;
+	parse_mode_t	parse_mode;
+	struct_pad(0, 4);
 	const char	*text;
 } tg_api_smsg;
 
