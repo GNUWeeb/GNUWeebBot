@@ -25,12 +25,12 @@ int tga_send_msg(tg_api_handle *handle, tg_api_smsg *ctx)
 		break;
 	case PARSE_MODE_HTML:
 		text_len = sizeof("&parse_mode=html") - 1u;
-		strncpy(buf + pos, "&parse_mode=html", text_len);
+		memcpy(buf + pos, "&parse_mode=html", text_len);
 		pos += text_len;
 		break;
 	case PARSE_MODE_MARKDOWN:
 		text_len = sizeof("&parse_mode=markdown") - 1u;
-		strncpy(buf + pos, "&parse_mode=markdown", text_len);
+		memcpy(buf + pos, "&parse_mode=markdown", text_len);
 		pos += text_len;
 		break;
 	default:
