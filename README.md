@@ -11,7 +11,7 @@ GNUWeeb Telegram Bot
 
 # Build
 ```
-sudo apt install -y gcc g++ make libcurl4-openssl-dev valgrind
+sudo apt install -y gcc g++ make cmake libcurl4-openssl-dev valgrind doxygen
 git clone https://github.com/GNUWeeb/GNUWeebBot
 cd GNUWeebBot
 make RELEASE_MODE=1 -j$(nproc)
@@ -40,6 +40,7 @@ We are usually online on Telegram, see: https://t.me/GNUWeeb
 - OpenSSL 1.1.1 (under Apache-2.0 license) (https://github.com/openssl/openssl)
 - liburing-2.0 (under LGPL + MIT) (https://github.com/axboe/liburing)
 - libcurl4-openssl-dev 7.74.0 (MIT) (https://github.com/curl/curl)
+- json-c-0.15-20200726 (https://github.com/json-c/json-c)
 
 
 # Contributing
