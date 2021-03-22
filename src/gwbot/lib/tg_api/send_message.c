@@ -47,5 +47,6 @@ int tga_send_msg(tg_api_handle *handle, tg_api_smsg *ctx)
 
 	tg_api_set_method(handle, "sendMessage");
 	tg_api_set_body(handle, buf);
+	printf("buf = %s\n", buf);
 	return tg_api_post(handle);
 }

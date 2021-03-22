@@ -67,19 +67,33 @@ int tg_api_post(tg_api_handle *handle)
 	res = &handle->res;
 	req = &handle->req;
 
-	if (unlikely(req->method == NULL || handle->token == NULL))
+	if (unlikely(req->method == NULL)) {
+		pr_err("handle->method cannot be empty in tg_api_post");
 		return -EINVAL;
+	}
+
+	if (unlikely(handle->token == NULL)) {
+		pr_err("handle->token cannot be empty in tg_api_post");
+		return -EINVAL;
+	}
+
 
 	snprintf(url, sizeof(url), "https://api.telegram.org/bot%s/%s",
 		 handle->token, req->method);
 
+	/*
+	 * Allow to reuse the handle
+	 */
+	if (res->allocated != 0u) {
+		res->len = 0u;
+		goto exec_curl;
+	}
+
 
 	/*
-	 *
+	 * Handle doesn't hold allocated heap, we allocate a new one here.
 	 */
-
-
-	res->len       = 0;
+	res->len       = 0u;
 	res->allocated = 0x2000u;
 	res->body      = malloc(res->allocated);
 	if (unlikely(res->body == NULL)) {
@@ -88,6 +102,8 @@ int tg_api_post(tg_api_handle *handle)
 		return -ENOMEM;
 	}
 
+
+exec_curl:
 	curl = curl_easy_init();
 	if (unlikely(curl == NULL)) {
 		pr_err("curl_easy_init() failed: " PRERF, PREAR(ENOMEM));
@@ -108,12 +124,9 @@ int tg_api_post(tg_api_handle *handle)
 		ret = -1;
 		goto out;
 	}
+
 out:
-	curl_easy_cleanup(curl);
-	if (unlikely(ret != 0)) {
-		free(res->body);
-		res->body = NULL;
-		res->allocated = 0u;
-	}
+	if (curl != NULL)
+		curl_easy_cleanup(curl);
 	return ret;
 }
