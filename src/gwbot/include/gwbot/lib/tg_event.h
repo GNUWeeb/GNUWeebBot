@@ -40,7 +40,7 @@ typedef struct _tg_event_msg {
         bool            is_main_msg;
         const char      *body;
         _msg_kind_t     msg_kind;
-} _tg_event;
+} _tg_event_msg;
 
 
 /* 

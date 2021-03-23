@@ -19,7 +19,7 @@ typedef enum _tg_text_type_t {
 	ITALIC_TEXT_MSG         = 0,
 	BOLD_TEXT_MSG           = 1,
 	COMMAND_TEXT_MSG        = 2
-} _msg_kind_t;
+} _tg_text_type_t;
 
 /* 
  * The event text message.
