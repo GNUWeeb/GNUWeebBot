@@ -29,6 +29,11 @@
 #define EPOLL_INPUT_EVT		(EPOLLIN | EPOLLPRI)
 
 
+struct gwbot_cqe {
+	pthread_t		thread;
+};
+
+
 struct gwbot_state {
 	bool			stop_event_loop;
 	struct_pad(0, 1);
