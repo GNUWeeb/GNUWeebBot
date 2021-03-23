@@ -27,6 +27,7 @@ include $(BASE_DIR)/src/ext/openssl_1.1.1j/Makefile
 #
 SHARED_LIB	+= $(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so
 LIB_LDFLAGS	+= -L$(BASE_DIR)/src/ext/json-c/build.dir -ljson-c
+INCLUDE_DIR 	+= -I$(BASE_DIR)/src/ext/json-c/build.dir
 
 $(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so:
 	+$(Q)cd  $(BASE_DIR)/src/ext/json-c && \
