@@ -31,7 +31,7 @@
 
 struct gwbot_state {
 	bool			stop_event_loop;
-	struct_pad(0, 3);
+	struct_pad(0, 1);
 
 	/* Interrupt signal */
 	int			intr_sig;

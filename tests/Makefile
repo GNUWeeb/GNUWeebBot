@@ -9,7 +9,7 @@
 #
 
 include $(BASE_DIR)/tests/001_string/Makefile
-include $(BASE_DIR)/tests/004_tcp_slot_stack/Makefile
+include $(BASE_DIR)/tests/004_tstack/Makefile
 
 export VG
 export VGFLAGS

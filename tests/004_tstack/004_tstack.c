@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  tests/004_tcp_slot_stack/004_tcp_slot_stack.c
+ *  tests/004_tstack/004_tstack.c
  *
  *  Test case for TCP slot stack.
  *
@@ -12,12 +12,12 @@
 #include <criterion/criterion.h>
 
 #define TCP_SLOT_STACK_TEST
-#include <gwbot/tcp_slot_stack.h>
+#include <gwbot/tstack.h>
 
 
-Test(tcp_slot_stack, init_stack_must_be_empty)
+Test(tstack, init_stack_must_be_empty)
 {
-	struct tcp_slot_stack stack;
+	struct tstack stack;
 
 	cr_assert_eq(tss_init(&stack, 100), &stack);
 	cr_assert_eq(tss_count(&stack), 0);
@@ -28,9 +28,9 @@ Test(tcp_slot_stack, init_stack_must_be_empty)
 }
 
 
-Test(tcp_slot_stack, after_push_stack_must_not_be_empty_and_the_count_maintain)
+Test(tstack, after_push_stack_must_not_be_empty_and_the_count_maintain)
 {
-	struct tcp_slot_stack stack;
+	struct tstack stack;
 
 	cr_assert_eq(tss_init(&stack, 100), &stack);
 	cr_assert_eq(tss_capacity(&stack), 100);
@@ -51,9 +51,9 @@ Test(tcp_slot_stack, after_push_stack_must_not_be_empty_and_the_count_maintain)
 }
 
 
-Test(tcp_slot_stack, push_more_than_capacity_must_return_neg_one)
+Test(tstack, push_more_than_capacity_must_return_neg_one)
 {
-	struct tcp_slot_stack stack;
+	struct tstack stack;
 
 	cr_assert_eq(tss_init(&stack, 3), &stack);
 	cr_assert_eq(tss_capacity(&stack), 3);
@@ -69,9 +69,9 @@ Test(tcp_slot_stack, push_more_than_capacity_must_return_neg_one)
 }
 
 
-Test(tcp_slot_stack, stack_must_behave_as_lifo1)
+Test(tstack, stack_must_behave_as_lifo1)
 {
-	struct tcp_slot_stack stack;
+	struct tstack stack;
 
 	cr_assert_eq(tss_init(&stack, 10), &stack);
 	cr_assert_eq(tss_capacity(&stack), 10);
@@ -116,10 +116,10 @@ Test(tcp_slot_stack, stack_must_behave_as_lifo1)
 }
 
 
-Test(tcp_slot_stack, stack_must_behave_as_lifo2)
+Test(tstack, stack_must_behave_as_lifo2)
 {
 	uint16_t i;
-	struct tcp_slot_stack stack;
+	struct tstack stack;
 
 	cr_assert_eq(tss_init(&stack, 1000), &stack);
 	cr_assert_eq(tss_capacity(&stack), 1000);

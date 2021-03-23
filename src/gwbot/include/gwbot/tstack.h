@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  src/gwbot/include/gwbot/tcp_slot_stack.h
+ *  src/gwbot/include/gwbot/tstack.h
  *
  *  TCP slot stack.
  *
@@ -9,20 +9,20 @@
  *  Copyright (C) 2021  Ammar Faizi
  */
 
-#ifndef GWBOT__TCP_SLOT_STACK_H
-#define GWBOT__TCP_SLOT_STACK_H
+#ifndef GWBOT__TSTACK_H
+#define GWBOT__TSTACK_H
 
 #include <stdlib.h>
 #include <gwbot/base.h>
 
 
-#ifdef TCP_SLOT_STACK_TEST
+#ifdef TSTACK_TEST
 #  define inline_prod __no_inline
 #else
 #  define inline_prod inline
 #endif
 
-struct tcp_slot_stack {
+struct tstack {
 	uint16_t	sp;
 	uint16_t	max_sp;
 	struct_pad(0, 4);
@@ -30,8 +30,8 @@ struct tcp_slot_stack {
 };
 
 
-static inline_prod struct tcp_slot_stack *tss_init(struct tcp_slot_stack *stack,
-						   uint16_t capacity)
+static inline_prod struct tstack *tss_init(struct tstack *stack,
+					   uint16_t capacity)
 {
 	uint16_t *arr;
 
@@ -50,31 +50,31 @@ static inline_prod struct tcp_slot_stack *tss_init(struct tcp_slot_stack *stack,
 }
 
 
-static inline_prod uint16_t tss_count(struct tcp_slot_stack *stack)
+static inline_prod uint16_t tss_count(struct tstack *stack)
 {
 	return stack->max_sp - stack->sp;
 }
 
 
-static inline_prod uint16_t tss_capacity(struct tcp_slot_stack *stack)
+static inline_prod uint16_t tss_capacity(struct tstack *stack)
 {
 	return stack->max_sp;
 }
 
 
-static inline_prod bool tss_is_empty(struct tcp_slot_stack *stack)
+static inline_prod bool tss_is_empty(struct tstack *stack)
 {
 	return tss_count(stack) == 0;
 }
 
 
-static inline_prod void tss_destroy(struct tcp_slot_stack *stack)
+static inline_prod void tss_destroy(struct tstack *stack)
 {
 	free(stack->arr);
 }
 
 
-static inline_prod int32_t tss_push(struct tcp_slot_stack *stack, uint16_t data)
+static inline_prod int32_t tss_push(struct tstack *stack, uint16_t data)
 {
 	uint16_t sp = stack->sp;
 
@@ -89,7 +89,7 @@ static inline_prod int32_t tss_push(struct tcp_slot_stack *stack, uint16_t data)
 }
 
 
-static inline_prod int32_t tss_pop(struct tcp_slot_stack *stack)
+static inline_prod int32_t tss_pop(struct tstack *stack)
 {
 	int32_t ret;
 	uint16_t sp = stack->sp;
@@ -106,4 +106,4 @@ static inline_prod int32_t tss_pop(struct tcp_slot_stack *stack)
 }
 
 
-#endif /* #ifndef GWBOT__TCP_SLOT_STACK_H */
+#endif /* #ifndef GWBOT__TSTACK_H */
