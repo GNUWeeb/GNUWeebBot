@@ -24,27 +24,28 @@
 #include <gwbot/lib/tg_api/send_message.h>
 
 
-#define EPL_MAP_TO_NOP		(0x0000u)
-#define EPL_MAP_SHIFT		(0x0001u)
-#define EPL_MAP_SIZE		(0xffffu)
-#define EPL_INPUT_EVT		(EPOLLIN | EPOLLPRI)
+#define SQE_MAP_TO_NOP		(0x0000u)
+#define SQE_MAP_SHIFT		(0x0001u)
+#define SQE_EPOLL_MAP_SIZE	(0xffffu)
+#define EPOLL_INPUT_EVT		(EPOLLIN | EPOLLPRI)
+
+
+struct gwbot_cqe {
+	pthread_t		thread;
+	struct tstack		cqe_stack;
+};
 
 
 struct gwbot_state {
-	bool			stop_el;
-	struct_pad(0, 3);
-
+	bool			stop_event_loop;
+	struct_pad(0, 1);
 	int			intr_sig;
 	int			tcp_fd;
-	int			epl_fd;
-
+	int			epoll_fd;
 	struct gwbot_cfg	*cfg;
-	uint16_t		*epl_map_chan;
-	struct gwchan		*chans;
-	struct gwbot_thread	*threads;
-
+	struct gwchan		*channels;
+	uint16_t		*sqe_epoll_map;
 	struct tstack		chan_stack;
-	struct tstack		thread_stack;
 };
 
 
@@ -55,16 +56,15 @@ static void handle_interrupt(int sig)
 {
 	struct gwbot_state *state = g_state;
 	state->intr_sig = sig;
-	state->stop_el = true;
+	state->stop_event_loop = true;
 	putchar('\n');
 }
 
 
 static int validate_cfg(struct gwbot_cfg *cfg)
 {
-	struct gwbot_sock_cfg *sock   = &cfg->sock;
-	struct gwbot_cred_cfg *cred   = &cfg->cred;
-	struct gwbot_wrk_cfg  *worker = &cfg->worker;
+	struct gwbot_sock_cfg *sock = &cfg->sock;
+	struct gwbot_cred_cfg *cred = &cfg->cred;
 
 	if (unlikely(sock->bind_addr == NULL || *sock->bind_addr == '\0')) {
 		pr_err("sock->bind_addr cannot be empty!");
@@ -81,8 +81,8 @@ static int validate_cfg(struct gwbot_cfg *cfg)
 		return -EINVAL;
 	}
 
-	if (unlikely(worker->thread_c == 0)) {
-		pr_err("worker->thread_c cannot be zero");
+	if (unlikely(sock->channels_n == 0)) {
+		pr_err("sock->channels_n cannot be zero");
 		return -EINVAL;
 	}
 
@@ -97,7 +97,7 @@ static void *calloc_wrp(size_t nmemb, size_t size)
 	ret = calloc(nmemb, size);
 	if (unlikely(ret == NULL)) {
 		int err = errno;
-		pr_err("calloc_wrp(): " PRERF, PREAR(err));
+		pr_err("calloc(): " PRERF, PREAR(err));
 		return NULL;
 	}
 
@@ -114,105 +114,59 @@ static void reset_chan(struct gwchan *chan, uint16_t chan_idx)
 }
 
 
-static int init_chans(struct gwbot_state *state)
+static int init_channels(struct gwbot_state *state)
 {
-	struct gwchan *chans;
-	uint16_t thread_c = state->cfg->worker.thread_c;
+	struct gwchan *channels;
+	uint16_t channels_n = state->cfg->sock.channels_n;
 
-	chans = calloc_wrp(thread_c, sizeof(*chans));
-	if (unlikely(chans == NULL))
+	channels = calloc_wrp(channels_n, sizeof(*channels));
+	if (unlikely(channels == NULL))
 		return -1;
 
-	for (uint16_t i = 0; i < thread_c; i++)
-		reset_chan(&chans[i], i);
+	for (uint16_t i = 0; i < channels_n; i++)
+		reset_chan(&channels[i], i);
 
-	state->chans = chans;
+	state->channels = channels;
 	return 0;
 }
 
 
-static int init_epl_map(struct gwbot_state *state)
+static int init_sqe_epoll_map(struct gwbot_state *state)
 {
-	uint16_t *epl_map_chan;
+	uint16_t *sqe_epoll_map;
 
-	epl_map_chan = calloc_wrp(EPL_MAP_SIZE, sizeof(*epl_map_chan));
-	if (unlikely(epl_map_chan == NULL))
+	sqe_epoll_map = calloc_wrp(SQE_EPOLL_MAP_SIZE, sizeof(*sqe_epoll_map));
+	if (unlikely(sqe_epoll_map == NULL))
 		return -1;
 
-	for (uint32_t i = 0; i < EPL_MAP_SIZE; i++)
-		epl_map_chan[i] = EPL_MAP_TO_NOP;
+	for (uint32_t i = 0; i < SQE_EPOLL_MAP_SIZE; i++) {
+		sqe_epoll_map[i] = SQE_MAP_TO_NOP;
+	}
 
-	state->epl_map_chan = epl_map_chan;
+	state->sqe_epoll_map = sqe_epoll_map;
 	return 0;
 }
 
 
 static int init_state(struct gwbot_state *state)
 {
-	uint32_t thread_c = state->cfg->worker.thread_c;
+	state->stop_event_loop = false;
+	state->intr_sig        = 0;
+	state->tcp_fd          = -1;
+	state->epoll_fd        = -1;
+	state->channels        = NULL;
+	state->sqe_epoll_map   = NULL;
 
-	state->stop_el           = false;
-	state->intr_sig          = 0;
-	state->tcp_fd            = -1;
-	state->epl_fd            = -1;
-	state->epl_map_chan      = NULL;
-	state->chans             = NULL;
-	state->threads           = NULL;
-	state->chan_stack.arr    = NULL;
-	state->thread_stack.arr  = NULL;
-
-	if (unlikely(init_chans(state) < 0))
+	if (unlikely(init_channels(state) < 0))
 		return -1;
-	if (unlikely(init_epl_map(state) < 0))
-		return -1;
-	if (unlikely(tss_init(&state->chan_stack, thread_c) != NULL))
-		return -1;
-	if (unlikely(tss_init(&state->thread_stack, thread_c) != NULL))
+	if (unlikely(init_sqe_epoll_map(state) < 0))
 		return -1;
 
 	return 0;
 }
 
 
-static int epoll_add(int epl_fd, int fd, uint32_t events)
-{
-	int err;
-	struct epoll_event event;
-
-	/* Shut the valgrind up! */
-	memset(&event, 0, sizeof(struct epoll_event));
-
-	event.events  = events;
-	event.data.fd = fd;
-	if (unlikely(epoll_ctl(epl_fd, EPOLL_CTL_ADD, fd, &event) < 0)) {
-		err = errno;
-		pr_err("epoll_ctl(EPOLL_CTL_ADD): " PRERF, PREAR(err));
-		return -1;
-	}
-	return 0;
-}
-
-
-
-static int init_epoll(struct gwbot_state *state)
-{
-	int err;
-	int epl_fd;
-
-	prl_notice(0, "Initializing epoll_fd...");
-	epl_fd = epoll_create(255);
-	if (unlikely(epl_fd < 0)) {
-		err = errno;
-		pr_err("epoll_create(): " PRERF, PREAR(err));
-		return -1;
-	}
-
-	state->epl_fd = epl_fd;
-	return 0;
-}
-
-
-static int setup_socket(int tcp_fd, struct gwbot_state *state)
+static int socket_setup(int tcp_fd, struct gwbot_state *state)
 {
 	int y;
 	int err;
@@ -221,6 +175,14 @@ static int setup_socket(int tcp_fd, struct gwbot_state *state)
 	socklen_t len = sizeof(y);
 	struct gwbot_cfg *cfg = state->cfg;
 	const void *py = (const void *)&y;
+
+	y = 1;
+	retval = setsockopt(tcp_fd, SOL_SOCKET, SO_REUSEADDR, py, len);
+	if (unlikely(retval < 0)) {
+		lv = "SOL_SOCKET";
+		on = "SO_REUSEADDR";
+		goto out_err;
+	}
 
 	y = 1;
 	retval = setsockopt(tcp_fd, SOL_SOCKET, SO_REUSEADDR, py, len);
@@ -251,6 +213,25 @@ out_err:
 }
 
 
+static int epoll_add(int epl_fd, int fd, uint32_t events)
+{
+	int err;
+	struct epoll_event event;
+
+	/* Shut the valgrind up! */
+	memset(&event, 0, sizeof(struct epoll_event));
+
+	event.events  = events;
+	event.data.fd = fd;
+	if (unlikely(epoll_ctl(epl_fd, EPOLL_CTL_ADD, fd, &event) < 0)) {
+		err = errno;
+		pr_err("epoll_ctl(EPOLL_CTL_ADD): " PRERF, PREAR(err));
+		return -1;
+	}
+	return 0;
+}
+
+
 static int init_socket(struct gwbot_state *state)
 {
 	int err;
@@ -268,7 +249,7 @@ static int init_socket(struct gwbot_state *state)
 	}
 
 	prl_notice(0, "Setting socket file descriptor up...");
-	ret = setup_socket(tcp_fd, state);
+	ret = socket_setup(tcp_fd, state);
 	if (unlikely(ret < 0)) {
 		ret = -1;
 		goto out;
@@ -295,7 +276,7 @@ static int init_socket(struct gwbot_state *state)
 		goto out;
 	}
 
-	ret = epoll_add(state->epl_fd, tcp_fd, EPL_INPUT_EVT);
+	ret = epoll_add(state->epoll_fd, tcp_fd, EPOLL_INPUT_EVT);
 	if (unlikely(ret < 0)) {
 		ret = -1;
 		goto out;
@@ -309,6 +290,24 @@ out:
 	if (unlikely(ret != 0))
 		close(tcp_fd);
 	return ret;
+}
+
+
+static int init_epoll(struct gwbot_state *state)
+{
+	int err;
+	int epoll_fd;
+
+	prl_notice(0, "Initializing epoll_fd...");
+	epoll_fd = epoll_create(255);
+	if (unlikely(epoll_fd < 0)) {
+		err = errno;
+		pr_err("epoll_create(): " PRERF, PREAR(err));
+		return -1;
+	}
+
+	state->epoll_fd = epoll_fd;
+	return 0;
 }
 
 
@@ -411,9 +410,7 @@ static int handle_client_event3(size_t recv_s, struct gwbot_state *state,
 		 * Current received data length is still not enough.
 		 * The client says that the data length is `fdata_len`.
 		 *
-		 * So, wait a bit longer.
-		 *
-		 * Bail out!
+		 * So, wait a bit longer, bail out!
 		 */
 		goto out;
 	}
@@ -500,14 +497,14 @@ static int handle_client_event(int cli_fd, struct gwbot_state *state,
 	uint16_t map_to;
 	struct gwchan *chan;
 
-	map_to = state->epl_map_chan[cli_fd];
-	if (unlikely(map_to == EPL_MAP_TO_NOP)) {
-		pr_err("Bug: sqe_epoll_map[%d] value is EPL_MAP_TO_NOP",
+	map_to = state->sqe_epoll_map[cli_fd];
+	if (unlikely(map_to == SQE_MAP_TO_NOP)) {
+		pr_err("Bug: sqe_epoll_map[%d] value is SQE_MAP_TO_NOP",
 		       cli_fd);
 		return -1;
 	}
 
-	chan = &state->chans[map_to];
+	chan = &state->channels[map_to];
 	return handle_client_event2(cli_fd, state, chan, revents);
 }
 
@@ -544,11 +541,11 @@ static int run_event_loop(struct gwbot_state *state)
 	int epoll_ret;
 	int timeout = 500; /* in milliseconds */
 	int maxevents = 30;
-	int epl_fd = state->epl_fd;
+	int epoll_fd = state->epoll_fd;
 	struct epoll_event events[30];
 
-	while (likely(!state->stop_el)) {
-		epoll_ret = epoll_wait(epl_fd, events, maxevents, timeout);
+	while (likely(!state->stop_event_loop)) {
+		epoll_ret = epoll_wait(epoll_fd, events, maxevents, timeout);
 		if (unlikely(epoll_ret == 0)) {
 			continue;
 		}
@@ -587,10 +584,8 @@ static void close_file_descriptors(struct gwbot_state *state)
 static void destroy_state(struct gwbot_state *state)
 {
 	close_file_descriptors(state);
-	tss_destroy(&state->chan_stack);
-	tss_destroy(&state->thread_stack);
-	free(state->epl_map_chan);
-	free(state->chans);
+	free(state->sqe_epoll_map);
+	free(state->channels);
 }
 
 
@@ -599,6 +594,7 @@ int gwbot_run(struct gwbot_cfg *cfg)
 	int ret;
 	struct gwbot_state state;
 
+	/* Shut the valgrind up! */
 	memset(&state, 0, sizeof(state));
 
 	state.cfg = cfg;
@@ -608,6 +604,8 @@ int gwbot_run(struct gwbot_cfg *cfg)
 	signal(SIGTERM, handle_interrupt);
 	signal(SIGQUIT, handle_interrupt);
 	signal(SIGPIPE, SIG_IGN);
+
+	tg_api_global_init();
 
 	ret = validate_cfg(cfg);
 	if (unlikely(ret < 0))
@@ -623,6 +621,7 @@ int gwbot_run(struct gwbot_cfg *cfg)
 		goto out;
 	ret = run_event_loop(&state);
 out:
+	tg_api_global_destroy();
 	destroy_state(&state);
 	return ret;
 }

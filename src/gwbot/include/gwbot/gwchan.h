@@ -21,13 +21,9 @@ struct chan_pkt {
 };
 
 
-/*
- * Channel
- */
 struct gwchan {
 	int			chan_fd;
-	uint16_t		chan_idx;
-	struct_pad(0, 2);
+	uint32_t		chan_idx;
 	time_t			started_at;
 	size_t			recv_s;
 	pthread_t		thread;
@@ -35,7 +31,7 @@ struct gwchan {
 		struct chan_pkt		pkt;
 		char			raw_buf[sizeof(struct chan_pkt)];
 	} uni_pkt;
-	struct_pad(1, 6);
+	struct_pad(0, 6);
 };
 
 
