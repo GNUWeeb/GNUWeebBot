@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <sys/time.h>
 #include <inttypes.h>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
@@ -21,6 +22,7 @@
 #include <gwbot/common.h>
 #include <gwbot/gwchan.h>
 #include <gwbot/tstack.h>
+#include <gwbot/lib/string.h>
 #include <gwbot/lib/tg_api/send_message.h>
 
 
@@ -170,6 +172,17 @@ static int init_state(struct gwbot_state *state)
 	if (unlikely(tss_init(&state->thread_stack, thread_c) == NULL))
 		return -1;
 
+	for (uint32_t i = thread_c; i--;) {
+		int32_t ret;
+		uint16_t i16 = (uint16_t)i;
+
+		ret = tss_push(&state->chan_stack, i16);
+		TASSERT(ret == (int32_t)i);
+
+		ret = tss_push(&state->thread_stack, i16);
+		TASSERT(ret == (int32_t)i);
+	}
+
 	return 0;
 }
 
@@ -192,6 +205,18 @@ static int epoll_add(int epl_fd, int fd, uint32_t events)
 	return 0;
 }
 
+
+static int epoll_delete(int epl_fd, int fd)
+{
+	int err;
+
+	if (unlikely(epoll_ctl(epl_fd, EPOLL_CTL_DEL, fd, NULL) < 0)) {
+		err = errno;
+		pr_error("epoll_ctl(EPOLL_CTL_DEL): " PRERF, PREAR(err));
+		return -1;
+	}
+	return 0;
+}
 
 
 static int init_epoll(struct gwbot_state *state)
@@ -312,12 +337,35 @@ out:
 }
 
 
+static const char *convert_addr_ntop(struct sockaddr_in *addr, char *src_ip_buf)
+{
+	int err;
+	const char *ret;
+	in_addr_t saddr = addr->sin_addr.s_addr;
+
+	ret = inet_ntop(AF_INET, &saddr, src_ip_buf, IPV4_L);
+	if (unlikely(ret == NULL)) {
+		err = errno;
+		err = err ? err : EINVAL;
+		pr_err("inet_ntop(): " PRERF, PREAR(err));
+		return NULL;
+	}
+
+	return ret;
+}
+
+
 static int run_acceptor(int tcp_fd, struct gwbot_state *state)
 {
 	int err;
 	int chan_fd;
+	int32_t pop_ret;
+	uint16_t src_port;
+	const char *src_ip;
 	struct gwchan *chan;
+	struct timeval tmvl;
 	struct sockaddr_in addr;
+	char src_ip_buf[IPV4_L + 1];
 	socklen_t addr_len = sizeof(addr);
 
 	memset(&addr, 0, sizeof(addr));
@@ -330,12 +378,52 @@ static int run_acceptor(int tcp_fd, struct gwbot_state *state)
 		return -1;
 	}
 
-	/*
-	 * TODO: Create stack to retrieve channel in O(1).
-	 */
-	(void)chan;
-	(void)state;
 
+	src_port = ntohs(addr.sin_port);
+	src_ip   = convert_addr_ntop(&addr, src_ip_buf);
+	if (unlikely(!src_ip)) {
+		pr_err("Cannot parse source address");
+		goto out_close;
+	}
+
+	pop_ret = tss_pop(&state->chan_stack);
+	if (unlikely(pop_ret == -1)) {
+		pr_err("Channel slot is full. Cannot accept connection from "
+		       "%s:%u", src_ip, src_port);
+		goto out_close;
+	}
+
+
+	if (unlikely(epoll_add(state->epl_fd, chan_fd, EPL_INPUT_EVT))) {
+		pr_err("Cannot add connection from %s:%u to epoll entries",
+		       src_ip, src_port);
+		goto out_close;
+	}
+
+
+	if (unlikely(gettimeofday(&tmvl, NULL) < 0)) {
+		err = errno;
+		pr_err("gettimeofday() when accepting %s:%u: " PRERF,
+		       src_ip, src_port, PREAR(err));
+		goto out_close;
+	}
+
+
+	chan = &state->chans[pop_ret];
+	chan->chan_fd    = chan_fd;
+	chan->chan_idx   = (uint32_t)pop_ret;
+	chan->started_at = tmvl.tv_sec;
+	chan->recv_s     = 0;
+	chan->src_port   = src_port;
+	sane_strncpy(chan->src_ip, src_ip, sizeof(chan->src_ip));
+
+	state->epl_map_chan[chan_fd] = (uint16_t)pop_ret + EPL_MAP_SHIFT;
+
+	pr_notice("New connection from %s:%u", src_ip, src_port);
+	return 0;
+
+out_close:
+	close(tcp_fd);
 	return 0;
 }
 
@@ -487,9 +575,12 @@ static int handle_client_event2(int cli_fd, struct gwbot_state *state,
 
 	return 0;
 out_close:
-	// epoll_delete
+	tss_push(&state->chan_stack, (uint16_t)chan->chan_idx);
+	epoll_delete(state->epl_fd, cli_fd);
 	reset_chan(chan, chan->chan_idx);
 	close(cli_fd);
+
+	state->epl_map_chan[cli_fd] = EPL_MAP_TO_NOP;
 	return 0;
 }
 
