@@ -602,30 +602,6 @@ int gwbot_run(struct gwbot_cfg *cfg)
 
 	tg_api_global_init();
 
-	
-
-
-
-/* Minimal working example */
-	tg_api_handle *handle;
-
-	tg_api_smsg msg = {
-		.chat_id = 1341091260, /* GNU/Weeb TDD group aliwoto: 1341091260, -1001422514298 */
-		.reply_to_msg_id = 0, /* 0 means don't reply to msg */
-		.parse_mode = PARSE_MODE_HTML,
-		.text = "AAAAA\n<b>Test enum parse_mode from ALi.w</b>"
-	};
-
-
-
-	// 1795753346:AAEO4ALBJN4_QNLUxgbD-Am6sdcXqUIo2e8
-	handle = tg_api_hcreate(cfg->cred.token);
-	tga_send_msg(handle, &msg);
-	printf("%s\n", tg_api_res_get_body(&handle->res));
-
-
-
-
 	ret = validate_cfg(cfg);
 	if (unlikely(ret < 0))
 		goto out;
