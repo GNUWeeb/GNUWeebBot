@@ -105,7 +105,7 @@ static void *calloc_wrp(size_t nmemb, size_t size)
 }
 
 
-static void reset_chan(struct gwchan *chan, uint16_t chan_idx)
+static void reset_chan(struct gwchan *chan, uint32_t chan_idx)
 {
 	chan->chan_fd    = -1;
 	chan->chan_idx   = chan_idx;
@@ -123,7 +123,7 @@ static int init_chans(struct gwbot_state *state)
 	if (unlikely(chans == NULL))
 		return -1;
 
-	for (uint16_t i = 0; i < thread_c; i++)
+	for (uint32_t i = 0; i < thread_c; i++)
 		reset_chan(&chans[i], i);
 
 	state->chans = chans;
@@ -149,7 +149,7 @@ static int init_epl_map(struct gwbot_state *state)
 
 static int init_state(struct gwbot_state *state)
 {
-	uint32_t thread_c = state->cfg->worker.thread_c;
+	uint16_t thread_c = state->cfg->worker.thread_c;
 
 	state->stop_el           = false;
 	state->intr_sig          = 0;
@@ -165,9 +165,9 @@ static int init_state(struct gwbot_state *state)
 		return -1;
 	if (unlikely(init_epl_map(state) < 0))
 		return -1;
-	if (unlikely(tss_init(&state->chan_stack, thread_c) != NULL))
+	if (unlikely(tss_init(&state->chan_stack, thread_c) == NULL)) 
 		return -1;
-	if (unlikely(tss_init(&state->thread_stack, thread_c) != NULL))
+	if (unlikely(tss_init(&state->thread_stack, thread_c) == NULL))
 		return -1;
 
 	return 0;
@@ -612,15 +612,19 @@ int gwbot_run(struct gwbot_cfg *cfg)
 	ret = validate_cfg(cfg);
 	if (unlikely(ret < 0))
 		goto out;
+
 	ret = init_state(&state);
 	if (unlikely(ret < 0))
 		goto out;
+
 	ret = init_epoll(&state);
 	if (unlikely(ret < 0))
 		goto out;
+
 	ret = init_socket(&state);
 	if (unlikely(ret < 0))
 		goto out;
+
 	ret = run_event_loop(&state);
 out:
 	destroy_state(&state);

@@ -31,7 +31,9 @@ struct gwchan {
 		struct chan_pkt		pkt;
 		char			raw_buf[sizeof(struct chan_pkt)];
 	} uni_pkt;
-	struct_pad(0, 6);
+	uint16_t		src_port;
+	char			src_ip[IPV4_L];
+	struct_pad(0, 4);
 };
 
 
