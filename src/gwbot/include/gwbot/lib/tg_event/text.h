@@ -56,15 +56,13 @@ static inline _tg_text_msg *tg_get_text_msg(const _tg_event_msg *msg)
         _tg_text_msg *text_msg;
 
 
-        if (msg->msg_kind != TEXT_MSG)
-        {
+        if (msg->msg_kind != TEXT_MSG) {
                 pr_err("Trying to get a text from non-text kind event!");
                 return NULL;
         }
 
         ret = convert_text_msg(msg, text_msg);
-        if (ret != 0)
-        {
+        if (ret != 0) {
                 pr_err("argument message data was not in correct format.")
                 return NULL;
         }
