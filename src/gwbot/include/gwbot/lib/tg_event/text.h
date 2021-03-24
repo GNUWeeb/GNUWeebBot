@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  src/gwbot/include/gwbot/lib/tg_api/send_message.h
+ *  src/gwbot/include/gwbot/lib/tg_event/text.h
  *
- *  String helpers header for TeaVPN2
+ *  Text message header for events
  *
- *  Copyright (C) 2021  Ammar Faizi
+ *  Copyright (C) 2021  aliwoto
  */
 
 #ifndef GWBOT__LIB__TG_EVENT__TEXT_H
@@ -29,10 +29,11 @@ typedef struct _tg_text_msg {
         bool            has_entities;
         bool            is_replied;
         uint64_t        message_id;
+        uint64_t        date;
         _tg_msg_sender  sender;
         _tg_event_chat  chat_room;
-        uint64_t        date;
-        _tg_msg_entity  entity;
+        _tg_msg_entity  *entity;
+        _tg_text_msg    *reply_to_msg;
 } _tg_text_msg;
 
 
@@ -46,20 +47,28 @@ typedef struct _tg_msg_entity
         _tg_text_type_t text_type;
 } _tg_msg_entity;
 
+int convert_text_msg(const _tg_event_msg *msg, _tg_text_msg *text_msg);
 
 
-static inline _tg_text_msg *tg_get_text_msg(_tg_event_msg *msg)
+static inline _tg_text_msg *tg_get_text_msg(const _tg_event_msg *msg)
 {
+        int ret;
+        _tg_text_msg *text_msg;
+
+
         if (msg->msg_kind != TEXT_MSG)
         {
-                pr_err("ERR: TRYING TO GET A TEXT FROM NON-TEXT KIND EVENT!");
+                pr_err("Trying to get a text from non-text kind event!");
                 return NULL;
         }
-        /*
-        * TODO:
-        * we should convert the _tg_event_msg to a _tg_text_msg here.
-        * 
-        */
+
+        ret = convert_text_msg(msg, text_msg);
+        if (ret != 0)
+        {
+                pr_err("argument message data was not in correct format.")
+                return NULL;
+        }
+        return text_msg;
 }
 
 
