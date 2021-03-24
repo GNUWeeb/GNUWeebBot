@@ -496,11 +496,11 @@ static void *handle_thread(void *thread_void_p)
 {
 	struct gwbot_thread *thread = thread_void_p;
 	struct gwbot_state  *state  = thread->state;
-	const char *json = thread->uni_pkt.pkt.dat;
+	const char *json = thread->uni_pkt.pkt.data;
 
 	/* Print JSON */
-	printf("%s\n", a);
-
+	printf("%s\n", json);
+	(void)state;
 	return NULL;
 }
 
