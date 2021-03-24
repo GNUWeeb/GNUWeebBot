@@ -89,7 +89,7 @@ static int validate_cfg(struct gwbot_cfg *cfg)
 	struct gwbot_wrk_cfg  *worker = &cfg->worker;
 
 	if (unlikely(sock->bind_addr == NULL || *sock->bind_addr == '\0')) {
-		pr_err("sock->bind_addr cannot be empty!");
+		pr_err("sock->bind_addr cannot be empty");
 		return -EINVAL;
 	}
 
@@ -494,17 +494,28 @@ static void *handle_thread(void *thread_void_p)
 {
 	(void)thread_void_p;
 	/* TODO: Add event handler */
+	sleep(100000);
 	return NULL;
 }
 
 
-static void enqueue_to_sqe(uint16_t fdata_len, struct gwbot_state *state,
-		       	   struct gwchan *chan)
+static int enqueue_to_sqe(uint16_t fdata_len, struct gwbot_state *state,
+			  struct gwchan *chan)
 {
-	(void)chan;
-	(void)state;
-	(void)fdata_len;
-	/* TODO: Fix pending queue */
+	int err;
+	struct sqe_node *node;
+	size_t cpy_len = sizeof(fdata_len) + fdata_len;
+	void  *cpy_src = chan->uni_pkt.raw_buf;
+
+	node = sqe_enqueue(&state->sqes, cpy_src, cpy_len);
+	if (unlikely(node == NULL)) {
+		err = errno;
+		if (err == EAGAIN)
+			pr_err("SQE buffer is full");
+		return -1;
+	}
+
+	return 0;
 }
 
 
@@ -514,16 +525,20 @@ static void submit_sqe(uint16_t fdata_len, struct gwbot_state *state,
 	int ret;
 	int32_t pop_ret;
 	struct gwbot_thread *thread;
+	size_t cpy_len = sizeof(fdata_len) + fdata_len;
 
 	pop_ret = tss_pop(&state->thread_stack);
 	if (unlikely(pop_ret == -1)) {
-		enqueue_to_sqe(fdata_len, state, chan);
-		return;
+
+		prl_notice(0, "Thread(s) are all busy, saving SQE...");
+		if (unlikely(enqueue_to_sqe(fdata_len, state, chan) == 0))
+			return; /* OK */
+
+		goto out_err;
 	}
 
 	thread = &state->threads[pop_ret];
-	thread->uni_pkt.pkt.len = fdata_len;
-	memcpy(thread->uni_pkt.pkt.data, chan->uni_pkt.pkt.data, fdata_len);
+	memcpy(&thread->uni_pkt.pkt, &chan->uni_pkt.pkt, cpy_len);
 
 	ret = pthread_create(&thread->thread, NULL, handle_thread, thread);
 	if (unlikely(ret != 0)) {
@@ -534,6 +549,12 @@ static void submit_sqe(uint16_t fdata_len, struct gwbot_state *state,
 		return;
 	}
 	pthread_detach(thread->thread);
+
+	return;
+
+out_err:
+	/* TODO: Send error response to client */
+	return;	
 }
 
 
@@ -604,6 +625,7 @@ static int handle_client_event3(size_t recv_s, struct gwbot_state *state,
 	}
 
 
+	pkt->len = fdata_len;
 	submit_sqe(fdata_len, state, chan);
 
 	/*
@@ -619,7 +641,7 @@ out:
 }
 
 
-static int handle_client_event2(int cli_fd, struct gwbot_state *state,
+static int handle_client_event2(int chan_fd, struct gwbot_state *state,
 				struct gwchan *chan, uint32_t revents)
 {
 	int err;
@@ -637,7 +659,7 @@ static int handle_client_event2(int cli_fd, struct gwbot_state *state,
 	recv_s   = chan->recv_s;
 	recv_buf = &chan->uni_pkt.raw_buf[recv_s];
 	recv_len = sizeof(chan->uni_pkt.raw_buf) - recv_s;
-	recv_ret = recv(cli_fd, recv_buf, recv_len, 0);
+	recv_ret = recv(chan_fd, recv_buf, recv_len, 0);
 
 	if (unlikely(recv_ret == 0)) {
 		pr_notice("Client has closed its connection");
@@ -658,32 +680,33 @@ static int handle_client_event2(int cli_fd, struct gwbot_state *state,
 
 	return 0;
 out_close:
+	prl_notice(0, "Closing connection from " PRWIU "...", W_IU(chan));
 	tss_push(&state->chan_stack, (uint16_t)chan->chan_idx);
-	epoll_delete(state->epl_fd, cli_fd);
+	epoll_delete(state->epl_fd, chan_fd);
 	reset_chan(chan, chan->chan_idx);
-	close(cli_fd);
+	close(chan_fd);
 
-	state->epl_map_chan[cli_fd] = EPL_MAP_TO_NOP;
+	state->epl_map_chan[chan_fd] = EPL_MAP_TO_NOP;
 	return 0;
 }
 
 
-static int handle_client_event(int cli_fd, struct gwbot_state *state,
+static int handle_client_event(int chan_fd, struct gwbot_state *state,
 			       uint32_t revents)
 {
 	uint16_t map_to;
 	struct gwchan *chan;
 
-	map_to = state->epl_map_chan[cli_fd];
+	map_to = state->epl_map_chan[chan_fd];
 	if (unlikely(map_to == EPL_MAP_TO_NOP)) {
 		pr_err("Bug: sqe_epoll_map[%d] value is EPL_MAP_TO_NOP",
-		       cli_fd);
+		       chan_fd);
 		return -1;
 	}
 
 	map_to -= EPL_MAP_SHIFT;
 	chan    = &state->chans[map_to];
-	return handle_client_event2(cli_fd, state, chan, revents);
+	return handle_client_event2(chan_fd, state, chan, revents);
 }
 
 
@@ -771,6 +794,8 @@ static void close_file_descriptors(struct gwbot_state *state)
 
 static void destroy_state(struct gwbot_state *state)
 {
+	/* TODO: Wait for threads */
+
 	close_file_descriptors(state);
 	tss_destroy(&state->chan_stack);
 	tss_destroy(&state->thread_stack);

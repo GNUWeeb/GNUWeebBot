@@ -10,6 +10,7 @@
 #ifndef GWBOT__SQE_H
 #define GWBOT__SQE_H
 
+#include <errno.h>
 #include <stdalign.h>
 #include <gwbot/base.h>
 
@@ -67,13 +68,16 @@ static inline_prod struct sqe_node *sqe_enqueue(struct sqe_master *sqe,
 	struct sqe_node *node, *old_tail, *new_tail;
 	uint32_t num = sqe->num;
 
-	if (unlikely(num >= sqe->capacity))
+	if (unlikely(num >= sqe->capacity)) {
+		errno = EAGAIN;
 		return NULL;
+	}
 
 	node = calloc(1, sizeof(*node) + len + 1);
 	if (unlikely(node == NULL)) {
 		int err = errno;
 		pr_err("calloc(): " PRERF, PREAR(err));
+		errno = ENOMEM;
 		return NULL;
 	}
 
