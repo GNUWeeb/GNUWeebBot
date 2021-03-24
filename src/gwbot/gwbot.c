@@ -392,20 +392,19 @@ static int run_acceptor(int tcp_fd, struct gwbot_state *state)
 		       "%s:%u", src_ip, src_port);
 		goto out_close;
 	}
-	pr_notice("id = %d", pop_ret);
-
-
-	if (unlikely(epoll_add(state->epl_fd, chan_fd, EPL_INPUT_EVT))) {
-		pr_err("Cannot add connection from %s:%u to epoll entries",
-		       src_ip, src_port);
-		goto out_close;
-	}
 
 
 	if (unlikely(gettimeofday(&tmvl, NULL) < 0)) {
 		err = errno;
 		pr_err("gettimeofday() when accepting %s:%u: " PRERF,
 		       src_ip, src_port, PREAR(err));
+		goto out_close;
+	}
+
+
+	if (unlikely(epoll_add(state->epl_fd, chan_fd, EPL_INPUT_EVT))) {
+		pr_err("Cannot add connection from %s:%u to epoll entries",
+		       src_ip, src_port);
 		goto out_close;
 	}
 
@@ -424,7 +423,7 @@ static int run_acceptor(int tcp_fd, struct gwbot_state *state)
 	return 0;
 
 out_close:
-	close(tcp_fd);
+	close(chan_fd);
 	return 0;
 }
 
@@ -636,9 +635,9 @@ static int run_event_loop(struct gwbot_state *state)
 	int ret = 0;
 	int epoll_ret;
 	int timeout = 500; /* in milliseconds */
-	int maxevents = 30;
+	int maxevents = 32;
 	int epl_fd = state->epl_fd;
-	struct epoll_event events[30];
+	struct epoll_event events[32];
 
 	while (likely(!state->stop_el)) {
 		epoll_ret = epoll_wait(epl_fd, events, maxevents, timeout);
@@ -659,6 +658,8 @@ static int run_event_loop(struct gwbot_state *state)
 
 		if (unlikely(handle_events(epoll_ret, events, state) < 0))
 			break;
+
+		/* TODO: Timeout monitor */
 	}
 
 
