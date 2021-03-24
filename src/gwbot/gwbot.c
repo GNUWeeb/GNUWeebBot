@@ -136,10 +136,12 @@ static void reset_chan(struct gwchan *chan, uint32_t chan_idx)
 }
 
 
-static void reset_thread(struct gwbot_thread *thread, uint32_t thread_idx)
+static void reset_thread(struct gwbot_thread *thread, uint32_t thread_idx,
+			 struct gwbot_state *state)
 {
 	thread->started_at = 0u;
 	thread->thread_idx = thread_idx;
+	thread->state      = state;
 }
 
 
@@ -170,7 +172,7 @@ static int init_state_threads(struct gwbot_state *state)
 		return -1;
 
 	for (uint32_t i = 0; i < thread_c; i++)
-		reset_thread(&threads[i], i);
+		reset_thread(&threads[i], i, state);
 
 	state->threads = threads;
 	return 0;
@@ -492,9 +494,13 @@ static int handle_tcp_event(int tcp_fd, struct gwbot_state *state,
 
 static void *handle_thread(void *thread_void_p)
 {
-	(void)thread_void_p;
-	/* TODO: Add event handler */
-	sleep(100000);
+	struct gwbot_thread *thread = thread_void_p;
+	struct gwbot_state  *state  = thread->state;
+	const char *json = thread->uni_pkt.pkt.dat;
+
+	/* Print JSON */
+	printf("%s\n", a);
+
 	return NULL;
 }
 
@@ -624,8 +630,8 @@ static int handle_client_event3(size_t recv_s, struct gwbot_state *state,
 		return -1;
 	}
 
-
 	pkt->len = fdata_len;
+	pkt->data[fdata_len] = '\0';
 	submit_sqe(fdata_len, state, chan);
 
 	/*
