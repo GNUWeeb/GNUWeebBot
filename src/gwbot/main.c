@@ -3,7 +3,6 @@
 #include <gwbot/common.h>
 #include <gwbot/lib/arena.h>
 #include <gwbot/lib/tg_api/send_message.h>
-#include <json-c/json.h>
 
 
 int main(int argc, char *argv[])

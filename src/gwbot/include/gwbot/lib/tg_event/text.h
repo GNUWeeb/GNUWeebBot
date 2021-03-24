@@ -1,20 +1,20 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  src/gwbot/include/gwbot/lib/tg_event/sticker.h
+ *  src/gwbot/include/gwbot/lib/tg_event/text.h
  *
  *  Text message header for events
  *
  *  Copyright (C) 2021  aliwoto
  */
 
-#ifndef GWBOT__LIB__TG_EVENT__STICKER_H
-#define GWBOT__LIB__TG_EVENT__STICKER_H
+#ifndef GWBOT__LIB__TG_EVENT__TEXT_H
+#define GWBOT__LIB__TG_EVENT__TEXT_H
 
 #ifndef INCLUDE_SUB_TG_EVENT
 #  error This header should only be included from <gwbot/lib/tg_event.h>
 #endif
 
-struct tgev_sticker {
+struct tgev_text {
 	uint64_t		msg_id;
 	struct tgevi_from	from;
 	struct tgevi_chat	chat;
@@ -24,4 +24,4 @@ struct tgev_sticker {
 	struct tgev		*reply_to;
 };
 
-#endif /* #ifndef GWBOT__LIB__TG_EVENT__STICKER_H */
+#endif /* #ifndef GWBOT__LIB__TG_EVENT__TEXT_H */
