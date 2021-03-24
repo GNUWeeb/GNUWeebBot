@@ -392,6 +392,7 @@ static int run_acceptor(int tcp_fd, struct gwbot_state *state)
 		       "%s:%u", src_ip, src_port);
 		goto out_close;
 	}
+	pr_notice("id = %d", pop_ret);
 
 
 	if (unlikely(epoll_add(state->epl_fd, chan_fd, EPL_INPUT_EVT))) {
@@ -598,7 +599,8 @@ static int handle_client_event(int cli_fd, struct gwbot_state *state,
 		return -1;
 	}
 
-	chan = &state->chans[map_to];
+	map_to -= EPL_MAP_SHIFT;
+	chan    = &state->chans[map_to];
 	return handle_client_event2(cli_fd, state, chan, revents);
 }
 
@@ -667,10 +669,18 @@ static int run_event_loop(struct gwbot_state *state)
 static void close_file_descriptors(struct gwbot_state *state)
 {
 	int tcp_fd = state->tcp_fd;
+	int epl_fd = state->epl_fd;
 
 	if (likely(tcp_fd != -1)) {
 		pr_notice("Closing state->tcp_fd (%d)", tcp_fd);
 		close(tcp_fd);
+		state->tcp_fd = -1;
+	}
+
+	if (likely(epl_fd != -1)) {
+		pr_notice("Closing state->epl_fd (%d)", epl_fd);
+		close(epl_fd);
+		state->epl_fd = -1;
 	}
 }
 
