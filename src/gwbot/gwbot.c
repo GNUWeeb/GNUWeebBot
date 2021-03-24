@@ -19,6 +19,7 @@
 #include <sys/epoll.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <gwbot/sqe.h>
 #include <gwbot/common.h>
 #include <gwbot/gwchan.h>
 #include <gwbot/tstack.h>
@@ -30,6 +31,24 @@
 #define EPL_MAP_SHIFT		(0x0001u)
 #define EPL_MAP_SIZE		(0xffffu)
 #define EPL_INPUT_EVT		(EPOLLIN | EPOLLPRI)
+
+/* Macros for printing  */
+#define W_IP(CHAN) ((CHAN)->src_ip), ((CHAN)->src_port)
+#define W_IU(CHAN) W_IP(CHAN)
+#define PRWIU "%s:%d"
+
+struct gwbot_thread {
+	time_t			started_at;
+	uint32_t		thread_idx;
+	struct_pad(0, 4);
+	pthread_t		thread;
+	struct gwbot_state	*state;
+	union {
+		struct chan_pkt		pkt;
+		char			raw_buf[sizeof(struct chan_pkt)];
+	} uni_pkt;
+	struct_pad(1, 6);
+};
 
 
 struct gwbot_state {
@@ -44,6 +63,7 @@ struct gwbot_state {
 	uint16_t		*epl_map_chan;
 	struct gwchan		*chans;
 	struct gwbot_thread	*threads;
+	struct sqe_master	sqes;
 
 	struct tstack		chan_stack;
 	struct tstack		thread_stack;
@@ -116,7 +136,14 @@ static void reset_chan(struct gwchan *chan, uint32_t chan_idx)
 }
 
 
-static int init_chans(struct gwbot_state *state)
+static void reset_thread(struct gwbot_thread *thread, uint32_t thread_idx)
+{
+	thread->started_at = 0u;
+	thread->thread_idx = thread_idx;
+}
+
+
+static int init_state_chans(struct gwbot_state *state)
 {
 	struct gwchan *chans;
 	uint16_t thread_c = state->cfg->worker.thread_c;
@@ -129,6 +156,23 @@ static int init_chans(struct gwbot_state *state)
 		reset_chan(&chans[i], i);
 
 	state->chans = chans;
+	return 0;
+}
+
+
+static int init_state_threads(struct gwbot_state *state)
+{
+	struct gwbot_thread *threads;
+	uint16_t thread_c = state->cfg->worker.thread_c;
+
+	threads = calloc_wrp(thread_c, sizeof(*threads));
+	if (unlikely(threads == NULL))
+		return -1;
+
+	for (uint32_t i = 0; i < thread_c; i++)
+		reset_thread(&threads[i], i);
+
+	state->threads = threads;
 	return 0;
 }
 
@@ -163,13 +207,17 @@ static int init_state(struct gwbot_state *state)
 	state->chan_stack.arr    = NULL;
 	state->thread_stack.arr  = NULL;
 
-	if (unlikely(init_chans(state) < 0))
+	if (unlikely(init_state_chans(state) < 0))
+		return -1;
+	if (unlikely(init_state_threads(state) < 0))
 		return -1;
 	if (unlikely(init_epl_map(state) < 0))
 		return -1;
 	if (unlikely(tss_init(&state->chan_stack, thread_c) == NULL)) 
 		return -1;
 	if (unlikely(tss_init(&state->thread_stack, thread_c) == NULL))
+		return -1;
+	if (unlikely(sqe_init(&state->sqes, 1024) == NULL))
 		return -1;
 
 	for (uint32_t i = thread_c; i--;) {
@@ -442,15 +490,50 @@ static int handle_tcp_event(int tcp_fd, struct gwbot_state *state,
 }
 
 
-static void submit_sqe(uint16_t fdata_len, struct chan_pkt *pkt,
-		       struct gwbot_state *state)
+static void *handle_thread(void *thread_void_p)
 {
-	/*
-	 * TODO: Fix submit_sqe and dispatcher.
-	 */
-	(void)fdata_len;
-	(void)pkt;
+	(void)thread_void_p;
+	/* TODO: Add event handler */
+	return NULL;
+}
+
+
+static void enqueue_to_sqe(uint16_t fdata_len, struct gwbot_state *state,
+		       	   struct gwchan *chan)
+{
+	(void)chan;
 	(void)state;
+	(void)fdata_len;
+	/* TODO: Fix pending queue */
+}
+
+
+static void submit_sqe(uint16_t fdata_len, struct gwbot_state *state,
+		       struct gwchan *chan)
+{
+	int ret;
+	int32_t pop_ret;
+	struct gwbot_thread *thread;
+
+	pop_ret = tss_pop(&state->thread_stack);
+	if (unlikely(pop_ret == -1)) {
+		enqueue_to_sqe(fdata_len, state, chan);
+		return;
+	}
+
+	thread = &state->threads[pop_ret];
+	thread->uni_pkt.pkt.len = fdata_len;
+	memcpy(thread->uni_pkt.pkt.data, chan->uni_pkt.pkt.data, fdata_len);
+
+	ret = pthread_create(&thread->thread, NULL, handle_thread, thread);
+	if (unlikely(ret != 0)) {
+		ret = ret > 0 ? ret : -ret;
+		pr_err("pthread_create() when serving " PRWIU ": " PRERF,
+		       W_IU(chan), PREAR(ret));
+		state->stop_el = true;
+		return;
+	}
+	pthread_detach(thread->thread);
 }
 
 
@@ -521,7 +604,7 @@ static int handle_client_event3(size_t recv_s, struct gwbot_state *state,
 	}
 
 
-	submit_sqe(fdata_len, pkt, state);
+	submit_sqe(fdata_len, state, chan);
 
 	/*
 	 * The SQE has been submitted, now we can drop the connection.
@@ -691,6 +774,7 @@ static void destroy_state(struct gwbot_state *state)
 	close_file_descriptors(state);
 	tss_destroy(&state->chan_stack);
 	tss_destroy(&state->thread_stack);
+	sqe_destroy(&state->sqes);
 	free(state->epl_map_chan);
 	free(state->chans);
 }
