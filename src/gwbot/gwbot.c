@@ -24,7 +24,7 @@
 #include <gwbot/gwchan.h>
 #include <gwbot/tstack.h>
 #include <gwbot/lib/string.h>
-#include <gwbot/lib/tg_api/send_message.h>
+#include <gwbot/event_handler.h>
 
 
 #define EPL_MAP_TO_NOP		(0x0000u)
@@ -36,6 +36,11 @@
 #define W_IP(CHAN) ((CHAN)->src_ip), ((CHAN)->src_port)
 #define W_IU(CHAN) W_IP(CHAN)
 #define PRWIU "%s:%d"
+
+struct gwlock {
+	bool			need_destroy;
+	pthread_mutex_t		mutex;
+};
 
 struct gwbot_thread {
 	time_t			started_at;
@@ -66,11 +71,24 @@ struct gwbot_state {
 	struct sqe_master	sqes;
 
 	struct tstack		chan_stack;
+	struct gwlock		thread_stk_lock;
 	struct tstack		thread_stack;
 };
 
 
 static struct gwbot_state *g_state;
+
+
+static int mutex_lock(struct gwlock *lock)
+{
+	return pthread_mutex_lock(&lock->mutex);
+}
+
+
+static int mutex_unlock(struct gwlock *lock)
+{
+	return pthread_mutex_unlock(&lock->mutex);
+}
 
 
 static void handle_interrupt(int sig)
@@ -197,6 +215,7 @@ static int init_epl_map(struct gwbot_state *state)
 
 static int init_state(struct gwbot_state *state)
 {
+	int err;
 	uint16_t thread_c = state->cfg->worker.thread_c;
 
 	state->stop_el           = false;
@@ -222,6 +241,16 @@ static int init_state(struct gwbot_state *state)
 	if (unlikely(sqe_init(&state->sqes, 1024) == NULL))
 		return -1;
 
+
+	err = pthread_mutex_init(&state->thread_stk_lock.mutex, NULL);
+	if (unlikely(err != 0)) {
+		err = (err > 0) ? err : -err;
+		pr_err("pthread_mutex_init(): " PRERF, PREAR(err));
+		return -1;
+	}
+	state->thread_stk_lock.need_destroy = true;
+
+
 	for (uint32_t i = thread_c; i--;) {
 		int32_t ret;
 		uint16_t i16 = (uint16_t)i;
@@ -229,8 +258,10 @@ static int init_state(struct gwbot_state *state)
 		ret = tss_push(&state->chan_stack, i16);
 		TASSERT(ret == (int32_t)i);
 
+		mutex_lock(&state->thread_stk_lock);
 		ret = tss_push(&state->thread_stack, i16);
 		TASSERT(ret == (int32_t)i);
+		mutex_unlock(&state->thread_stk_lock);
 	}
 
 	return 0;
@@ -498,9 +529,13 @@ static void *handle_thread(void *thread_void_p)
 	struct gwbot_state  *state  = thread->state;
 	const char *json = thread->uni_pkt.pkt.data;
 
-	/* Print JSON */
-	printf("%s\n", json);
-	(void)state;
+
+	gwbot_event_handler(state->cfg, json);
+
+	reset_thread(thread, thread->thread_idx, state);
+	mutex_lock(&state->thread_stk_lock);
+	tss_push(&state->thread_stack, (uint16_t)thread->thread_idx);
+	mutex_unlock(&state->thread_stk_lock);
 	return NULL;
 }
 
@@ -533,7 +568,9 @@ static void submit_sqe(uint16_t fdata_len, struct gwbot_state *state,
 	struct gwbot_thread *thread;
 	size_t cpy_len = sizeof(fdata_len) + fdata_len;
 
+	mutex_lock(&state->thread_stk_lock);
 	pop_ret = tss_pop(&state->thread_stack);
+	mutex_unlock(&state->thread_stk_lock);
 	if (unlikely(pop_ret == -1)) {
 
 		prl_notice(0, "Thread(s) are all busy, saving SQE...");
@@ -806,6 +843,10 @@ static void destroy_state(struct gwbot_state *state)
 	tss_destroy(&state->chan_stack);
 	tss_destroy(&state->thread_stack);
 	sqe_destroy(&state->sqes);
+
+	if (state->thread_stk_lock.need_destroy)
+		pthread_mutex_destroy(&state->thread_stk_lock.mutex);
+
 	free(state->epl_map_chan);
 	free(state->threads);
 	free(state->chans);

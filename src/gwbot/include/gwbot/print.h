@@ -34,7 +34,7 @@ void __pr_notice_nm(const char *fmt, ...)
 	__attribute__((format(printf, 1, 2)));
 
 #define PRERF "(errno=%d) %s"
-#define PREAR(NUM) NUM, strerror(NUM)
+#define PREAR(NUM) (NUM), strerror((NUM))
 
 #ifndef NOTICE_ALWAYS_EXEC
 #  define NOTICE_ALWAYS_EXEC 0

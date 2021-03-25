@@ -6,7 +6,7 @@
 #include <gwbot/lib/tg_api/send_message.h>
 
 
-int tga_send_msg(tg_api_handle *handle, tg_api_smsg *ctx)
+int tg_api_send_msg(tg_api_handle *handle, struct tga_send_msg *ctx)
 {
 	size_t pos = 0;
 	char buf[8096];
