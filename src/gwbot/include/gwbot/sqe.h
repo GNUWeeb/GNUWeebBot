@@ -145,7 +145,7 @@ static inline_prod struct sqe_node *sqe_dequeue(struct sqe_master *sqe)
 
 	sqe->head = new_head;
 	sqe->num--;
-	return old_head;
+	return ret;
 }
 
 
