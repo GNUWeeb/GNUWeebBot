@@ -11,6 +11,7 @@ DEP_DIRS	+= $(BASE_DEP_DIR)/src/gwbot
 
 
 include $(BASE_DIR)/src/gwbot/lib/Makefile
+include $(BASE_DIR)/src/gwbot/modules/Makefile
 
 
 OBJ_TMP_CC	:= \
