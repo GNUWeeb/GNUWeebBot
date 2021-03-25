@@ -6,7 +6,7 @@
 # https://github.com/GNUWeeb/GNUWeebBot
 #
 
-INCLUDE_DIR += -I$(BASE_DIR)/src/gwbot/include
+INCLUDE_DIR += -I$(BASE_DIR)/src -I$(BASE_DIR)/src/gwbot/include
 DEP_DIRS	+= $(BASE_DEP_DIR)/src/gwbot
 
 
