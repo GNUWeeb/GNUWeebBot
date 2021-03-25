@@ -20,6 +20,7 @@ struct tgev_text {
 	struct tgevi_chat	chat;
 	time_t			date;
 	const char		*text;
+	uint16_t		entity_c; /* Number of entities */
 	struct tgevi_entity	*entities;
 	struct tgev		*reply_to;
 };
@@ -80,7 +81,23 @@ static __always_inline int parse_event_text(json_object *jmsg, struct tgev *evt)
 
 
 
-	return ret;
+	if (unlikely(!json_object_object_get_ex(jmsg, "date", &res))) {
+		/* `date` is not mandatory */
+		etext->date = 0;
+	} else {
+		etext->date = json_object_get_uint64(res);
+	}
+
+
+	if (!json_object_object_get_ex(jmsg, "reply_to_message_id", &res)) {
+		/* `reply_to` is not mandatory */
+		etext->reply_to = NULL;
+	} else {
+		/* TODO: Parse reply to */
+		etext->reply_to = NULL;
+	}
+
+	return 0;
 }
 
 #endif /* #ifdef SUB_TG_EVENT_CIRCULAR_INLINE */

@@ -98,7 +98,7 @@ static __always_inline int parse_tgevi_from(json_object *jfrom,
 
 
 
-	if (unlikely(!json_object_object_get_ex(jfrom, "lang", &res))) {
+	if (unlikely(!json_object_object_get_ex(jfrom, "language_code", &res))) {
 		/* `lang` is not mandatory */
 		from->lang[0] = '\0';
 	} else {

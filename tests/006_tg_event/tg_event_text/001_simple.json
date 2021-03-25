@@ -17,7 +17,7 @@
             "type": "supergroup"
         },
         "date": 1616588789,
-        "text": "/debug",
+        "text": "/debug Hello World!",
         "entities": [
             {
                 "offset": 0,

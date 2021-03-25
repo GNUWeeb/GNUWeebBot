@@ -9,17 +9,28 @@ uint32_t total_credit = 0;
 static void sig_handler(int sig);
 static void print_info(int ret);
 
+static void exec_test(struct list_func *list)
+{
+	size_t i = 0;
+	while (true) {
+		if (!list[i].func)
+			break;
+		total_credit += list[i].credit;
+		list[i].func();
+		i++;
+	}
+}
+
 int main()
 {
 	int ret;
+	size_t i;
 	pr_notice("Running tg_event test...");
 
 	signal(SIGSEGV, sig_handler);
 	signal(SIGABRT, sig_handler);
 
-	ret = tg_event_text();
-	if (unlikely(ret != 0))
-		goto out;
+	exec_test(tg_event_text_list);
 
 out:
 	print_info(ret);
@@ -110,9 +121,11 @@ static void print_info(int ret)
 	}
 
 	printf("==================================================\n");
-	printf("Last return value\t: %d\n", ret);
-	printf("Your accuracy\t\t: %.3f\n", accuracy);
-	printf("Earned credit\t\t: %u\n", credit);
-	printf("Total credit\t\t: %u\n", total_credit);
+	printf("\t\tSummary\n");
+	printf("--------------------------------------------------\n");
+	printf("   Last return value\t: %d\n", ret);
+	printf("   Your accuracy\t: %.2f %c\n", accuracy, '%');
+	printf("   Earned credit\t: %u\n", credit);
+	printf("   Total credit\t\t: %u\n", total_credit);
 	printf("==================================================\n");
 }
