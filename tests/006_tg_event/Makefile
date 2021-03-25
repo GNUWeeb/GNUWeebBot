@@ -52,6 +52,7 @@ $(BASE_DIR)/tests/006_tg_event/006_tg_event.test: $(TARGET_BIN) $(OBJ_CC) $(OBJ_
 
 
 -include $(BASE_DEP_DIR)/tests/006_tg_event/tg_event_text.d
+-include $(BASE_DEP_DIR)/tests/006_tg_event/tg_event_photo.d
 -include $(BASE_DEP_DIR)/tests/006_tg_event/006_tg_event.d
 
 TESTS_OBJ += $(__006_TG_EVENT_DEPS)
