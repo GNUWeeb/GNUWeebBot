@@ -3,9 +3,7 @@
 #include <string.h>
 #include <gwbot/base.h>
 #include <gwbot/lib/tg_event.h>
-#include <json-c/json_types.h>
-#include <json-c/json_pointer.h>
-#include <json-c/json_tokener.h>
+#include <json-c/json.h>
 
 
 static __always_inline int tg_event_json_parse(const char *json_str,
@@ -22,7 +20,7 @@ static __always_inline int tg_event_json_parse(const char *json_str,
 		return -ENOMEM;
 
 	do {
-		json_obj = json_tokener_parse_ex(tok, json_str, length);
+		json_obj = json_tokener_parse_ex(tok, json_str, (int)length);
 		jerr     = json_tokener_get_error(tok);
 	} while (likely(jerr == json_tokener_continue));
 
@@ -83,9 +81,9 @@ static int parse_message(json_object *json_obj, struct tgev *evt)
 }
 
 
-static __no_inline int internal_tg_event_load(const char *json_str,
-					      size_t length,
-					      struct tgev *evt)
+static  int internal_tg_event_load_str(const char *json_str,
+				       size_t length,
+				       struct tgev *evt)
 {
 	int ret;
 	json_object *json_obj = NULL;
@@ -118,7 +116,7 @@ out_err:
  * `strlen` to determine the `json_str` length.
  *
  */
-int tg_event_load_len(const char *json_str, size_t length, struct tgev *evt)
+int tg_event_load_str_len(const char *json_str, size_t length, struct tgev *evt)
 {
 	if (unlikely(json_str == NULL)) {
 		pr_err("`json_str` argument cannot be NULL");
@@ -130,11 +128,11 @@ int tg_event_load_len(const char *json_str, size_t length, struct tgev *evt)
 		return -EINVAL;
 	}
 
-	return internal_tg_event_load(json_str, length, evt);
+	return internal_tg_event_load_str(json_str, length, evt);
 }
 
 
-int tg_event_load(const char *json_str, struct tgev *evt)
+int tg_event_load_str(const char *json_str, struct tgev *evt)
 {
 	size_t length;
 
@@ -156,5 +154,5 @@ int tg_event_load(const char *json_str, struct tgev *evt)
 	 */
 	length = strlen(json_str) + 1; /* Include the '\0' */
 
-	return internal_tg_event_load(json_str, length, evt);
+	return internal_tg_event_load_str(json_str, length, evt);
 }

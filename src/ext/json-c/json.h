@@ -17,6 +17,15 @@
 #ifndef _json_h_
 #define _json_h_
 
+#if defined(__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wpadded"
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wreserved-id-macro"
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wdocumentation-deprecated-sync"
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -33,6 +42,12 @@ extern "C" {
 
 #ifdef __cplusplus
 }
+#endif
+
+#if defined(__clang__)
+#  pragma GCC diagnostic pop
+#  pragma GCC diagnostic pop
+#  pragma GCC diagnostic pop
 #endif
 
 #endif

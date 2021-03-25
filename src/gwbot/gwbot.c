@@ -807,6 +807,7 @@ static void destroy_state(struct gwbot_state *state)
 	tss_destroy(&state->thread_stack);
 	sqe_destroy(&state->sqes);
 	free(state->epl_map_chan);
+	free(state->threads);
 	free(state->chans);
 }
 

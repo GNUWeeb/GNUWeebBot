@@ -14,8 +14,7 @@
 #include <stdlib.h>
 #include <gwbot/base.h>
 #include <gwbot/lib/string.h>
-#include <json-c/json_types.h>
-#include <json-c/json_pointer.h>
+#include <json-c/json.h>
 
 
 /*
@@ -48,6 +47,7 @@ struct tgevi_chat {
 struct tgevi_entity {
 	uint16_t	offset;
 	uint16_t	length;
+	struct_pad(0, 4);
 	char		*type;
 };
 
@@ -183,6 +183,7 @@ struct tgev {
 
 	uint64_t	update_id;
 	tgev_type_t	type;
+	struct_pad(0, 4);
 	union {
 		struct tgev_text	msg_text;
 		struct tgev_photo	msg_photo;
@@ -214,8 +215,8 @@ static inline void tg_event_destroy(struct tgev *evt)
 }
 
 
-int tg_event_load_len(const char *json_str, size_t length, struct tgev *evt);
-int tg_event_load(const char *json_str, struct tgev *evt);
+int tg_event_load_str_len(const char *json_str, size_t length, struct tgev *evt);
+int tg_event_load_str(const char *json_str, struct tgev *evt);
 
 
 #endif /* #ifndef GWBOT__LIB__TG_EVENT_H */
