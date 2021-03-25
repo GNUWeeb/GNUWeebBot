@@ -25,6 +25,7 @@ struct list_func {
 
 
 extern struct list_func tg_event_text_list[];
+extern struct list_func tg_event_photo_list[];
 
 
 #define TQ_ASSERT(EXPR, CREDIT)						\
@@ -53,5 +54,11 @@ do {									\
 
 /* TODO: Make core dump */
 #define core_dump()
+#define EXPORT_TEST(TEST) 			\
+	extern uint8_t __UNIT_TEST_##TEST;	\
+	uint8_t __UNIT_TEST_##TEST = 1		\
+
+
+int nnstrcmp(const char *s1, const char *s2);
 
 #endif /* #ifndef TESTS__006_TG_EVENT__006_TG_EVENT_H */

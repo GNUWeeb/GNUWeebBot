@@ -42,3 +42,42 @@ struct tgev_photo {
 };
 
 #endif /* #ifndef GWBOT__LIB__TG_EVENT__PHOTO_H */
+
+
+
+#ifdef SUB_TG_EVENT_CIRCULAR_INLINE
+
+
+static __always_inline int parse_event_photo(json_object *jmsg,
+					     struct tgev *evt)
+{
+	// int ret;
+	json_object *res;
+	struct tgev_photo *ephoto;
+
+
+	if (unlikely(!json_object_object_get_ex(jmsg, "photo", &res))) {
+		/*
+		 * We don't find "photo" key, so it's not photo event.
+		 *
+		 * Return -ECANCELED, so the caller can continue to
+		 * parse another type of event.
+		 */
+		return -ECANCELED;
+	}
+	ephoto = &evt->msg_photo;
+	evt->type = TGEV_PHOTO;
+
+	memset(ephoto, 0, sizeof(*ephoto));
+
+	/*
+	 *
+	 * TODO: Parse all corresponding struct members
+	 *
+	 */
+
+
+	return 0;
+}
+
+#endif /* #ifdef SUB_TG_EVENT_CIRCULAR_INLINE */

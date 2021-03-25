@@ -72,9 +72,9 @@ static int parse_message(json_object *json_obj, struct tgev *evt)
 	 * Your job here...
 	 *
 	 */
-	// ret = parse_event_photo(jmsg, evt);
-	// if (ret == 0 || ret != -ECANCELED)
-	// 	return ret;
+	ret = parse_event_photo(jmsg, evt);
+	if (ret == 0 || ret != -ECANCELED)
+		return ret;
 
 
 
@@ -174,13 +174,6 @@ void tg_event_destroy(struct tgev *evt)
 	if (unlikely(evt->json == NULL))
 		return;
 
-	ret = json_object_put(evt->json);
-	if (ret != 1) {
-		panic("Invalid tg_event_destroy, object has more than 1 "
-		      "reference (ret: %d)", ret);
-		exit(1);
-	}
-
 	switch (evt->type) {
 	case TGEV_UNKNOWN:
 		break;
@@ -192,5 +185,12 @@ void tg_event_destroy(struct tgev *evt)
 	case TGEV_STICKER:
 		break;
 	}
-}
 
+
+	ret = json_object_put(evt->json);
+	if (ret != 1) {
+		panic("Invalid tg_event_destroy, object has more than 1 "
+		      "reference (ret: %d)", ret);
+		exit(1);
+	}
+}

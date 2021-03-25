@@ -6,6 +6,10 @@
 #include <sys/wait.h>
 #include "006_tg_event.h"
 
+#if __has_include("test_by_hand.c")
+#  include "test_by_hand.c"
+#endif
+
 uint32_t passed = 0;
 uint32_t credit = 0;
 uint32_t total_credit = 0;
@@ -93,6 +97,14 @@ int main(int argc, char *argv[])
 {
 	int ret = 0;
 
+#if defined(TEST_BY_HAND)
+	if (TEST_BY_HAND) {
+		pr_notice("Running your custom test by hand...\n");
+		ret = test_by_hand();
+		return ret;
+	}
+#endif
+
 	if (argc == 1)
 		return spawn_valgrind(argv);
 
@@ -101,6 +113,7 @@ int main(int argc, char *argv[])
 	signal(SIGABRT, sig_handler);
 
 	exec_test(tg_event_text_list);
+	exec_test(tg_event_photo_list);
 	print_info(ret);
 	close(2);
 	close(1);
@@ -196,7 +209,16 @@ static void print_info(int ret)
 	printf("--------------------------------------------------\n");
 	printf("   Last return value\t: %d\n", ret);
 	printf("   Your accuracy\t: %.2f %c\n", accuracy, '%');
-	printf("   Earned credit\t: %u\n", credit);
-	printf("   Total credit\t\t: %u\n", total_credit);
+	printf("   Earned credit\t: %u of %u\n", credit, total_credit);
 	printf("==================================================\n");
 }
+
+
+int nnstrcmp(const char *s1, const char *s2)
+{
+	if (s1 == NULL || s1 == NULL)
+		return -1;
+
+	return strcmp(s1, s2);
+}
+
