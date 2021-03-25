@@ -1,0 +1,44 @@
+{
+    "update_id": 346089825,
+    "message": {
+        "message_id": 576,
+        "from": {
+            "id": 243692601,
+            "is_bot": false,
+            "first_name": "io_uring_enter",
+            "username": "ammarfaizi2",
+            "language_code": "en"
+        },
+        "chat": {
+            "id": -1001422514298,
+            "title": "GNU/Weeb Test Driven Development",
+            "username": "GNUWeebTDD",
+            "type": "supergroup"
+        },
+        "date": 1616657218,
+        "photo": [
+            {
+                "file_id": "AgACAgUAAx0CVMnYegACAkBgXDtCw5SJGFK--L0nuEH9bTHMRQACbqsxG9e54FbXAiO63ePEdZSncnN0AAMBAAMCAANtAAPtMQACHgQ",
+                "file_unique_id": "AQADlKdyc3QAA-0xAAI",
+                "file_size": 22345,
+                "width": 320,
+                "height": 180
+            },
+            {
+                "file_id": "AgACAgUAAx0CVMnYegACAkBgXDtCw5SJGFK--L0nuEH9bTHMRQACbqsxG9e54FbXAiO63ePEdZSncnN0AAMBAAMCAAN4AAPvMQACHgQ",
+                "file_unique_id": "AQADlKdyc3QAA-8xAAI",
+                "file_size": 86886,
+                "width": 800,
+                "height": 450
+            },
+            {
+                "file_id": "AgACAgUAAx0CVMnYegACAkBgXDtCw5SJGFK--L0nuEH9bTHMRQACbqsxG9e54FbXAiO63ePEdZSncnN0AAMBAAMCAAN5AAPuMQACHgQ",
+                "file_unique_id": "AQADlKdyc3QAA-4xAAI",
+                "file_size": 152004,
+                "width": 1280,
+                "height": 720
+            }
+        ],
+        "reply_to_message": null
+    }
+}
