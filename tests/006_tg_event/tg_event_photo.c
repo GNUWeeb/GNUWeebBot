@@ -93,17 +93,17 @@ static int test_tg_event_photo_001_simple(void)
 		   (entity != NULL)
 		&& (entity[0].offset == 38)
 		&& (entity[0].length == 7)
-		&& (nnstrcmp(entity[0].type, "bot_command"))
+		&& (!nnstrcmp(entity[0].type, "bot_command"))
 
 
 		&& (entity[1].offset == 46)
 		&& (entity[1].length == 4)
-		&& (nnstrcmp(entity[0].type, "bold"))
+		&& (!nnstrcmp(entity[1].type, "bold"))
 
 
 		&& (entity[2].offset == 51)
 		&& (entity[2].length == 6)
-		&& (nnstrcmp(entity[0].type, "italic"))
+		&& (!nnstrcmp(entity[2].type, "italic"))
 	, 30 * 3);
 
 
