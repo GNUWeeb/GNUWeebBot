@@ -155,7 +155,7 @@ static void usage(const char *argv0, int exitval, const char *errmsg)
 	exit(exitval);
 }
 
-int my_main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	json_object *new_obj;
 	int opt;
