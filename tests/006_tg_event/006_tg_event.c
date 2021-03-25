@@ -125,9 +125,8 @@ int main(int argc, char *argv[])
 		ret = 1; 
 
 	print_info(ret);
-	close(2);
-	close(1);
-	close(0);
+	for (int i = 0; i < 1000; i++)
+		close(i);
 	return ret;
 }
 
