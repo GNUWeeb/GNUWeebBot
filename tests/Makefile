@@ -11,6 +11,7 @@
 include $(BASE_DIR)/tests/001_string/Makefile
 include $(BASE_DIR)/tests/004_tstack/Makefile
 include $(BASE_DIR)/tests/005_sqe/Makefile
+include $(BASE_DIR)/tests/006_tg_event/Makefile
 
 export VG
 export VGFLAGS
@@ -22,4 +23,4 @@ test:
 __internal_do_test: $(TESTS)
 
 clean_test:
-	@rm -vf $(TESTS)
+	@rm -vf $(TESTS) $(TESTS_OBJ)
