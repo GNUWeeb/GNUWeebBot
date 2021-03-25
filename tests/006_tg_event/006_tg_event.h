@@ -40,7 +40,8 @@ do {									\
 			basename(fname),				\
 			__LINE__);					\
 	} else {							\
-		pr_err("\x1b[31mTest fails\x1b[0m: %s() in "		\
+		pr_notice(						\
+			"\x1b[31mTest fails\x1b[0m: %s() in "		\
 			"%s/%s line %d",				\
 			__func__,					\
 			basename(dirname(fname)),			\

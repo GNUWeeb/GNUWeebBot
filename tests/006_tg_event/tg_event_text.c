@@ -54,7 +54,7 @@ static int test_tg_event_text_001_simple(void)
 
 
 struct list_func tg_event_text_list[] = {
-	{test_tg_event_text_001_simple, 40},
+	{test_tg_event_text_001_simple, 170},
 	{NULL, 0}
 };
 
