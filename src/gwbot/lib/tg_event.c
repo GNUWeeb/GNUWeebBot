@@ -166,6 +166,12 @@ static void tg_event_destroy_text(struct tgev_text *etext)
 		free(etext->entities);
 }
 
+static void tg_event_destroy_photo(struct tgev_photo *ephoto)
+{
+        free(ephoto->photo);
+        if (unlikely(ephoto->caption_entity_c > 0))
+		free(ephoto->caption_entities);
+}
 
 void tg_event_destroy(struct tgev *evt)
 {
@@ -181,6 +187,7 @@ void tg_event_destroy(struct tgev *evt)
 		tg_event_destroy_text(&evt->msg_text);
 		break;
 	case TGEV_PHOTO:
+                tg_event_destroy_photo(&evt->msg_photo);
 		break;
 	case TGEV_STICKER:
 		break;
