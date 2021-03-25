@@ -1,5 +1,9 @@
 
+#include <errno.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <signal.h>
+#include <sys/wait.h>
 #include "006_tg_event.h"
 
 uint32_t passed = 0;
@@ -21,19 +25,86 @@ static void exec_test(struct list_func *list)
 	}
 }
 
-int main()
+static int handle_wait(pid_t child)
 {
-	int ret;
-	size_t i;
-	pr_notice("Running tg_event test...");
+	int wstatus;
+	pid_t wait_ret;
 
+	wait_ret = wait(&wstatus);
+	if (WIFEXITED(wstatus) && (wait_ret == child)) {
+		int exit_code = WEXITSTATUS(wstatus);
+
+		if (exit_code == 0) {
+			/* Success */
+			return 0;
+		}
+
+		pr_err("\x1b[31mTEST FAILED!\x1b[0m");
+		pr_err("Exit code: %d", exit_code);
+		if (exit_code == 99) {
+			pr_err("Error from valgrind detected");
+			pr_err("Please read the error message from valgrind to "
+				"diagnose this problem");
+			pr_err("Reading valgrind stack trace is not trivial, "
+				"please be serious!");
+		}
+		return exit_code;
+	}
+
+	pr_err("Unknown error, please contact Ammar F");
+	pr_err("Please also tell to him, how did you get into this error");
+	return -1;
+}
+
+
+static int spawn_valgrind(char *argv[])
+{
+	pid_t child;
+	char * const execve_argv[] = {
+		"/usr/bin/valgrind",
+		"--leak-check=full",
+		"--show-leak-kinds=all",
+		"--track-origins=yes",
+		"--track-fds=yes",
+		"--error-exitcode=99",
+		"--exit-on-first-error=yes",
+		"-s",
+		argv[0],
+		"1",
+		NULL
+	};
+
+	child = fork();
+	if (child == -1) {
+		pr_err("fork(): " PRERF, PREAR(errno));	
+		return -1;
+	}
+
+	if (child == 0) {
+		execve(execve_argv[0], execve_argv, NULL);
+		pr_err("execve(): " PRERF, PREAR(errno));
+		return -1;
+	}
+
+	return handle_wait(child);
+}
+
+int main(int argc, char *argv[])
+{
+	int ret = 0;
+
+	if (argc == 1)
+		return spawn_valgrind(argv);
+
+	pr_notice("Running tg_event test...");
 	signal(SIGSEGV, sig_handler);
 	signal(SIGABRT, sig_handler);
 
 	exec_test(tg_event_text_list);
-
-out:
 	print_info(ret);
+	close(2);
+	close(1);
+	close(0);
 	return ret;
 }
 

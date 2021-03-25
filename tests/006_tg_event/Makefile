@@ -12,6 +12,7 @@ __006_TG_EVENT_DEPS = \
 $(BASE_DIR)/tests/006_tg_event/006_tg_event.o: $(BASE_DIR)/tests/006_tg_event/006_tg_event.c
 	@echo "   CC		" "$(@:$(BASE_DIR)/%=%)"
 	@$(CC) $(CFLAGS) \
+		-Wall -Wextra \
 		-MT "$@" -MMD -MP -MF "$(@:$(BASE_DIR)/%.o=$(BASE_DEP_DIR)/%.d)" \
 		-DMY_BASEPATH=\"$(BASE_DIR)/tests/006_tg_event\" \
 		$(@:%.o=%.c) \
@@ -21,6 +22,7 @@ $(BASE_DIR)/tests/006_tg_event/006_tg_event.o: $(BASE_DIR)/tests/006_tg_event/00
 $(BASE_DIR)/tests/006_tg_event/tg_event_text.o: $(BASE_DIR)/tests/006_tg_event/tg_event_text.c
 	@echo "   CC		" "$(@:$(BASE_DIR)/%=%)"
 	@$(CC) $(CFLAGS) \
+		-Wall -Wextra \
 		-MT "$@" -MMD -MP -MF "$(@:$(BASE_DIR)/%.o=$(BASE_DEP_DIR)/%.d)" \
 		-DMY_BASEPATH=\"$(BASE_DIR)/tests/006_tg_event\" \
 		$(@:%.o=%.c) \

@@ -50,6 +50,8 @@ static int test_tg_event_text_001_simple(void)
 	TQ_ASSERT((!strcmp(chat->type, "supergroup")), 10);
 
 	tg_event_destroy(&evt);
+
+	return 0;
 }
 
 
