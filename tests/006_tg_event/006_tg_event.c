@@ -78,6 +78,12 @@ static int spawn_valgrind(char *argv[])
 		NULL
 	};
 
+	char * const execve_envp[] = {
+		"LD_LIBRARY_PATH=" LD_LIBRARY_PATH_ENV,
+		NULL,
+	};
+
+
 	child = fork();
 	if (child == -1) {
 		pr_err("fork(): " PRERF, PREAR(errno));	
@@ -85,7 +91,7 @@ static int spawn_valgrind(char *argv[])
 	}
 
 	if (child == 0) {
-		execve(execve_argv[0], execve_argv, NULL);
+		execve(execve_argv[0], execve_argv, execve_envp);
 		pr_err("execve(): " PRERF, PREAR(errno));
 		return -1;
 	}
@@ -119,9 +125,8 @@ int main(int argc, char *argv[])
 		ret = 1; 
 
 	print_info(ret);
-	close(2);
-	close(1);
-	close(0);
+	for (int i = 0; i < 1000; i++)
+		close(i);
 	return ret;
 }
 

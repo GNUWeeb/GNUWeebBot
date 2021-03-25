@@ -15,6 +15,7 @@ include $(BASE_DIR)/tests/006_tg_event/Makefile
 
 export VG
 export VGFLAGS
+export LD_LIBRARY_PATH=$(BASE_DIR)/src/ext/json-c/build.dir:$(BASE_DIR)/src/ext/criterion/lib
 
 test:
 	@+$(MAKE) --no-print-directory \

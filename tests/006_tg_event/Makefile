@@ -19,7 +19,7 @@ $(BASE_DIR)/tests/006_tg_event/006_tg_event.o: $(BASE_DIR)/tests/006_tg_event/te
 	@$(CC) $(CFLAGS) \
 		-Wall -Wextra \
 		-MT "$@" -MMD -MP -MF "$(@:$(BASE_DIR)/%.o=$(BASE_DEP_DIR)/%.d)" \
-		-DMY_BASEPATH=\"$(BASE_DIR)/tests/006_tg_event\" \
+		-DMY_BASEPATH=\"$(BASE_DIR)/tests/006_tg_event\" -DLD_LIBRARY_PATH_ENV=\"$(LD_LIBRARY_PATH)\" \
 		$(@:%.o=%.c) \
 		-c -o $(@)
 
@@ -29,7 +29,7 @@ $(BASE_DIR)/tests/006_tg_event/tg_event_text.o: $(BASE_DIR)/tests/006_tg_event/t
 	@$(CC) $(CFLAGS) \
 		-Wall -Wextra \
 		-MT "$@" -MMD -MP -MF "$(@:$(BASE_DIR)/%.o=$(BASE_DEP_DIR)/%.d)" \
-		-DMY_BASEPATH=\"$(BASE_DIR)/tests/006_tg_event\" \
+		-DMY_BASEPATH=\"$(BASE_DIR)/tests/006_tg_event\" -DLD_LIBRARY_PATH_ENV=\"$(LD_LIBRARY_PATH)\" \
 		$(@:%.o=%.c) \
 		-c -o $(@)
 
@@ -39,7 +39,7 @@ $(BASE_DIR)/tests/006_tg_event/tg_event_photo.o: $(BASE_DIR)/tests/006_tg_event/
 	@$(CC) $(CFLAGS) \
 		-Wall -Wextra \
 		-MT "$@" -MMD -MP -MF "$(@:$(BASE_DIR)/%.o=$(BASE_DEP_DIR)/%.d)" \
-		-DMY_BASEPATH=\"$(BASE_DIR)/tests/006_tg_event\" \
+		-DMY_BASEPATH=\"$(BASE_DIR)/tests/006_tg_event\" -DLD_LIBRARY_PATH_ENV=\"$(LD_LIBRARY_PATH)\" \
 		$(@:%.o=%.c) \
 		-c -o $(@)
 
@@ -52,6 +52,7 @@ $(BASE_DIR)/tests/006_tg_event/006_tg_event.test: $(TARGET_BIN) $(OBJ_CC) $(OBJ_
 
 
 -include $(BASE_DEP_DIR)/tests/006_tg_event/tg_event_text.d
+-include $(BASE_DEP_DIR)/tests/006_tg_event/tg_event_photo.d
 -include $(BASE_DEP_DIR)/tests/006_tg_event/006_tg_event.d
 
 TESTS_OBJ += $(__006_TG_EVENT_DEPS)
