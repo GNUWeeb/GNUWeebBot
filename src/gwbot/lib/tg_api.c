@@ -64,16 +64,19 @@ int tg_api_post(tg_api_handle *handle)
 	CURL *curl = NULL;
 	char url[1024];
 
+
 	res = &handle->res;
 	req = &handle->req;
 
+
 	if (unlikely(req->method == NULL)) {
-		pr_err("handle->method cannot be empty in tg_api_post");
+		pr_err("handle->method cannot be empty on tg_api_post");
 		return -EINVAL;
 	}
 
+
 	if (unlikely(handle->token == NULL)) {
-		pr_err("handle->token cannot be empty in tg_api_post");
+		pr_err("handle->token cannot be empty on tg_api_post");
 		return -EINVAL;
 	}
 
@@ -81,32 +84,42 @@ int tg_api_post(tg_api_handle *handle)
 	snprintf(url, sizeof(url), "https://api.telegram.org/bot%s/%s",
 		 handle->token, req->method);
 
+
 	/*
 	 * Allow to reuse the handle
 	 */
-	if (res->allocated != 0u) {
-		res->len = 0u;
-		goto exec_curl;
+	if (res->body != NULL) {
+		if (unlikely(res->allocated == 0u)) {
+			/*
+			 * `res->allocated` must never be zero
+			 * if `res->body` is not NULL
+			 */
+			pr_err("res->body is not NULL, "
+			       "but res->allocated is zero");
+			return -EINVAL;
+		}
+	} else {
+		/*
+		 * Handle doesn't hold an allocated heap pointer,
+		 * let's allocate a new one here.
+		 */
+		res->allocated = 0x2000u;
+		res->body      = malloc(res->allocated);
+		if (unlikely(res->body == NULL)) {
+			res->allocated = 0u;
+			pr_err("malloc() failed: " PRERF, PREAR(ENOMEM));
+			return -ENOMEM;
+		}
 	}
+	res->len = 0u;
 
 
-	/*
-	 * Handle doesn't hold allocated heap, we allocate a new one here.
-	 */
-	res->len       = 0u;
-	res->allocated = 0x2000u;
-	res->body      = malloc(res->allocated);
-	if (unlikely(res->body == NULL)) {
-		res->allocated = 0u;
-		pr_err("malloc() failed: " PRERF, PREAR(ENOMEM));
-		return -ENOMEM;
-	}
-
-
-exec_curl:
 	curl = curl_easy_init();
 	if (unlikely(curl == NULL)) {
 		pr_err("curl_easy_init() failed: " PRERF, PREAR(ENOMEM));
+		free(res->body);
+		res->body = NULL;
+		res->allocated = 0u;
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -126,7 +139,7 @@ exec_curl:
 	}
 
 out:
-	if (curl != NULL)
+	if (likely(curl != NULL))
 		curl_easy_cleanup(curl);
 	return ret;
 }

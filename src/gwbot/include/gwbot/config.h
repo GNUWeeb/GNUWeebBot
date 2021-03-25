@@ -15,17 +15,25 @@ struct gwbot_sock_cfg {
 	char			*bind_addr;
 	int			backlog;
 	uint16_t		bind_port;
-	uint16_t		channels_n;
+	struct_pad(0, 2);
 };
 
 struct gwbot_cred_cfg {
 	char			*token;
 };
 
+
+struct gwbot_wrk_cfg {
+	uint16_t		thread_c;
+};
+
+
 struct gwbot_cfg {
 	char			*cfg_file;
 	struct gwbot_cred_cfg	cred;
 	struct gwbot_sock_cfg	sock;
+	struct gwbot_wrk_cfg    worker;
+	struct_pad(0, 6);
 };
 
 

@@ -10,6 +10,7 @@
 
 include $(BASE_DIR)/tests/001_string/Makefile
 include $(BASE_DIR)/tests/004_tstack/Makefile
+include $(BASE_DIR)/tests/005_sqe/Makefile
 
 export VG
 export VGFLAGS

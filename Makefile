@@ -15,8 +15,8 @@ EXTRAVERSION = -rc1
 NAME = Useless Servant
 PACKAGE_NAME = gwbot-$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 
-CC	:= cc
-CXX	:= c++
+CC	:= clang
+CXX	:= clang++
 LD	:= $(CXX)
 VG	:= valgrind
 
@@ -234,3 +234,6 @@ clean: clean_test
 	$(Q)rm -rfv $(DEP_DIRS) $(OBJ_CC) $(OBJ_PRE_CC) $(TARGET_BIN)
 
 clean_all: clean clean_ext
+
+run_vg: $(TARGET_BIN)
+	$(VG) $(VGFLAGS) ./$(TARGET_BIN) -c config_1.ini
