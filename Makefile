@@ -107,6 +107,7 @@ CCXXFLAGS := \
 	$(WARN_FLAGS) \
 	-fstrict-aliasing \
 	-fstack-protector-strong \
+	-fno-omit-frame-pointer \
 	-pedantic-errors \
 	-D_GNU_SOURCE \
 	-DVERSION=$(VERSION) \

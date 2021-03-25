@@ -53,11 +53,12 @@ struct tgevi_entity {
 
 
 typedef enum _tgev_type_t {
-	TGEV_UNKNOWN	= 0,
-	TGEV_TEXT	= 1,
-	TGEV_PHOTO	= 2,
-	TGEV_STICKER	= 3,
+	TGEV_UNKNOWN	= (1 << 0),
+	TGEV_TEXT	= (1 << 1),
+	TGEV_PHOTO	= (1 << 2),
+	TGEV_STICKER	= (1 << 3),
 } tgev_type_t;
+
 
 static __always_inline int parse_tgevi_from(json_object *jfrom,
 					    struct tgevi_from *from)

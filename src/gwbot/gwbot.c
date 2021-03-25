@@ -37,44 +37,6 @@
 #define W_IU(CHAN) W_IP(CHAN)
 #define PRWIU "%s:%d"
 
-struct gwlock {
-	bool			need_destroy;
-	pthread_mutex_t		mutex;
-};
-
-struct gwbot_thread {
-	time_t			started_at;
-	uint32_t		thread_idx;
-	struct_pad(0, 4);
-	pthread_t		thread;
-	struct gwbot_state	*state;
-	union {
-		struct chan_pkt		pkt;
-		char			raw_buf[sizeof(struct chan_pkt)];
-	} uni_pkt;
-	struct_pad(1, 6);
-};
-
-
-struct gwbot_state {
-	bool			stop_el;
-	struct_pad(0, 3);
-
-	int			intr_sig;
-	int			tcp_fd;
-	int			epl_fd;
-
-	struct gwbot_cfg	*cfg;
-	uint16_t		*epl_map_chan;
-	struct gwchan		*chans;
-	struct gwbot_thread	*threads;
-	struct sqe_master	sqes;
-
-	struct tstack		chan_stack;
-	struct gwlock		thread_stk_lock;
-	struct tstack		thread_stack;
-};
-
 
 static struct gwbot_state *g_state;
 
@@ -527,12 +489,10 @@ static void *handle_thread(void *thread_void_p)
 {
 	struct gwbot_thread *thread = thread_void_p;
 	struct gwbot_state  *state  = thread->state;
-	const char *json = thread->uni_pkt.pkt.data;
 
-
-	gwbot_event_handler(state->cfg, json);
-
+	gwbot_event_handler(thread);
 	reset_thread(thread, thread->thread_idx, state);
+
 	mutex_lock(&state->thread_stk_lock);
 	tss_push(&state->thread_stack, (uint16_t)thread->thread_idx);
 	mutex_unlock(&state->thread_stk_lock);
