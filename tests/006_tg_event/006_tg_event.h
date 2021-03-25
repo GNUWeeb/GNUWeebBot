@@ -42,7 +42,7 @@ do {									\
 			__LINE__);					\
 	} else {							\
 		pr_notice(						\
-			"\x1b[31mTest fails\x1b[0m: %s() in "		\
+			"\x1b[31mTest failed\x1b[0m: %s() in "		\
 			"%s/%s line %d",				\
 			__func__,					\
 			basename(dirname(fname)),			\
