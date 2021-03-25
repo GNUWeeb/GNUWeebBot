@@ -10,6 +10,7 @@
 #ifndef GWBOT__LIB__TG_API_H
 #define GWBOT__LIB__TG_API_H
 
+#include <stdlib.h>
 #include <gwbot/base.h>
 
 #ifdef INCLUDE_SUB_TG_API
@@ -100,6 +101,9 @@ static inline tg_api_handle *tg_api_hcreate(const char *token)
 	return handle;
 }
 
+/*
+ * Set request
+ */
 static inline void tg_api_set_method(tg_api_handle *handle, const char *method)
 {
 	tg_api_req_set_method(&handle->req, method);
@@ -109,6 +113,26 @@ static inline void tg_api_set_body(tg_api_handle *handle, const char *body)
 {
 	tg_api_req_set_body(&handle->req, body);
 }
+
+
+/*
+ * Get response
+ */
+static inline char *tg_api_get_body(tg_api_handle *handle)
+{
+	return tg_api_res_get_body(&handle->res);
+}
+
+static inline size_t tg_api_get_len(tg_api_handle *handle)
+{
+	return tg_api_res_get_len(&handle->res);
+}
+
+static inline size_t tg_api_get_alloc(tg_api_handle *handle)
+{
+	return tg_api_res_get_alloc(&handle->res);
+}
+
 
 static inline void tg_api_destroy(tg_api_handle *handle)
 {

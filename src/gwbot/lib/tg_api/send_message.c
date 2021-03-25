@@ -6,7 +6,7 @@
 #include <gwbot/lib/tg_api/send_message.h>
 
 
-int tga_send_msg(tg_api_handle *handle, tg_api_smsg *ctx)
+int tg_api_send_msg(tg_api_handle *handle, struct tga_send_msg *ctx)
 {
 	size_t pos = 0;
 	char buf[8096];
@@ -35,7 +35,7 @@ int tga_send_msg(tg_api_handle *handle, tg_api_smsg *ctx)
 		break;
 	default:
 		pr_err("Invalid parse_mode in tga_send_msg (%u)",
-			ctx->parse_mode);
+		       ctx->parse_mode);
 		return -EINVAL;
 	}
 
@@ -47,6 +47,5 @@ int tga_send_msg(tg_api_handle *handle, tg_api_smsg *ctx)
 
 	tg_api_set_method(handle, "sendMessage");
 	tg_api_set_body(handle, buf);
-	printf("buf = %s\n", buf);
 	return tg_api_post(handle);
 }

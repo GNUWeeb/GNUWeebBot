@@ -9,6 +9,9 @@
 /.deps
 /gwbot
 /libgwbot.so
+/.vscode
 
 # Ignore used config
 /*.ini
+
+build.dir

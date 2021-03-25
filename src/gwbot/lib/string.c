@@ -288,3 +288,40 @@ char *urlencode(char *alloc, const char *s, size_t len, bool raw)
 
 	return start;
 }
+
+
+/*
+ * Thanks to Roland Seuhs
+ * Ref: https://stackoverflow.com/a/29599904/7275114
+ */
+size_t htmlspecialchars(char *input, char *output)
+{
+	size_t i = 0, j = 0;
+
+	while (input[i]) {
+		switch (input[i]) {
+		case '<':
+			memcpy(&output[j], "&lt;", 4);
+			j += 4;
+			break;
+		case '>':
+			memcpy(&output[j], "&gt;", 4);
+			j += 4;
+			break;
+		case '"':
+			memcpy(&output[j], "&quot;", 6);
+			j += 6;
+			break;
+		case '&':
+			memcpy(&output[j], "&amp;", 5);
+			j += 5;
+			break;
+		default:
+			output[j] = input[i];
+			break;
+		}
+		i++;
+	}
+	output[j] = '\0';
+	return j;
+}

@@ -1,0 +1,28 @@
+
+#include "006_tg_event.h"
+
+#include <stdio.h>
+#include <gwbot/base.h>
+#include <gwbot/lib/tg_event.h>
+
+/*
+ * - Change to (0) to run the real test
+ * - Change to (1) to run your own custom test by hand
+ */
+#define TEST_BY_HAND (0)
+
+
+int test_by_hand(void)
+{
+	/*
+	 *
+	 * You can test anything you want here...
+	 *
+	 */
+
+	printf("Hello World!\n");
+
+	return 0;
+}
+
+

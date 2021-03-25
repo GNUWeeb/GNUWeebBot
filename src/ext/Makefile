@@ -21,9 +21,29 @@ include $(BASE_DIR)/src/ext/openssl_1.1.1j/Makefile
 
 # $(BASE_DIR)/src/ext/liburing-2.0/src/liburing.so.2.0.0: __execute_make_io_uring
 
-# clean_ext: __clean_io_uring
 
-build-json-c: $(BASE_DIR)/lib
-	mkdir json-c-build
-	cd json-c-build
-	cmake ../json-c
+#
+# JSON-C
+#
+SHARED_LIB	+= $(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so
+LIB_LDFLAGS	+= -L$(BASE_DIR)/src/ext/json-c/build.dir -ljson-c
+INCLUDE_DIR += -I$(BASE_DIR)/src/ext/json-c -I$(BASE_DIR)/src/ext/json-c/build.dir
+
+$(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so:
+	+$(Q)cd  $(BASE_DIR)/src/ext/json-c && \
+	mkdir -pv build.dir && \
+	cd build.dir && \
+	cmake .. && \
+	$(MAKE) --no-print-directory;
+
+build_json_c: $(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so
+
+clean_json_c:
+	$(Q)rm -rf $(BASE_DIR)/src/ext/json-c/build.dir;
+
+
+
+#
+# Clean all extension build
+#
+clean_ext: clean_json_c

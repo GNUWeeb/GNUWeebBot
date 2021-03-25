@@ -20,16 +20,16 @@ typedef enum _parse_mode_t {
 } parse_mode_t;
 
 
-typedef struct _tg_api_smsg {
+struct tga_send_msg {
 	int64_t		chat_id;
 	uint64_t	reply_to_msg_id;
-	parse_mode_t	parse_mode;
-	struct_pad(0, 4);
 	const char	*text;
-} tg_api_smsg;
+	struct_pad(0, 4);
+	parse_mode_t	parse_mode;
+};
 
 
-int tga_send_msg(tg_api_handle *handle, tg_api_smsg *ctx);
+int tg_api_send_msg(tg_api_handle *handle, struct tga_send_msg *ctx);
 
 
 #endif /* #ifndef GWBOT__LIB__TG_API__SEND_MESSAGE_H */

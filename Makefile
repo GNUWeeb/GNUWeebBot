@@ -107,6 +107,7 @@ CCXXFLAGS := \
 	$(WARN_FLAGS) \
 	-fstrict-aliasing \
 	-fstack-protector-strong \
+	-fno-omit-frame-pointer \
 	-pedantic-errors \
 	-D_GNU_SOURCE \
 	-DVERSION=$(VERSION) \
@@ -234,3 +235,6 @@ clean: clean_test
 	$(Q)rm -rfv $(DEP_DIRS) $(OBJ_CC) $(OBJ_PRE_CC) $(TARGET_BIN)
 
 clean_all: clean clean_ext
+
+run_vg: $(TARGET_BIN)
+	$(VG) $(VGFLAGS) ./$(TARGET_BIN) -c config_1.ini

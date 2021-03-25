@@ -6,7 +6,7 @@
 # https://github.com/GNUWeeb/GNUWeebBot
 #
 
-INCLUDE_DIR += -I$(BASE_DIR)/src/gwbot/include
+INCLUDE_DIR += -I$(BASE_DIR)/src -I$(BASE_DIR)/src/gwbot/include
 DEP_DIRS	+= $(BASE_DEP_DIR)/src/gwbot
 
 
@@ -16,6 +16,7 @@ include $(BASE_DIR)/src/gwbot/lib/Makefile
 OBJ_TMP_CC	:= \
 	$(BASE_DIR)/src/gwbot/argv.o \
 	$(BASE_DIR)/src/gwbot/config.o \
+	$(BASE_DIR)/src/gwbot/event_handler.o \
 	$(BASE_DIR)/src/gwbot/help.o \
 	$(BASE_DIR)/src/gwbot/gwbot.o \
 	$(BASE_DIR)/src/gwbot/print.o

@@ -35,10 +35,9 @@ static int parser_handler(void *user, const char *section, const char *name,
 	#define rmatch_n(STR) if (unlikely(!strcmp(name, (STR))))
 
 
-
 	rmatch_s("credential") {
 		rmatch_n("token") {
-			cfg->token = ar_strndup(value, 255);
+			cfg->cred.token = ar_strndup(value, 255);
 		} else {
 			goto out_invalid_name;
 		}
@@ -48,6 +47,26 @@ static int parser_handler(void *user, const char *section, const char *name,
 	} else
 	rmatch_s("mysql") {
 		/* TODO: Parse MySQL config */
+	} else
+	rmatch_s("socket") {
+		rmatch_n("bind_addr") {
+			cfg->sock.bind_addr = ar_strndup(value, 255);
+		} else
+		rmatch_n("bind_port") {
+			cfg->sock.bind_port = (uint16_t)atoi(value);
+		} else
+		rmatch_n("backlog") {
+			cfg->sock.backlog = atoi(value);
+		} else {
+			goto out_invalid_name;
+		}
+	} else
+	rmatch_s("worker"){
+		rmatch_n("thread_c") {
+			cfg->worker.thread_c = (uint16_t)atoi(value);
+		} else {
+			goto out_invalid_name;
+		}
 	} else {
 		pr_error("Invalid section \"%s\" on line %d", section, lineno);
 		goto out_err;

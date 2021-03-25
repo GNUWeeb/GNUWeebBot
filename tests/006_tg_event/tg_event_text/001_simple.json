@@ -1,0 +1,30 @@
+{
+    "update_id": 346089057,
+    "message": {
+        "message_id": 525,
+        "from": {
+            "id": 243692601,
+            "is_bot": false,
+            "first_name": "cpu_relax();",
+            "last_name": "//",
+            "username": "ammarfaizi2",
+            "language_code": "en"
+        },
+        "chat": {
+            "id": -1001422514298,
+            "title": "GNU/Weeb Test Driven Development",
+            "username": "GNUWeebTDD",
+            "type": "supergroup"
+        },
+        "date": 1616588789,
+        "text": "/debug Hello World!",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ],
+        "reply_to_message": null
+    }
+}
