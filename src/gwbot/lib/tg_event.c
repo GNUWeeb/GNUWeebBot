@@ -67,14 +67,16 @@ static int parse_message(json_object *json_obj, struct tgev *evt)
 	if (ret == 0 || ret != -ECANCELED)
 		return ret;
 
+
+	/*
+	 * Your job here...
+	 *
+	 */
 	// ret = parse_event_photo(jmsg, evt);
-	// if (ret == 0) {
-	// 	/* Success */
-	// 	evt->type = TGEV_PHOTO;
-	// 	return 0;
-	// }
-	// if (ret != -ECANCELED)
+	// if (ret == 0 || ret != -ECANCELED)
 	// 	return ret;
+
+
 
 	pr_err("Unknown event from JSON");
 	return ret;
@@ -156,3 +158,39 @@ int tg_event_load_str(const char *json_str, struct tgev *evt)
 
 	return internal_tg_event_load_str(json_str, length, evt);
 }
+
+
+static void tg_event_destroy_text(struct tgev_text *etext)
+{
+	if (unlikely(etext->entity_c > 0))
+		free(etext->entities);
+}
+
+
+void tg_event_destroy(struct tgev *evt)
+{
+	int ret;
+
+	if (unlikely(evt->json == NULL))
+		return;
+
+	ret = json_object_put(evt->json);
+	if (ret != 1) {
+		panic("Invalid tg_event_destroy, object has more than 1 "
+		      "reference (ret: %d)", ret);
+		exit(1);
+	}
+
+	switch (evt->type) {
+	case TGEV_UNKNOWN:
+		break;
+	case TGEV_TEXT:
+		tg_event_destroy_text(&evt->msg_text);
+		break;
+	case TGEV_PHOTO:
+		break;
+	case TGEV_STICKER:
+		break;
+	}
+}
+

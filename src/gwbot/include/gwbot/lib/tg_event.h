@@ -48,7 +48,7 @@ struct tgevi_entity {
 	uint16_t	offset;
 	uint16_t	length;
 	struct_pad(0, 4);
-	char		*type;
+	const char	*type;
 };
 
 
@@ -201,22 +201,9 @@ struct tgev {
 #undef INCLUDE_SUB_TG_EVENT
 
 
-static inline void tg_event_destroy(struct tgev *evt)
-{
-	int ret;
-
-	if (unlikely(evt->json == NULL))
-		return;
-
-	ret = json_object_put(evt->json);
-	if (ret != 1)
-		panic("Invalid tg_event_destroy, object has more than 1 "
-		      "reference (ret: %d)", ret);
-}
-
-
 int tg_event_load_str_len(const char *json_str, size_t length, struct tgev *evt);
 int tg_event_load_str(const char *json_str, struct tgev *evt);
+void tg_event_destroy(struct tgev *evt);
 
 
 #endif /* #ifndef GWBOT__LIB__TG_EVENT_H */

@@ -45,7 +45,7 @@ static int handle_wait(pid_t child)
 			pr_err("Error from valgrind detected");
 			pr_err("Please read the error message from valgrind to "
 				"diagnose this problem");
-			pr_err("Reading valgrind stack trace is not trivial, "
+			pr_err("Reading valgrind backtrace is not trivial, "
 				"please be serious!");
 		}
 		return exit_code;

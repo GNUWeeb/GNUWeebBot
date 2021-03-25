@@ -12,6 +12,7 @@ static int test_tg_event_text_001_simple(void)
 	int ret;
 	char *json_str;
 	struct tgev evt;
+	struct tgevi_entity *entity;
 	struct tgev_text *msg_text;
 	struct tgevi_from *from;
 	struct tgevi_chat *chat;
@@ -30,6 +31,13 @@ static int test_tg_event_text_001_simple(void)
 	TQ_ASSERT((msg_text->msg_id == 525u), 10);
 	TQ_ASSERT((msg_text->date == 1616588789ul), 10);
 	TQ_ASSERT((!strcmp(msg_text->text, "/debug Hello World!")), 10);
+	TQ_ASSERT((msg_text->entity_c == 1), 10);
+	TQ_ASSERT((msg_text->entities != NULL), 10);
+
+	entity = &msg_text->entities[0];
+	TQ_ASSERT((entity->offset == 0), 10);
+	TQ_ASSERT((entity->length == 6), 10);
+	TQ_ASSERT((!strcmp(entity->type, "bot_command")), 10);
 	TQ_ASSERT((msg_text->reply_to == NULL), 10);
 
 	from = &msg_text->from;
@@ -56,7 +64,7 @@ static int test_tg_event_text_001_simple(void)
 
 
 struct list_func tg_event_text_list[] = {
-	{test_tg_event_text_001_simple, 170},
+	{test_tg_event_text_001_simple, 220},
 	{NULL, 0}
 };
 
