@@ -114,6 +114,10 @@ int main(int argc, char *argv[])
 
 	exec_test(tg_event_text_list);
 	exec_test(tg_event_photo_list);
+
+	if (credit < total_credit)
+		ret = 1; 
+
 	print_info(ret);
 	close(2);
 	close(1);
