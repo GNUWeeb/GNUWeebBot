@@ -20,7 +20,7 @@ struct tgev_text {
 	struct tgevi_chat	chat;
 	time_t			date;
 	const char		*text;
-	uint16_t		entity_c; /* Number of entities */
+	uint16_t		entity_c; /* How many entities[n] there are? */
 	struct tgevi_entity	*entities;
 	struct tgev		*reply_to;
 };

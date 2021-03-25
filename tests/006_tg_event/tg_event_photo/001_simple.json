@@ -39,6 +39,24 @@
                 "height": 720
             }
         ],
+        "caption": "test photo with caption with entities\n/botcmd\nbold\nitalic",
+        "caption_entities": [
+            {
+                "offset": 38,
+                "length": 7,
+                "type": "bot_command"
+            },
+            {
+                "offset": 46,
+                "length": 4,
+                "type": "bold"
+            },
+            {
+                "offset": 51,
+                "length": 6,
+                "type": "italic"
+            }
+        ],
         "reply_to_message": null
     }
 }
