@@ -26,7 +26,6 @@ struct gwchan {
 	uint32_t		chan_idx;
 	time_t			started_at;
 	size_t			recv_s;
-	pthread_t		thread;
 	union {
 		struct chan_pkt		pkt;
 		char			raw_buf[sizeof(struct chan_pkt)];

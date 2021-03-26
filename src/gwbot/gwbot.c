@@ -23,6 +23,7 @@
 #include <gwbot/common.h>
 #include <gwbot/gwchan.h>
 #include <gwbot/tstack.h>
+#include <gwbot/gwthread.h>
 #include <gwbot/lib/string.h>
 #include <gwbot/event_handler.h>
 
@@ -39,18 +40,6 @@
 
 
 static struct gwbot_state *g_state;
-
-
-static int mutex_lock(struct gwlock *lock)
-{
-	return pthread_mutex_lock(&lock->mutex);
-}
-
-
-static int mutex_unlock(struct gwlock *lock)
-{
-	return pthread_mutex_unlock(&lock->mutex);
-}
 
 
 static void handle_interrupt(int sig)
@@ -119,9 +108,24 @@ static void reset_chan(struct gwchan *chan, uint32_t chan_idx)
 static void reset_thread(struct gwbot_thread *thread, uint32_t thread_idx,
 			 struct gwbot_state *state)
 {
+	int err;
 	thread->started_at = 0u;
 	thread->thread_idx = thread_idx;
 	thread->state      = state;
+	thread->is_online  = false;
+	thread->has_event  = false;
+
+	err = gw_mutex_init(&thread->ev_lock, NULL);
+	if (unlikely(err != 0)) {
+		err = (err > 0) ? err : -err;
+		pr_err("gw_mutex_init(): " PRERF, PREAR(err));
+	}
+
+	err = gw_cond_init(&thread->ev_cond, NULL);
+	if (unlikely(err != 0)) {
+		err = (err > 0) ? err : -err;
+		pr_err("gw_cond_init(): " PRERF, PREAR(err));
+	}
 }
 
 
@@ -151,8 +155,9 @@ static int init_state_threads(struct gwbot_state *state)
 	if (unlikely(threads == NULL))
 		return -1;
 
-	for (uint32_t i = 0; i < thread_c; i++)
+	for (uint32_t i = 0; i < thread_c; i++) {
 		reset_thread(&threads[i], i, state);
+	}
 
 	state->threads = threads;
 	return 0;
@@ -200,17 +205,16 @@ static int init_state(struct gwbot_state *state)
 		return -1;
 	if (unlikely(tss_init(&state->thread_stack, thread_c) == NULL))
 		return -1;
-	if (unlikely(sqe_init(&state->sqes, 1024) == NULL))
+	if (unlikely(sqe_init(&state->sqes, 100000) == NULL))
 		return -1;
 
 
-	err = pthread_mutex_init(&state->thread_stk_lock.mutex, NULL);
+	err = gw_mutex_init(&state->thread_stk_lock, NULL);
 	if (unlikely(err != 0)) {
 		err = (err > 0) ? err : -err;
-		pr_err("pthread_mutex_init(): " PRERF, PREAR(err));
+		pr_err("gw_mutex_init(): " PRERF, PREAR(err));
 		return -1;
 	}
-	state->thread_stk_lock.need_destroy = true;
 
 
 	for (uint32_t i = thread_c; i--;) {
@@ -220,10 +224,10 @@ static int init_state(struct gwbot_state *state)
 		ret = tss_push(&state->chan_stack, i16);
 		TASSERT(ret == (int32_t)i);
 
-		mutex_lock(&state->thread_stk_lock);
+		gw_mutex_lock(&state->thread_stk_lock);
 		ret = tss_push(&state->thread_stack, i16);
 		TASSERT(ret == (int32_t)i);
-		mutex_unlock(&state->thread_stk_lock);
+		gw_mutex_unlock(&state->thread_stk_lock);
 	}
 
 	return 0;
@@ -485,34 +489,54 @@ static int handle_tcp_event(int tcp_fd, struct gwbot_state *state,
 }
 
 
-static int mutex_cond_wait(struct gwcond *cond, struct gwlock *lock)
-{
-	return pthread_cond_wait(&cond->cond, &lock->mutex);
-}
-
-
-
 static void *handle_thread(void *thread_void_p)
 {
 	struct gwbot_thread *thread = thread_void_p;
 	struct gwbot_state  *state  = thread->state;
 
-
-	mutex_lock(&thread->lock);
+	prl_notice(2, "Starting thread %u...", thread->thread_idx);
+again:
+	gw_mutex_lock(&thread->ev_lock);
 	thread->is_online = true;
 
-	while (!thread->has_event) {
-		mutex_cond_wait(&thread->cond, &thread->lock);
+
+	while (likely(!thread->has_event)) {
+		/*
+		 *
+		 * We don't have event to be processed here.
+		 *
+		 * So let's sleep on gw_cond_wait until the main
+		 * thread signals us.
+		 *
+		 */
+		gw_cond_wait(&thread->ev_cond, &thread->ev_lock);
 	}
 
-	gwbot_event_handler(thread);
-	mutex_unlock(&thread->lock);
 
-	/* Shutdown thread */
-	reset_thread(thread, thread->thread_idx, state);
-	mutex_lock(&state->thread_stk_lock);
-	tss_push(&state->thread_stack, (uint16_t)thread->thread_idx);
-	mutex_unlock(&state->thread_stk_lock);
+	/*
+	 * Process the event
+	 */
+	gwbot_event_handler(thread);
+	prl_notice(2, "Thread %u has finished its job", thread->thread_idx);
+
+	thread->has_event = false;
+	/*
+	 *
+	 * Restore the index to the stack.
+	 *
+	 * We tell the main thread that we don't have
+	 * event to be processed. So we accept SQE.
+	 *
+	 */
+	gw_mutex_lock(&state->thread_stk_lock);
+	tss_push(&state->thread_stack, thread->thread_idx);
+	gw_mutex_unlock(&state->thread_stk_lock);
+
+
+	gw_mutex_unlock(&thread->ev_lock);
+	goto again;
+
+
 	return NULL;
 }
 
@@ -526,6 +550,8 @@ static int enqueue_to_sqe(uint16_t fdata_len, struct gwbot_state *state,
 	void  *cpy_src = chan->uni_pkt.raw_buf;
 
 	node = sqe_enqueue(&state->sqes, cpy_src, cpy_len);
+	prl_notice(3, "Thread(s) are all busy, saving SQE... (sqe_count: %u)",
+		   sqe_count(&state->sqes));
 	if (unlikely(node == NULL)) {
 		err = errno;
 		if (err == EAGAIN)
@@ -545,21 +571,37 @@ static void submit_sqe(uint16_t fdata_len, struct gwbot_state *state,
 	struct gwbot_thread *thread;
 	size_t cpy_len = sizeof(fdata_len) + fdata_len;
 
-	mutex_lock(&state->thread_stk_lock);
+	gw_mutex_lock(&state->thread_stk_lock);
 	pop_ret = tss_pop(&state->thread_stack);
-	mutex_unlock(&state->thread_stk_lock);
+	gw_mutex_unlock(&state->thread_stk_lock);
 	if (unlikely(pop_ret == -1)) {
 
-		prl_notice(0, "Thread(s) are all busy, saving SQE...");
 		if (unlikely(enqueue_to_sqe(fdata_len, state, chan) == 0))
 			return; /* OK */
 
 		goto out_err;
 	}
 
-	thread = &state->threads[pop_ret];
-	memcpy(&thread->uni_pkt.pkt, &chan->uni_pkt.pkt, cpy_len);
 
+	thread = &state->threads[pop_ret];
+
+	gw_mutex_lock(&thread->ev_lock);
+	memcpy(&thread->uni_pkt.pkt, &chan->uni_pkt.pkt, cpy_len);
+	thread->has_event = true;
+	if (likely(thread->is_online)) {
+		/*
+		 * Thread is online, let's signal it.
+		 */
+		gw_cond_signal(&thread->ev_cond);
+		gw_mutex_unlock(&thread->ev_lock);
+		return;
+	}
+
+	gw_mutex_unlock(&thread->ev_lock);
+
+	/*
+	 * The thread is offline, let's spawn it.
+	 */
 	ret = pthread_create(&thread->thread, NULL, handle_thread, thread);
 	if (unlikely(ret != 0)) {
 		ret = ret > 0 ? ret : -ret;
@@ -569,12 +611,78 @@ static void submit_sqe(uint16_t fdata_len, struct gwbot_state *state,
 		return;
 	}
 	pthread_detach(thread->thread);
-
 	return;
 
 out_err:
+	/*
+	 *
+	 * Thread(s) are all busy, and SQE slot is full.
+	 *
+	 */
+
 	/* TODO: Send error response to client */
 	return;	
+}
+
+
+static void dispatch_sqe(struct gwbot_state *state)
+{
+	int ret;
+	int32_t pop_ret;
+	struct sqe_node *node;
+	struct gwbot_thread *thread;
+
+	gw_mutex_lock(&state->thread_stk_lock);
+	pop_ret = tss_pop(&state->thread_stack);
+	gw_mutex_unlock(&state->thread_stk_lock);
+	if (unlikely(pop_ret == -1)) {
+		/*
+		 *
+		 * We don't have free thread, they're all still busy
+		 *
+		 */
+		return;
+	}
+
+	thread = &state->threads[pop_ret];
+
+	prl_notice(4, "Dispatching SQE to thread %u (sqe_count = %u)...",
+		   thread->thread_idx, sqe_count(&state->sqes));
+
+	gw_mutex_lock(&thread->ev_lock);
+	node = sqe_dequeue(&state->sqes);
+	if (unlikely(node == NULL)) {
+		panic("Bug detected sqe_dequeue: %s line %d",
+			__FILE__, __LINE__);
+		exit(1);
+	}
+
+
+	memcpy(&thread->uni_pkt.pkt, node->data, node->len);
+	thread->has_event = true;
+	if (likely(thread->is_online)) {
+		/*
+		 * Thread is online, let's signal it.
+		 */
+		gw_cond_signal(&thread->ev_cond);
+		gw_mutex_unlock(&thread->ev_lock);
+		return;
+	}
+
+	gw_mutex_unlock(&thread->ev_lock);
+
+	/*
+	 * The thread is offline, let's spawn it.
+	 */
+	ret = pthread_create(&thread->thread, NULL, handle_thread, thread);
+	if (unlikely(ret != 0)) {
+		ret = ret > 0 ? ret : -ret;
+		pr_err("pthread_create() when dispatching SQE" PRERF,
+		       PREAR(ret));
+		state->stop_el = true;
+		return;
+	}
+	pthread_detach(thread->thread);
 }
 
 
@@ -701,7 +809,7 @@ static int handle_client_event2(int chan_fd, struct gwbot_state *state,
 	return 0;
 out_close:
 	prl_notice(0, "Closing connection from " PRWIU "...", W_IU(chan));
-	tss_push(&state->chan_stack, (uint16_t)chan->chan_idx);
+	tss_push(&state->chan_stack, chan->chan_idx);
 	epoll_delete(state->epl_fd, chan_fd);
 	reset_chan(chan, chan->chan_idx);
 	close(chan_fd);
@@ -759,13 +867,27 @@ static int run_event_loop(struct gwbot_state *state)
 {
 	int err;
 	int ret = 0;
+	int timeout; /* in milliseconds */
 	int epoll_ret;
-	int timeout = 500; /* in milliseconds */
 	int maxevents = 32;
 	int epl_fd = state->epl_fd;
 	struct epoll_event events[32];
 
 	while (likely(!state->stop_el)) {
+
+		if (likely(sqe_count(&state->sqes))) {
+			
+			dispatch_sqe(state);
+
+			/*
+			 * We need to move faster, as we have pending SQE(s).
+			 */
+			timeout = 20;
+		} else {
+			timeout = 500;
+		}
+
+
 		epoll_ret = epoll_wait(epl_fd, events, maxevents, timeout);
 		if (unlikely(epoll_ret == 0)) {
 			continue;
@@ -820,9 +942,7 @@ static void destroy_state(struct gwbot_state *state)
 	tss_destroy(&state->chan_stack);
 	tss_destroy(&state->thread_stack);
 	sqe_destroy(&state->sqes);
-
-	if (state->thread_stk_lock.need_destroy)
-		pthread_mutex_destroy(&state->thread_stk_lock.mutex);
+	gw_mutex_destroy(&state->thread_stk_lock);
 
 	free(state->epl_map_chan);
 	free(state->threads);

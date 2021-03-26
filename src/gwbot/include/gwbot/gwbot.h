@@ -19,22 +19,12 @@
 #include <gwbot/config.h>
 #include <gwbot/gwchan.h>
 #include <gwbot/tstack.h>
-
-struct gwlock {
-	bool			need_destroy;
-	pthread_mutex_t		mutex;
-};
-
-
-struct gwcond {
-	bool			need_destroy;
-	pthread_cond_t		cond;
-};
+#include <gwbot/gwthread.h>
 
 
 struct gwbot_thread {
 	time_t			started_at;
-	uint32_t		thread_idx;
+	uint16_t		thread_idx;
 	bool			is_online;
 	bool			has_event;
 	struct_pad(0, 2);
@@ -44,8 +34,8 @@ struct gwbot_thread {
 		struct chan_pkt		pkt;
 		char			raw_buf[sizeof(struct chan_pkt)];
 	} uni_pkt;
-	struct gwcond		cond;
-	struct gwlock		lock;
+	gwcond_t		ev_cond;
+	gwlock_t		ev_lock;
 };
 
 
@@ -64,7 +54,7 @@ struct gwbot_state {
 	struct sqe_master	sqes;
 
 	struct tstack		chan_stack;
-	struct gwlock		thread_stk_lock;
+	gwlock_t		thread_stk_lock;
 	struct tstack		thread_stack;
 };
 
