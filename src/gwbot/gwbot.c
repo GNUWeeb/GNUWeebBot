@@ -485,14 +485,31 @@ static int handle_tcp_event(int tcp_fd, struct gwbot_state *state,
 }
 
 
+static int mutex_cond_wait(struct gwcond *cond, struct gwlock *lock)
+{
+	return pthread_cond_wait(&cond->cond, &lock->mutex);
+}
+
+
+
 static void *handle_thread(void *thread_void_p)
 {
 	struct gwbot_thread *thread = thread_void_p;
 	struct gwbot_state  *state  = thread->state;
 
-	gwbot_event_handler(thread);
-	reset_thread(thread, thread->thread_idx, state);
 
+	mutex_lock(&thread->lock);
+	thread->is_online = true;
+
+	while (!thread->has_event) {
+		mutex_cond_wait(&thread->cond, &thread->lock);
+	}
+
+	gwbot_event_handler(thread);
+	mutex_unlock(&thread->lock);
+
+	/* Shutdown thread */
+	reset_thread(thread, thread->thread_idx, state);
 	mutex_lock(&state->thread_stk_lock);
 	tss_push(&state->thread_stack, (uint16_t)thread->thread_idx);
 	mutex_unlock(&state->thread_stk_lock);

@@ -25,17 +25,27 @@ struct gwlock {
 	pthread_mutex_t		mutex;
 };
 
+
+struct gwcond {
+	bool			need_destroy;
+	pthread_cond_t		cond;
+};
+
+
 struct gwbot_thread {
 	time_t			started_at;
 	uint32_t		thread_idx;
-	struct_pad(0, 4);
+	bool			is_online;
+	bool			has_event;
+	struct_pad(0, 2);
 	pthread_t		thread;
 	struct gwbot_state	*state;
 	union {
 		struct chan_pkt		pkt;
 		char			raw_buf[sizeof(struct chan_pkt)];
 	} uni_pkt;
-	struct_pad(1, 6);
+	struct gwcond		cond;
+	struct gwlock		lock;
 };
 
 

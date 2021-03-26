@@ -50,7 +50,7 @@ static int parse_update_id(json_object *json_obj, struct tgev *evt)
 }
 
 
-static int parse_message(json_object *json_obj, struct tgev *evt)
+int parse_message(json_object *json_obj, struct tgev *evt)
 {
 	int ret;
 	json_object *jmsg = NULL;
@@ -60,8 +60,6 @@ static int parse_message(json_object *json_obj, struct tgev *evt)
 		return -1;
 	}
 	evt->json = json_obj;
-
-
 
 	ret = parse_event_text(jmsg, evt);
 	if (ret == 0 || ret != -ECANCELED)
@@ -76,9 +74,8 @@ static int parse_message(json_object *json_obj, struct tgev *evt)
 }
 
 
-static  int internal_tg_event_load_str(const char *json_str,
-				       size_t length,
-				       struct tgev *evt)
+static int internal_tg_event_load_str(const char *json_str, size_t length,
+				      struct tgev *evt)
 {
 	int ret;
 	json_object *json_obj = NULL;
