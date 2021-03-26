@@ -1,0 +1,46 @@
+{
+    "update_id": 346091070,
+    "message": {
+        "message_id": 759,
+        "from": {
+            "id": 243692601,
+            "is_bot": false,
+            "first_name": "io_uring_enter",
+            "username": "ammarfaizi2",
+            "language_code": "en"
+        },
+        "chat": {
+            "id": -1001422514298,
+            "title": "GNU/Weeb Test Driven Development",
+            "username": "GNUWeebTDD",
+            "type": "supergroup"
+        },
+        "date": 1616742132,
+        "reply_to_message": {
+            "message_id": 758,
+            "from": {
+                "id": 243692601,
+                "is_bot": false,
+                "first_name": "io_uring_enter",
+                "username": "ammarfaizi2",
+                "language_code": "en"
+            },
+            "chat": {
+                "id": -1001422514298,
+                "title": "GNU/Weeb Test Driven Development",
+                "username": "GNUWeebTDD",
+                "type": "supergroup"
+            },
+            "date": 1616742128,
+            "text": "test reply to"
+        },
+        "text": "/debug",
+        "entities": [
+            {
+                "offset": 0,
+                "length": 6,
+                "type": "bot_command"
+            }
+        ]
+    }
+}

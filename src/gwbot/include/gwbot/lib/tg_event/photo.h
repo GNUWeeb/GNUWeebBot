@@ -168,12 +168,14 @@ static __always_inline int parse_event_photo(json_object *jmsg,
 
 
 
-        if (unlikely(!json_object_object_get_ex(jmsg, "caption_entities", &res))) {
+        if (unlikely(!json_object_object_get_ex(jmsg, "caption_entities",
+        					&res))) {
 		/* `entities` is not mandatory */
 		ephoto->caption_entity_c = 0u;
 		ephoto->caption_entities = NULL;
 	} else {
 		uint16_t entity_c;
+		struct tgevi_entity **cp_ent;
 
  		entity_c = (uint16_t)json_object_array_length(res);
  		if (likely(entity_c == 0u)) {
@@ -182,9 +184,9 @@ static __always_inline int parse_event_photo(json_object *jmsg,
  			goto parse_reply_to;
  		}
 
+ 		cp_ent = &ephoto->caption_entities;
  		ephoto->caption_entity_c = entity_c;
- 		if (unlikely(parse_tgevi_entities(res, entity_c,
- 						 &ephoto->caption_entities) < 0))
+ 		if (unlikely(parse_tgevi_entities(res, entity_c, cp_ent) < 0))
  			return -EINVAL;
 	}
 
