@@ -88,8 +88,7 @@ int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread,
 		.text			= reply_text,
 		.parse_mode		= PARSE_MODE_HTML
 	});
-
-
+	tg_api_destroy(thandle);
 	json_object_put(json_obj);
 	return 0;
 }
