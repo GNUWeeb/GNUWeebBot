@@ -62,8 +62,8 @@ typedef enum _tgev_type_t {
 
 
 static __always_inline int parse_tgevi_entities(json_object *jentities,
-					       uint16_t entity_c,
-					       struct tgevi_entity **entities)
+					        uint16_t entity_c,
+					        struct tgevi_entity **entities)
 {
 	json_object *entity, *tmp;
 	struct tgevi_entity *entities_tmp;
@@ -89,7 +89,6 @@ static __always_inline int parse_tgevi_entities(json_object *jentities,
 
 		if (!json_object_object_get_ex(entity, "type", &tmp))
 			continue;
-
 		eptr->type = json_object_get_string(tmp);
 	}
 

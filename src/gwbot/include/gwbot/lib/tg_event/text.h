@@ -31,11 +31,6 @@ struct tgev_text {
 
 #ifdef SUB_TG_EVENT_CIRCULAR_INLINE
 
-
-
-
-
-
 static __always_inline int parse_event_text(json_object *jmsg, struct tgev *evt)
 {
 	int ret;

@@ -328,27 +328,3 @@ size_t htmlspecialchars(char *output, const char *input)
 
 	return j;
 }
-
-
-		// switch (input[i]) {
-		// case '<':
-		// 	memcpy(&output[j], "&lt;", 4);
-		// 	j += 4;
-		// 	break;
-		// case '>':
-		// 	memcpy(&output[j], "&gt;", 4);
-		// 	j += 4;
-		// 	break;
-		// case '"':
-		// 	memcpy(&output[j], "&quot;", 6);
-		// 	j += 6;
-		// 	break;
-		// case '&':
-		// 	memcpy(&output[j], "&amp;", 5);
-		// 	j += 5;
-		// 	break;
-		// default:
-		// 	printf("%c", input[i]);
-		// 	output[j] = input[i];
-		// 	break;
-		// }
