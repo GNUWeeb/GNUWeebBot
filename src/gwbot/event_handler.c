@@ -29,6 +29,7 @@ int gwbot_event_handler(const struct gwbot_thread *thread)
 	const size_t mod_tbl_len = sizeof(mod_tbl) / sizeof(*mod_tbl);
 
 
+	memset(&evt, 0, sizeof(evt));
 	ret = tg_event_load_str(json_str, &evt);
 	if (unlikely(ret < 0)) {
 		pr_err("tg_event_load_str(): " PRERF, PREAR(-ret));
