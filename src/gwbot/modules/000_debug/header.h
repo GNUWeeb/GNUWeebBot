@@ -13,7 +13,7 @@
 
 #include <gwbot/module.h>
 
-GWMOD_ENTRY_DEF(001_debug);
+int GWMOD_ENTRY_DEF(001_debug, const struct gwbot_thread *thread);
 
 
 #endif /* #ifndef GWBOT__MODULES__000_DEBUG__HEADER_H */
