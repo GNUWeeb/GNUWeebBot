@@ -666,7 +666,7 @@ static void dispatch_sqe(struct gwbot_state *state)
 		 */
 		gw_cond_signal(&thread->ev_cond);
 		gw_mutex_unlock(&thread->ev_lock);
-		return;
+		goto out_destroy_node;
 	}
 
 	gw_mutex_unlock(&thread->ev_lock);
@@ -683,6 +683,9 @@ static void dispatch_sqe(struct gwbot_state *state)
 		return;
 	}
 	pthread_detach(thread->thread);
+
+out_destroy_node:
+	sqe_destroy_dequeued(node);
 }
 
 
