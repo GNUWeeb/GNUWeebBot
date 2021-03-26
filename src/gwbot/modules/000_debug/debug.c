@@ -66,6 +66,8 @@ int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread,
 
 
 	text = get_text(evt);
+	if (text == NULL)
+		return 0;
 	if (strncmp(text, "/debug", 6) != 0)
 		return 0;
 
