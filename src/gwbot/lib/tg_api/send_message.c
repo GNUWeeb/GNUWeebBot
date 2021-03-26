@@ -45,7 +45,6 @@ int tg_api_send_msg(tg_api_handle *handle, const struct tga_send_msg *ctx)
 	text_len = strnlen(ctx->text, space - pos);
 	urlencode(buf + pos, ctx->text, text_len, true);
 
-	printf("buf = %s\n", buf);
 	tg_api_set_method(handle, "sendMessage");
 	tg_api_set_body(handle, buf);
 	return tg_api_post(handle);
