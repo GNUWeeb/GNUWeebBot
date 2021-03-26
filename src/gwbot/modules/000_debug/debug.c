@@ -7,6 +7,7 @@
  *  Copyright (C) 2021  Ammar Faizi
  */
 
+
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
@@ -16,27 +17,79 @@
 
 #include "header.h"
 
-static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
-static uint32_t uu = 0;
 
-int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread)
+static int64_t get_chat_id(struct tgev *evt)
 {
-	// size_t len;
-	// char buf[0x2500];
-	// const char *json_str = thread->uni_pkt.pkt.data;
+	if (evt->type == TGEV_TEXT)
+		return evt->msg_text.chat.id;
+	if (evt->type == TGEV_PHOTO)
+		return evt->msg_photo.chat.id;
+	return -1;
+}
 
 
-	// len = htmlspecialchars(buf, json_str);
+static const char *get_text(struct tgev *evt)
+{
+	if (evt->type == TGEV_TEXT)
+		return evt->msg_text.text;
+	if (evt->type == TGEV_PHOTO)
+		return evt->msg_photo.caption;
+	return NULL;
+}
 
-	// printf("jsn = %s\n", json_str);
-	// printf("buf = %s\n", buf);
-	// printf("len = %zu\n", len);
 
-	while (1)
-	sleep(10000);
-	pthread_mutex_lock(&mut);
-	printf("%u\n", uu++);
-	pthread_mutex_unlock(&mut);
+static uint64_t get_msg_id(struct tgev *evt)
+{
+	if (evt->type == TGEV_TEXT)
+		return evt->msg_text.msg_id;
+	if (evt->type == TGEV_PHOTO)
+		return evt->msg_photo.msg_id;
+	return 0;
+}
 
+
+
+/*
+ *
+ * WARNING: Once the entry returns, the `evt` won't be valid anymore
+ *
+ */
+int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread,
+				  struct tgev *evt)
+{
+	size_t len;
+	char reply_text[0x2500];
+	tg_api_handle *thandle;
+	struct json_object *json_obj;
+	struct gwbot_cfg *cfg = thread->state->cfg;
+	const char *text, *json_pretty, *json_str = thread->uni_pkt.pkt.data;
+
+
+	text = get_text(evt);
+	if (strncmp(text, "/debug", 6) != 0)
+		return 0;
+
+
+	json_obj = json_tokener_parse(json_str);
+	json_pretty = json_object_to_json_string_ext(
+			json_obj,
+			JSON_C_TO_STRING_PRETTY | JSON_C_TO_STRING_NOSLASHESCAPE
+		);
+
+
+	len = htmlspecialchars(mempcpy(reply_text, "<pre>", 5), json_str);
+	*(char *)mempcpy(&reply_text[5 + len], "</pre>", 6) = '\0';
+
+
+	thandle = tg_api_hcreate(cfg->cred.token);
+	tg_api_send_msg(thandle, &(const struct tga_send_msg){
+		.chat_id		= get_chat_id(evt),
+		.reply_to_msg_id	= get_msg_id(evt),
+		.text			= reply_text,
+		.parse_mode		= PARSE_MODE_HTML
+	});
+
+
+	json_object_put(json_obj);
 	return 0;
 }

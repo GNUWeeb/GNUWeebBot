@@ -42,7 +42,7 @@ int gwbot_event_handler(const struct gwbot_thread *thread)
 		if (unlikely((event_mask & evt.type) == 0))
 			continue;
 
-		ret = mod_tbl[i].entry(thread);
+		ret = mod_tbl[i].entry(thread, &evt);
 		if (unlikely(ret != -ECANCELED))
 			break;
 	}

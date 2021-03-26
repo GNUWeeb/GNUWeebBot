@@ -21,9 +21,4 @@
 
 int gwbot_event_handler(const struct gwbot_thread *thread);
 
-struct module_table {
-	int 		(*entry)(const struct gwbot_thread *thread);
-	uint64_t	event_mask;
-};
-
 #endif /* #ifndef GWBOT__EVENT_HANDLER_H */

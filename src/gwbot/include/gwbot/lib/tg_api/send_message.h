@@ -29,7 +29,7 @@ struct tga_send_msg {
 };
 
 
-int tg_api_send_msg(tg_api_handle *handle, struct tga_send_msg *ctx);
+int tg_api_send_msg(tg_api_handle *handle, const struct tga_send_msg *ctx);
 
 
 #endif /* #ifndef GWBOT__LIB__TG_API__SEND_MESSAGE_H */
