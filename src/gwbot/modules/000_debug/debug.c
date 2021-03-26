@@ -79,7 +79,7 @@ int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread,
 		);
 
 
-	len = htmlspecialchars(mempcpy(reply_text, "<pre>", 5), json_str);
+	len = htmlspecialchars(mempcpy(reply_text, "<pre>", 5), json_pretty);
 	*(char *)mempcpy(&reply_text[5 + len], "</pre>", 6) = '\0';
 
 

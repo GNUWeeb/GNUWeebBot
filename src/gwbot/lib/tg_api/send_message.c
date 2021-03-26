@@ -9,7 +9,7 @@
 int tg_api_send_msg(tg_api_handle *handle, const struct tga_send_msg *ctx)
 {
 	size_t pos = 0;
-	char buf[8096];
+	char buf[0x2500];
 	size_t text_len;
 	const size_t space = sizeof(buf);
 
