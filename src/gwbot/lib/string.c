@@ -294,7 +294,7 @@ char *urlencode(char *alloc, const char *s, size_t len, bool raw)
  * Thanks to Roland Seuhs
  * Ref: https://stackoverflow.com/a/29599904/7275114
  */
-size_t htmlspecialchars(char *input, char *output)
+size_t htmlspecialchars(char *output, const char *input)
 {
 	size_t i = 0, j = 0;
 
@@ -318,10 +318,37 @@ size_t htmlspecialchars(char *input, char *output)
 			break;
 		default:
 			output[j] = input[i];
+			j += 1;
 			break;
 		}
 		i++;
 	}
-	output[j] = '\0';
+	if (j > 0)
+		output[j] = '\0';
+
 	return j;
 }
+
+
+		// switch (input[i]) {
+		// case '<':
+		// 	memcpy(&output[j], "&lt;", 4);
+		// 	j += 4;
+		// 	break;
+		// case '>':
+		// 	memcpy(&output[j], "&gt;", 4);
+		// 	j += 4;
+		// 	break;
+		// case '"':
+		// 	memcpy(&output[j], "&quot;", 6);
+		// 	j += 6;
+		// 	break;
+		// case '&':
+		// 	memcpy(&output[j], "&amp;", 5);
+		// 	j += 5;
+		// 	break;
+		// default:
+		// 	printf("%c", input[i]);
+		// 	output[j] = input[i];
+		// 	break;
+		// }

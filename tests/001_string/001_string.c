@@ -35,3 +35,16 @@ Test(string, trim_not_copy)
 	cr_assert_eq(ptr, &str[2], "Wrong trim_not_copy return");
 	cr_assert(memcmp(str, cmp, sizeof(cmp)) == 0, "Wrong trim_not_copy");
 }
+
+
+Test(string, htmlspecialchars)
+{
+	size_t n;
+	const char input[]    = "<aaaaa> &&& \"\"";
+	const char expected[] = "&lt;aaaaa&gt; &amp;&amp;&amp; &quot;&quot;";
+	char output[sizeof(expected) + 1];
+
+	n = htmlspecialchars(output, input);
+	cr_assert_str_eq(expected, output);
+	cr_assert_eq(n, sizeof(expected) - 1);
+}

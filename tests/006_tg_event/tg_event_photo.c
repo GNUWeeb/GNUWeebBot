@@ -115,7 +115,7 @@ static int test_tg_event_photo_001_simple(void)
 
 
 struct list_func tg_event_photo_list[] = {
-	{test_tg_event_photo_001_simple, 220 + (30 * 3) + (10 + (5 * 3 * 10))},
+	{test_tg_event_photo_001_simple, 200 + (30 * 3) + (10 + (5 * 3 * 10))},
 	{NULL, 0}
 };
 EXPORT_TEST(tg_event_photo_list);

@@ -16,11 +16,8 @@
 #include <gwbot/modules/001_standard/header.h>
 
 static const struct module_table mod_tbl[] = {
-	{
-		GWMOD(001_debug),
-		TGEV_TEXT | TGEV_PHOTO
-	},
-	{NULL, 0}
+	GWMOD_REG(000_debug, TGEV_TEXT | TGEV_PHOTO),
+	GWMOD_REG_END
 };
 
 
