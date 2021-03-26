@@ -1,10 +1,7 @@
 
-#include <libgen.h>
 #include <assert.h>
 #include "006_tg_event.h"
 #include <gwbot/lib/tg_event.h>
-
-
 
 
 static int test_tg_event_photo_001_simple(void)
@@ -76,9 +73,7 @@ static int test_tg_event_photo_001_simple(void)
 		&& (photo[2].file_size == 152004)
 		&& (photo[2].width == 1280)
 		&& (photo[2].height == 720),
-
-		/* point */
-		10 + (5 * 3 * 10)
+		10
 	);
 
 
@@ -104,7 +99,7 @@ static int test_tg_event_photo_001_simple(void)
 		&& (entity[2].offset == 51)
 		&& (entity[2].length == 6)
 		&& (!nnstrcmp(entity[2].type, "italic"))
-	, 30 * 3);
+	, 10);
 
 
 	TQ_ASSERT((msg_photo->reply_to == NULL), 10);
@@ -115,7 +110,7 @@ static int test_tg_event_photo_001_simple(void)
 
 
 struct list_func tg_event_photo_list[] = {
-	{test_tg_event_photo_001_simple, 220 + (30 * 3) + (10 + (5 * 3 * 10))},
+	{test_tg_event_photo_001_simple, 220},
 	{NULL, 0}
 };
 EXPORT_TEST(tg_event_photo_list);

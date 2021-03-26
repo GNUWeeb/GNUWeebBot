@@ -1,10 +1,7 @@
 
-#include <libgen.h>
 #include <assert.h>
 #include "006_tg_event.h"
 #include <gwbot/lib/tg_event.h>
-
-
 
 
 static int test_tg_event_text_001_simple(void)
@@ -69,7 +66,7 @@ static int test_tg_event_text_001_simple(void)
 
 
 struct list_func tg_event_text_list[] = {
-	{test_tg_event_text_001_simple, 220},
+	{test_tg_event_text_001_simple, 230},
 	{NULL, 0}
 };
 EXPORT_TEST(tg_event_text_list);

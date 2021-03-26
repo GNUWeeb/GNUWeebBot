@@ -13,7 +13,7 @@
 
 #include <gwbot/module.h>
 
-GWMOD_ENTRY_DEF(001_debug);
+GWMOD_ENTRY_DECLARE(000_debug);
 
 
 #endif /* #ifndef GWBOT__MODULES__000_DEBUG__HEADER_H */

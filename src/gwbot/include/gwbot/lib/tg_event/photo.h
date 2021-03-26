@@ -47,11 +47,6 @@ struct tgev_photo {
 
 #ifdef SUB_TG_EVENT_CIRCULAR_INLINE
 
-
-
-
-
-
 static __always_inline int parse_tgevi_photos(json_object *jphotos,
 					       uint16_t photo_c,
 					       struct tgevi_photo_list **photos)
@@ -69,24 +64,24 @@ static __always_inline int parse_tgevi_photos(json_object *jphotos,
 	for (uint16_t i = 0; i < photo_c; i++) {
 		struct tgevi_photo_list *ph_ptr = &photos_tmp[i];
 		photo = json_object_array_get_idx(jphotos, i);
-                
+
 		if (!json_object_object_get_ex(photo, "file_id", &tmp))
 			continue;
 		ph_ptr->file_id = json_object_get_string(tmp);
-                
+
 		if (!json_object_object_get_ex(photo, "file_unique_id", &tmp))
 			continue;
 		ph_ptr->file_unique_id = json_object_get_string(tmp);
-                
+
 		if (!json_object_object_get_ex(photo, "file_size", &tmp))
 			continue;
 		ph_ptr->file_size = json_object_get_uint64(tmp);
-                
-                if (!json_object_object_get_ex(photo, "width", &tmp))
+
+		if (!json_object_object_get_ex(photo, "width", &tmp))
 			continue;
 		ph_ptr->width = (uint16_t)json_object_get_uint64(tmp);
-                
-                if (!json_object_object_get_ex(photo, "height", &tmp))
+
+		if (!json_object_object_get_ex(photo, "height", &tmp))
 			continue;
 		ph_ptr->height = (uint16_t)json_object_get_uint64(tmp);
 	}
@@ -94,7 +89,6 @@ static __always_inline int parse_tgevi_photos(json_object *jphotos,
 	*photos = photos_tmp;
 	return 0;
 }
-
 
 
 static __always_inline int parse_event_photo(json_object *jmsg,
@@ -159,25 +153,29 @@ static __always_inline int parse_event_photo(json_object *jmsg,
 	}
 
 
-        if (unlikely(!json_object_object_get_ex(jmsg, "caption", &res))) {
-                /* `caption` is not mandatory, and since there is 
-                 * no caption, there is no `caption_entities` */
-                ephoto->caption = NULL;
-                ephoto->caption_entity_c = 0u;
+	if (unlikely(!json_object_object_get_ex(jmsg, "caption", &res))) {
+		/*
+		 * `caption` is not mandatory, and since there is 
+		 *  no caption, there is no `caption_entities`
+		 */
+		ephoto->caption = NULL;
+		ephoto->caption_entity_c = 0u;
 		ephoto->caption_entities = NULL;
-                goto parse_reply_to;
+		goto parse_reply_to;
 	} else {
-                ephoto->caption = json_object_get_string(res);
-        }
+		ephoto->caption = json_object_get_string(res);
+	}
 
 
 
-        if (unlikely(!json_object_object_get_ex(jmsg, "caption_entities", &res))) {
+        if (unlikely(!json_object_object_get_ex(jmsg, "caption_entities",
+        					&res))) {
 		/* `entities` is not mandatory */
 		ephoto->caption_entity_c = 0u;
 		ephoto->caption_entities = NULL;
 	} else {
 		uint16_t entity_c;
+		struct tgevi_entity **cp_ent;
 
  		entity_c = (uint16_t)json_object_array_length(res);
  		if (likely(entity_c == 0u)) {
@@ -186,9 +184,9 @@ static __always_inline int parse_event_photo(json_object *jmsg,
  			goto parse_reply_to;
  		}
 
+ 		cp_ent = &ephoto->caption_entities;
  		ephoto->caption_entity_c = entity_c;
- 		if (unlikely(parse_tgevi_entities(res, entity_c,
- 						 &ephoto->caption_entities) < 0))
+ 		if (unlikely(parse_tgevi_entities(res, entity_c, cp_ent) < 0))
  			return -EINVAL;
 	}
 
