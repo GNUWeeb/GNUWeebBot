@@ -39,6 +39,7 @@ function main(): int
 {
 	global $json;
 
+    $ret  = 0;
 	$sock = socket_create(AF_INET, SOCK_STREAM, 0);
 	$conn = socket_connect($sock, "127.0.0.1", 55555);
 
@@ -52,11 +53,11 @@ function main(): int
 	if ($write_len != $correct_len) {
 		printf("socket_write failed: write_len = %d; correct_len = %d\n",
 		       $write_len, $correct_len);
-		return 1;
+		$ret = 1;
 	}
 
 	socket_close($sock);
-	return 0;
+	return $ret;
 }
 
 exit(main());
