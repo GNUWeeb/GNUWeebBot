@@ -13,7 +13,6 @@
 #include <assert.h>
 #include <pthread.h>
 #include <stdbool.h>
-#include <gwbot/base.h>
 
 
 typedef struct _gwlock_t {
