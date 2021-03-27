@@ -128,6 +128,7 @@ static int test_tg_event_text_002_simple(void)
 
 
 struct list_func tg_event_text_list[] = {
+	{test_tg_event_text_001_simple, 230}
 	{test_tg_event_text_002_simple, 150},
 	{NULL, 0}
 };
