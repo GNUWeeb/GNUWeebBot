@@ -27,6 +27,7 @@ struct list_func {
 
 extern struct list_func tg_event_text_list[];
 extern struct list_func tg_event_photo_list[];
+extern struct list_func tg_event_sticker_list[];
 
 
 #define TQ_ASSERT(EXPR, CREDIT)						\

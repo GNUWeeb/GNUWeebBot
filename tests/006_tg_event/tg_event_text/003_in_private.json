@@ -1,0 +1,54 @@
+{
+	"update_id": 346091871,
+	"message": {
+	    "message_id": 82945,
+	    "from": {
+		"id": 243692601,
+		"is_bot": false,
+		"first_name": "io_uring_enter",
+		"username": "ammarfaizi2",
+		"language_code": "en"
+	    },
+	    "chat": {
+		"id": 243692601,
+		"first_name": "io_uring_enter",
+		"username": "ammarfaizi2",
+		"type": "private",
+		"title": null
+	    },
+	    "date": 1616779179,
+	    "reply_to_message": {
+		"message_id": 82943,
+		"from": {
+		    "id": 243692601,
+		    "is_bot": false,
+		    "first_name": "io_uring_enter",
+		    "username": "ammarfaizi2",
+		    "language_code": "en"
+		},
+		"chat": {
+		    "id": 243692601,
+		    "first_name": "io_uring_enter",
+		    "username": "ammarfaizi2",
+		    "type": "private"
+		},
+		"date": 1616779165,
+		"text": "/debug",
+		"entities": [
+		    {
+			"offset": 0,
+			"length": 6,
+			"type": "bot_command"
+		    }
+		]
+	    },
+	    "text": "/debug",
+	    "entities": [
+		{
+		    "offset": 0,
+		    "length": 6,
+		    "type": "bot_command"
+		}
+	    ]
+	}
+    }

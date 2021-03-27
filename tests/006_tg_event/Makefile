@@ -7,7 +7,9 @@ TESTS		+=	$(BASE_DIR)/tests/006_tg_event/006_tg_event.test__exec
 __006_TG_EVENT_DEPS = \
 	$(BASE_DIR)/tests/006_tg_event/006_tg_event.o \
 	$(BASE_DIR)/tests/006_tg_event/tg_event_text.o \
-	$(BASE_DIR)/tests/006_tg_event/tg_event_photo.o
+	$(BASE_DIR)/tests/006_tg_event/tg_event_photo.o \
+	$(BASE_DIR)/tests/006_tg_event/tg_event_sticker.o \
+
 
 
 $(BASE_DIR)/tests/006_tg_event/test_by_hand.c: | $(BASE_DIR)/tests/006_tg_event/test_by_hand.c.in

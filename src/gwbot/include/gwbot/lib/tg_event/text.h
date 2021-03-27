@@ -17,12 +17,17 @@
 struct tgev_text {
 	uint64_t		msg_id;
 	struct tgevi_from	from;
+	struct tgevi_from	forward_from;
+	const char		*fwd_sender_name;
 	struct tgevi_chat	chat;
 	time_t			date;
-	const char		*text;
+        time_t			forward_date;
+	const char              *text;
 	uint16_t		entity_c; /* How many entities[n] there are? */
 	struct tgevi_entity	*entities;
 	struct tgev		*reply_to;
+        bool			is_forwarded;
+	bool			is_unknown_fwd;
 };
 
 
@@ -31,7 +36,8 @@ struct tgev_text {
 
 #ifdef SUB_TG_EVENT_CIRCULAR_INLINE
 
-static __always_inline int parse_event_text(json_object *jmsg, struct tgev *evt)
+static __always_inline int parse_event_text(json_object *jmsg, 
+						struct tgev *evt)
 {
 	int ret;
 	json_object *res;
@@ -70,6 +76,48 @@ static __always_inline int parse_event_text(json_object *jmsg, struct tgev *evt)
 		return ret;
 
 
+	if (likely(!json_object_object_get_ex(jmsg, "forward_from", &res))) {
+		/* 
+		 * `forward_from` is not mandatory, but we should also check
+		 * the `forward_sender_name` parameter for unknown forward.
+		 */
+		if (likely(!json_object_object_get_ex(jmsg, 
+						"forward_sender_name", &res)))
+		{
+			etext->forward_date = 0ul;
+			etext->is_forwarded 	= false;
+			etext->is_unknown_fwd 	= false;
+			etext->fwd_sender_name 	= NULL;
+		} else {
+			etext->fwd_sender_name = json_object_get_string(res);
+			etext->is_forwarded 	= true;
+			etext->is_unknown_fwd 	= true;
+		}
+	} else {
+		ret = parse_tgevi_from(res, &etext->forward_from);
+		if (unlikely(ret != 0))
+			return ret;
+		etext->is_forwarded	= true;
+		etext->is_unknown_fwd	= false;
+		etext->fwd_sender_name 	= NULL;
+	}
+	
+	if (etext->is_forwarded)
+	{
+		if (unlikely(!json_object_object_get_ex(jmsg, 
+						"forward_date", &res))) {
+			/*
+			 * `forward_date` is originaly not mandatory, 
+		 	 * but since there is `forward_from` parameter, 
+		 	 * there SHOULD be `forward_date` parameter. 
+			 */
+			pr_err("Cannot find \"forward_date\" key on text "
+							"event");
+			return -EINVAL;
+		} else {
+			etext->forward_date = json_object_get_uint64(res);
+		}
+	}
 
 	if (unlikely(!json_object_object_get_ex(jmsg, "chat", &res))) {
 		pr_err("Cannot find \"chat\" key on text event");

@@ -120,7 +120,8 @@ int main(int argc, char *argv[])
 
 	exec_test(tg_event_text_list);
 	exec_test(tg_event_photo_list);
-
+	exec_test(tg_event_sticker_list);
+	
 	if (credit < total_credit)
 		ret = 1; 
 
