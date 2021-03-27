@@ -21,12 +21,12 @@ struct tgev_text {
 	const char		*fwd_sender_name;
 	struct tgevi_chat	chat;
 	time_t			date;
-        time_t			forward_date;
-	const char              *text;
+	time_t			forward_date;
+	const char		*text;
 	uint16_t		entity_c; /* How many entities[n] there are? */
 	struct tgevi_entity	*entities;
 	struct tgev		*reply_to;
-        bool			is_forwarded;
+	bool			is_forwarded;
 	bool			is_unknown_fwd;
 };
 

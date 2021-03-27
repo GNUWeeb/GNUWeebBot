@@ -216,6 +216,7 @@ static int test_tg_event_photo_002_simple(void)
 
 
 struct list_func tg_event_photo_list[] = {
+	{test_tg_event_photo_001_simple, 220},
 	{test_tg_event_photo_002_simple, 220},
 	{NULL, 0}
 };
