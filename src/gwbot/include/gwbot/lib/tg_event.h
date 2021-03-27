@@ -25,6 +25,32 @@
  */
 
 
+
+typedef enum _tgev_type_t {
+	TGEV_UNKNOWN	= (1 << 0),
+	TGEV_TEXT	= (1 << 1),
+	TGEV_PHOTO	= (1 << 2),
+	TGEV_STICKER	= (1 << 3),
+} tgev_type_t;
+
+
+typedef enum _tgev_chat_type_t {
+	TGEV_CHAT_GROUP 	= (1 << 0),
+	TGEV_CHAT_SUPERGROUP 	= (1 << 1),
+	TGEV_CHAT_PRIVATE 	= (1 << 2),
+} tgev_chat_type_t;
+
+
+struct tgevi_file {
+	const char 		*file_id;
+	const char		*file_unique_id;
+	size_t			file_size;
+	uint16_t		width;
+	uint16_t		height;
+};
+
+
+
 struct tgevi_from {
 	uint64_t	id;
 	const char	*first_name;
@@ -37,10 +63,13 @@ struct tgevi_from {
 
 
 struct tgevi_chat {
-	int64_t		id;
-	const char	*title;
-	const char	*type;
-	const char	*username;
+	int64_t			id;
+	const char		*title;
+	const char		*username;
+	const char		*first_name;
+	const char		*last_name;
+	tgev_chat_type_t	type;
+	bool			all_admins;
 };
 
 
@@ -52,12 +81,53 @@ struct tgevi_entity {
 };
 
 
-typedef enum _tgev_type_t {
-	TGEV_UNKNOWN	= (1 << 0),
-	TGEV_TEXT	= (1 << 1),
-	TGEV_PHOTO	= (1 << 2),
-	TGEV_STICKER	= (1 << 3),
-} tgev_type_t;
+
+static __always_inline int parse_tgevi_file(json_object *jfile,
+					    struct tgevi_file *file)
+{
+	json_object *res;
+
+	if (unlikely(!json_object_object_get_ex(jfile, "file_id", &res))) {
+		pr_err("Cannot find \"file_id\" key in \"file\"");
+		return -EINVAL;
+	}
+	file->file_id = json_object_get_string(res);
+
+
+
+	if (unlikely(!json_object_object_get_ex(jfile, "file_unique_id", &res))) {
+		pr_err("Cannot find \"file_unique_id\" key in \"file\"");
+		return -EINVAL;
+	}
+	file->file_unique_id = json_object_get_string(res);
+
+
+	if (unlikely(!json_object_object_get_ex(jfile, "file_size", &res))) {
+		pr_err("Cannot find \"file_size\" key in \"file\"");
+		return -EINVAL;
+	}
+	file->file_size = json_object_get_uint64(res);
+
+
+
+	if (unlikely(!json_object_object_get_ex(jfile, "width", &res))) {
+		pr_err("Cannot find \"width\" key in \"file\"");
+		return -EINVAL;
+	}
+	file->width = (uint16_t)json_object_get_uint64(res);
+
+
+	if (unlikely(!json_object_object_get_ex(jfile, "height", &res))) {
+		pr_err("Cannot find \"height\" key in \"file\"");
+		return -EINVAL;
+	}
+	file->height = (uint16_t)json_object_get_uint64(res);
+
+	return 0;
+}
+
+
+
 
 
 
@@ -162,10 +232,14 @@ static __always_inline int parse_tgevi_from(json_object *jfrom,
 
 
 
+
+
+
 static __always_inline int parse_tgevi_chat(json_object *jchat,
 					    struct tgevi_chat *chat)
 {
 	json_object *res;
+	const char *type;
 
 	if (unlikely(!json_object_object_get_ex(jchat, "id", &res))) {
 		pr_err("Cannot find \"id\" on key \"chat\"");
@@ -173,24 +247,68 @@ static __always_inline int parse_tgevi_chat(json_object *jchat,
 	}
 	chat->id = json_object_get_int64(res);
 
-
-
-	if (unlikely(!json_object_object_get_ex(jchat, "title", &res))) {
-		pr_err("Cannot find \"title\" on key \"chat\"");
-		return -EINVAL;
-	}
-	chat->title = json_object_get_string(res);
-
-
-
 	if (unlikely(!json_object_object_get_ex(jchat, "type", &res))) {
 		pr_err("Cannot find \"type\" on key \"chat\"");
 		return -EINVAL;
 	}
-	chat->type = json_object_get_string(res);
+	type = json_object_get_string(res);
+	switch (type[0]) {
+	case 's':
+		chat->type = TGEV_CHAT_SUPERGROUP;
+		break;
+	case 'g':
+		chat->type = TGEV_CHAT_GROUP;
+		break;
+	case 'p':
+		chat->type = TGEV_CHAT_PRIVATE;
+		break;
+	default:
+		pr_err("Unknown \"type\" on key \"chat\": \"%s\"", type);
+		return -EINVAL;
+	}
+	
 
+	if (chat->type == TGEV_CHAT_PRIVATE) {
+		chat->title = NULL;
+		if (unlikely(!json_object_object_get_ex(jchat, "first_name",
+								&res))) {
+			pr_err("Cannot find \"first_name\" on key \"chat\"");
+			return -EINVAL;
+		}
+		chat->first_name = json_object_get_string(res);
+		if (unlikely(!json_object_object_get_ex(jchat, "last_name",
+		 						&res))) {
+			/* `last_name` is not mandatory */
+			chat->last_name = NULL;
+		} else {
+			chat->last_name = json_object_get_string(res);
+		}
+	} else {
+		if (chat->type == TGEV_CHAT_GROUP) {
+			if (unlikely(!json_object_object_get_ex(jchat, 
+					"all_members_are_administrators", 
+								&res))) {
+				pr_err("Cannot find \"all_admins\" "
+						"on key \"chat\"");
+				return -EINVAL;
 
+			}
+			chat->all_admins = 
+				json_object_get_boolean(res)  ? true : false;
+		}
+		
+		if (unlikely(!json_object_object_get_ex(jchat, "title", 
+								&res))) {
+			/*
+			 * `title` is mandatory, bacause the type is
+			 * not private.
+			 */
+			pr_err("Cannot find \"title\" on key \"chat\"");
+			return -EINVAL;
 
+		}
+		chat->title = json_object_get_string(res);
+	}
 	if (unlikely(!json_object_object_get_ex(jchat, "username", &res))) {
 		/* `username` is not mandatory */
 		chat->username = NULL;
