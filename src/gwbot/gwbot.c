@@ -941,6 +941,8 @@ static void destroy_state(struct gwbot_state *state)
 {
 	/* TODO: Wait for threads */
 
+
+	tg_api_global_destroy();
 	close_file_descriptors(state);
 	tss_destroy(&state->chan_stack);
 	tss_destroy(&state->thread_stack);
@@ -967,6 +969,8 @@ int gwbot_run(struct gwbot_cfg *cfg)
 	signal(SIGTERM, handle_interrupt);
 	signal(SIGQUIT, handle_interrupt);
 	signal(SIGPIPE, SIG_IGN);
+
+	tg_api_global_init();
 
 	ret = validate_cfg(cfg);
 	if (unlikely(ret < 0))
