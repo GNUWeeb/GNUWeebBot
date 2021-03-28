@@ -17,3 +17,5 @@ jobs:
                           run : make -j$(nproc);
                         - name : test
                           run : make test;
+                        - name : dummy
+                          run : echo dummy;
