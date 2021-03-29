@@ -11,7 +11,7 @@
 INCLUDE_DIR	+= -I$(BASE_DIR)/tests
 DEP_DIRS	+= $(BASE_DEP_DIR)/src/teavpn2/tests
 
-LD_LIBRARY_PATH	:= $(LD_LIBRARY_PATH):$(BASE_DIR)/tests
+LD_LIBRARY_PATH	:= $(LD_LIBRARY_PATH):$(BASE_DIR)/tests:$(BASE_DIR)/src/ext/json-c/build.dir
 export LD_LIBRARY_PATH
 
 ###################################################################
