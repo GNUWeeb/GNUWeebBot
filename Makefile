@@ -283,7 +283,7 @@ $(MSHARED_BIN): $(OBJ_CC) $(OBJ_PRE_CC)
 
 
 
-$(TARGET_BIN): $(OBJ_CC) $(OBJ_PRE_CC)
+$(TARGET_BIN): $(OBJ_CC) $(OBJ_PRE_CC) $(SHARED_LIB)
 	$(S)echo "   LD		" "$(@)"
 	$(Q)$(LD) $(LDFLAGS) $(OBJ_CC) $(OBJ_PRE_CC) -o "$@" $(LIB_LDFLAGS)
 
