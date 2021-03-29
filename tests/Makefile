@@ -1,11 +1,11 @@
 #
 # SPDX-License-Identifier: GPL-2.0
+# 
+# GNUWeebBot (GNUWeeb Telegram Bot)
+# 
+# https://github.com/GNUWeeb/GNUWeebBot
 #
-# @author Ammar Faizi <ammarfaizi2@gmail.com> https://www.facebook.com/ammarfaizi2
-# @license GNU GPL-v2
-#
-# TeaVPN2 - Fast and Free VPN Software
-#
+
 
 
 INCLUDE_DIR	+= -I$(BASE_DIR)/tests
@@ -43,10 +43,13 @@ $(FWTEST_SO): $(FWTEST_OBJ) $(OBJ_CC) $(OBJ_PRE_CC)
 include $(BASE_DIR)/tests/001_string/Makefile
 include $(BASE_DIR)/tests/002_tstack/Makefile
 include $(BASE_DIR)/tests/003_sqe/Makefile
+include $(BASE_DIR)/tests/006_tg_event/Makefile
 
 
 test: $(FWTEST_SO) $(TEST_EXEC)
-
+	$(Q)printf '---------------------------------------------------------------\n'
+	$(Q)printf '\t\t\x1b[32m All tests passed!\x1b[0m\n'
+	$(Q)printf '---------------------------------------------------------------\n'
 
 
 clean_test:

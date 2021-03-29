@@ -7,16 +7,17 @@
 #
 
 
-DEP_DIRS	+= $(BASE_DEP_DIR)/tests/002_tstack
-TEST_TVAR	:= $(BASE_DIR)/tests/002_tstack/002_tstack
+DEP_DIRS	+= $(BASE_DEP_DIR)/tests/006_tg_event
+TEST_TVAR	:= $(BASE_DIR)/tests/006_tg_event/006_tg_event
 TEST_EXEC	+= $(TEST_TVAR)__exec
-TEST_TVAR_OBJ	:= $(BASE_DIR)/tests/002_tstack/002_tstack.o
+TEST_TVAR_OBJ	:= $(BASE_DIR)/tests/006_tg_event/006_tg_event.o
 TEST_OBJ	+= $(TEST_TVAR_OBJ)
 
 
 $(TEST_TVAR_OBJ):
 	$(S)echo "   CC		" "$(@:$(BASE_DIR)/%=%)"
-	$(Q)$(CC) $(DEPFLAGS) $(CFLAGS) -c $(@:.o=.c) -o $(@)
+	$(Q)$(CC) -DTHIS_TEST_BASEPATH="\"$(BASE_DIR)/tests/006_tg_event\"" \
+		$(DEPFLAGS) $(CFLAGS) -c $(@:.o=.c) -o $(@)
 
 
 
