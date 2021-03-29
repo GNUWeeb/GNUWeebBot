@@ -156,7 +156,7 @@ else
 	endif
 
 	ifndef NOTICE_DEFAULT_LEVEL
-		NOTICE_DEFAULT_LEVEL = 5
+		NOTICE_DEFAULT_LEVEL = 10
 	endif
 
 	ifndef NOTICE_MAX_LEVEL
