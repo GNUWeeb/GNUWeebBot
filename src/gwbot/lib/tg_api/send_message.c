@@ -42,7 +42,7 @@ int tg_api_send_msg(tg_api_handle *handle, const struct tga_send_msg *ctx)
 	strcpy(buf + pos, "&text=");
 	pos += sizeof("&text=") - 1u;
 
-	text_len = strnlen(ctx->text, space - pos);
+	text_len = strnlen(ctx->text, ((space - pos) / 3) - 1);
 	urlencode(buf + pos, ctx->text, text_len, true);
 
 	tg_api_set_method(handle, "sendMessage");
