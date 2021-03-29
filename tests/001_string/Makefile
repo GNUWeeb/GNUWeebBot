@@ -1,22 +1,38 @@
+#
+# SPDX-License-Identifier: GPL-2.0
+# 
+# GNUWeebBot (GNUWeeb Telegram Bot)
+# 
+# https://github.com/GNUWeeb/GNUWeebBot
+#
 
 
-DEP_DIRS	+=  $(BASE_DEP_DIR)/tests/001_string
-TESTS		+=	$(BASE_DIR)/tests/001_string/001_string.test__exec
-
-$(BASE_DIR)/tests/001_string/001_string.test: $(BASE_DIR)/tests/001_string/001_string.c \
-	$(TARGET_BIN) \
-	$(OBJ_CC) \
-	$(OBJ_PRE_CC)\
-	$(BASE_DIR)/tests/001_string/001_string.c
-	@echo "   CC		" "$(@:$(BASE_DIR)/%=%)"
-	@$(CC) $(CFLAGS) \
-	-MT "$@" -MMD -MP -MF "$(@:$(BASE_DIR)/%.test=$(BASE_DEP_DIR)/%.d)" \
-	$(BASE_DIR)/tests/001_string/001_string.c \
-	-o $(@) $(OBJ_PRE_CC) $(OBJ_CC) $(TEST_LIB_LDFLAGS)
+DEP_DIRS	+= $(BASE_DEP_DIR)/tests/001_string
+TEST_TVAR	:= $(BASE_DIR)/tests/001_string/001_string
+TEST_EXEC	+= $(TEST_TVAR)__exec
+TEST_TVAR_OBJ	:= $(BASE_DIR)/tests/001_string/001_string.o
+TEST_OBJ	+= $(TEST_TVAR_OBJ)
 
 
--include $(BASE_DEP_DIR)/tests/001_string/001_string.d
+$(TEST_TVAR_OBJ):
+	$(S)echo "   CC		" "$(@:$(BASE_DIR)/%=%)"
+	$(Q)$(CC) $(DEPFLAGS) $(CFLAGS) -c $(@:.o=.c) -o $(@)
 
 
-$(BASE_DIR)/tests/001_string/001_string.test__exec: $(BASE_DIR)/tests/001_string/001_string.test
-	@$(BASE_DIR)/tests/001_string/001_string.test
+
+$(TEST_TVAR).test: $(TEST_TVAR_OBJ) $(FWTEST_SO)
+	$(S)echo "   LD		" "$(@)"
+	$(Q)$(LD) $(LDFLAGS) -o "$@" $(^) $(LIB_LDFLAGS)
+
+
+
+-include $(TEST_TVAR_OBJ:$(BASE_DIR)/%.o=$(BASE_DEP_DIR)/%.d)
+
+
+
+$(TEST_TVAR)__exec: $(TEST_TVAR).test
+	$(<) $(shell which $(VG)) $(VGFLAGS)
+
+
+
+.PHONY: $(TEST_TVAR)

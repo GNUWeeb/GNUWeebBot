@@ -2,7 +2,7 @@
 /*
  *  src/gwbot/include/gwbot/print.h
  *
- *  Print header for GNUWeebBot
+ *  Print functions header
  *
  *  Copyright (C) 2021  Ammar Faizi
  */
@@ -12,29 +12,27 @@
 
 #include <string.h>
 #include <stdint.h>
+#include <gwbot/base.h>
 
 
 extern uint8_t __notice_level;
 
-void gwbot_print_version(void);
 
-void __pr_error(const char *fmt, ...)
-	__attribute__((format(printf, 1, 2)));
+void __attribute__((format(printf, 1, 2)))
+__pr_notice(const char *fmt, ...);
 
-void __pr_emerg(const char *fmt, ...)
-	__attribute__((format(printf, 1, 2)));
 
-void __pr_debug(const char *fmt, ...)
-	__attribute__((format(printf, 1, 2)));
+void __attribute__((format(printf, 1, 2)))
+__pr_error(const char *fmt, ...);
 
-void __pr_notice(const char *fmt, ...)
-	__attribute__((format(printf, 1, 2)));
 
-void __pr_notice_nm(const char *fmt, ...)
-	__attribute__((format(printf, 1, 2)));
+void __attribute__((format(printf, 1, 2)))
+__pr_emerg(const char *fmt, ...);
+
 
 #define PRERF "(errno=%d) %s"
-#define PREAR(NUM) (NUM), strerror((NUM))
+#define PREAR(NUM) NUM, strerror(NUM)
+
 
 #ifndef NOTICE_ALWAYS_EXEC
 #  define NOTICE_ALWAYS_EXEC 0
@@ -44,46 +42,44 @@ void __pr_notice_nm(const char *fmt, ...)
 #  define NOTICE_MAX_LEVEL 6
 #endif
 
-#ifndef NOTICE_LEVEL_DEFAULT
-#  define NOTICE_LEVEL_DEFAULT NOTICE_MAX_LEVEL
+#ifndef NOTICE_DEFAULT_LEVEL
+#  define NOTICE_DEFAULT_LEVEL NOTICE_MAX_LEVEL
 #endif
+
 
 #define pr_error  __pr_error
 #define pr_err    __pr_error
-
 #define pr_emerg  __pr_emerg
-
 #define pr_debug  __pr_debug
 #define pr_dbg    __pr_debug
-
 #define pr_notice __pr_notice
-#define pr_notice_nm __pr_notice_nm
 
-#define panic(...)					\
-do {							\
-	pr_emerg("Panic: Not syncing!");		\
-	pr_emerg(__VA_ARGS__);				\
+
+#define panic(...)		\
+do {				\
+	pr_emerg("Panic!");	\
+	pr_emerg(__VA_ARGS__);	\
 } while (0)
 
 
-#define prl_notice(LEVEL, ...)					\
-do {								\
-	bool __execute = (					\
-		(NOTICE_ALWAYS_EXEC) ||				\
-		(						\
-			((LEVEL) <= (NOTICE_MAX_LEVEL)) &&	\
-			(					\
-				(LEVEL) <  (__notice_level) ||	\
-				(LEVEL) == (__notice_level)	\
-			)					\
-		)						\
-	);							\
-	if (likely(__execute))					\
-		pr_notice(__VA_ARGS__);				\
+#define prl_notice(LEVEL, ...)						\
+do {									\
+	const uint8_t ____lvl = (LEVEL);				\
+	const bool ____exec = (						\
+		(NOTICE_ALWAYS_EXEC) ||					\
+		(							\
+			((____lvl) <= (NOTICE_MAX_LEVEL)) &&		\
+			(						\
+				((____lvl) <  (__notice_level)) ||	\
+				((____lvl) == (__notice_level))		\
+			)						\
+		)							\
+	);								\
+									\
+	if (likely(____exec))						\
+		pr_notice(__VA_ARGS__);					\
 } while (0)
 
-
-
-#include <gwbot/base.h>
+void gwbot_print_version(void);
 
 #endif /* #ifndef GWBOT__PRINT_H */

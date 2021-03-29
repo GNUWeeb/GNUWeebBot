@@ -5,23 +5,56 @@
 # 
 # https://github.com/GNUWeeb/GNUWeebBot
 #
-# Makefile for unit test
+
+
+
+INCLUDE_DIR	+= -I$(BASE_DIR)/tests
+DEP_DIRS	+= $(BASE_DEP_DIR)/src/teavpn2/tests
+
+LD_LIBRARY_PATH	:= $(LD_LIBRARY_PATH):$(BASE_DIR)/tests:$(BASE_DIR)/src/ext/json-c/build.dir
+export LD_LIBRARY_PATH
+
+###################################################################
 #
+# Build Tea Test (Unit Test Framework for C project)
+#
+###################################################################
+FWTEST_SO	:= $(BASE_DIR)/tests/libteatest.so
+FWTEST_OBJ	:= $(BASE_DIR)/tests/teatest.o
+
+
+
+$(FWTEST_OBJ):
+	$(S)echo "   CC		" "$(@:$(BASE_DIR)/%=%)"
+	$(Q)$(CC) $(DEPFLAGS) $(CFLAGS) -Wno-missing-noreturn -c $(@:.o=.c) -o $(@)
+
+
+
+$(FWTEST_SO): $(FWTEST_OBJ) $(OBJ_CC) $(OBJ_PRE_CC)
+	$(S)echo "   LD		" "$(@)"
+	$(Q)$(LD) $(LDFLAGS) $(^) -shared -o "$@" $(LIB_LDFLAGS)
+
+
+
+-include $(FWTEST_OBJ:$(BASE_DIR)/%.o=$(BASE_DEP_DIR)/%.d)
+##################################################################
+
 
 include $(BASE_DIR)/tests/001_string/Makefile
-include $(BASE_DIR)/tests/004_tstack/Makefile
-include $(BASE_DIR)/tests/005_sqe/Makefile
+include $(BASE_DIR)/tests/002_tstack/Makefile
+include $(BASE_DIR)/tests/003_sqe/Makefile
 include $(BASE_DIR)/tests/006_tg_event/Makefile
 
-export VG
-export VGFLAGS
-export LD_LIBRARY_PATH=$(BASE_DIR)/src/ext/json-c/build.dir:$(BASE_DIR)/src/ext/criterion/lib
 
-test:
-	@+$(MAKE) --no-print-directory \
-	&& $(MAKE) --no-print-directory __internal_do_test DO_TEST=1;
+test: $(FWTEST_SO) $(TEST_EXEC)
+	$(Q)printf '---------------------------------------------------------------\n'
+	$(Q)printf '\t\t\x1b[32m All tests passed!\x1b[0m\n'
+	$(Q)printf '---------------------------------------------------------------\n'
 
-__internal_do_test: $(TESTS)
 
 clean_test:
-	@rm -vf $(TESTS) $(TESTS_OBJ)
+	$(Q)rm -vf $(FWTEST_SO) $(FWTEST_OBJ) $(TEST_EXEC) $(TEST_OBJ)
+
+
+
+.PHONY: test clean_test

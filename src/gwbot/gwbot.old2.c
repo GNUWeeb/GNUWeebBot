@@ -19,10 +19,10 @@
 #include <sys/epoll.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <gwbot/sqe.h>
 #include <gwbot/common.h>
 #include <gwbot/gwchan.h>
-#include <gwbot/lib/sqe.h>
-#include <gwbot/lib/tstack.h>
+#include <gwbot/tstack.h>
 #include <gwbot/gwthread.h>
 #include <gwbot/lib/string.h>
 #include <gwbot/event_handler.h>
@@ -667,7 +667,7 @@ static void dispatch_sqe(struct gwbot_state *state)
 		 */
 		gw_cond_signal(&thread->ev_cond);
 		gw_mutex_unlock(&thread->ev_lock);
-		goto out_node_destroy;
+		goto out_destroy_node;
 	}
 
 	gw_mutex_unlock(&thread->ev_lock);
@@ -685,8 +685,8 @@ static void dispatch_sqe(struct gwbot_state *state)
 	}
 	pthread_detach(thread->thread);
 
-out_node_destroy:
-	sqe_node_destroy(node);
+out_destroy_node:
+	sqe_destroy_dequeued(node);
 }
 
 
