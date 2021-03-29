@@ -9,8 +9,8 @@
 int tg_api_send_msg(tg_api_handle *handle, const struct tga_send_msg *ctx)
 {
 	size_t pos = 0;
-	char buf[0x2500];
 	size_t text_len;
+	char buf[8096u * 4u];
 	const size_t space = sizeof(buf);
 
 	pos = (size_t)snprintf(buf, space, "chat_id=%" PRId64, ctx->chat_id);

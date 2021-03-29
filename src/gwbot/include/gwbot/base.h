@@ -55,6 +55,10 @@
 #  pragma clang diagnostic ignored "-Wreserved-id-macro"
 #endif
 
+#ifndef __maybe_unused
+#  define __maybe_unused __attribute__((unused))
+#endif
+
 #ifndef __inline
 #  define __inline inline
 #endif

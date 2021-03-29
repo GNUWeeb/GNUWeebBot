@@ -14,12 +14,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <gwbot/sqe.h>
 #include <gwbot/base.h>
 #include <gwbot/config.h>
 #include <gwbot/gwchan.h>
-#include <gwbot/tstack.h>
 #include <gwbot/gwthread.h>
+#include <gwbot/lib/sqe.h>
+#include <gwbot/lib/tstack.h>
 
 
 struct gwbot_thread {
