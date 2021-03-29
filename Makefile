@@ -326,7 +326,7 @@ clean: clean_test
 
 
 
-clean_all: clean clean_test
+clean_all: clean clean_test clean_ext
 
 
 

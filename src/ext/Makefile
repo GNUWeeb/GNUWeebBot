@@ -47,3 +47,6 @@ clean_json_c:
 # Clean all extension build
 #
 clean_ext: clean_json_c
+
+
+.PHONY: build_json_c clean_json_c clean_ext
