@@ -350,4 +350,9 @@ __build_release_pack: $(TARGET_BIN) $(PACKAGE_FILES)
 
 
 
-.PHONY: all clean clean_all release_pack __build_release_pack
+run_vg: $(TARGET_BIN)
+	$(VG) $(VGFLAGS) ./$(TARGET_BIN) -c config_1.ini
+
+
+
+.PHONY: all clean clean_all release_pack __build_release_pack run_vg
