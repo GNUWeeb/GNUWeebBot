@@ -332,9 +332,9 @@ $(OBJ_CC): $(MAKEFILE_FILE) | $(DEP_DIRS)
 # Add more dependency chain to object that is not
 # compiled from the main Makefile
 #
-$(OBJ_PRE_CC): $(MAKEFILE_FILE) | $(DEP_DIRS)
-$(TEST_OBJ): $(MAKEFILE_FILE) | $(DEP_DIRS)
-$(FWTEST_OBJ): $(MAKEFILE_FILE) | $(DEP_DIRS)
+$(OBJ_PRE_CC): $(MAKEFILE_FILE) $(SHARED_LIB) | $(DEP_DIRS)
+$(TEST_OBJ): $(MAKEFILE_FILE) $(SHARED_LIB) | $(DEP_DIRS)
+$(FWTEST_OBJ): $(MAKEFILE_FILE) $(SHARED_LIB) | $(DEP_DIRS)
 
 
 #
