@@ -5,7 +5,6 @@
 *.tmp
 *.log
 *.lock
-*.test
 /.deps
 /gwbot
 /libgwbot.so

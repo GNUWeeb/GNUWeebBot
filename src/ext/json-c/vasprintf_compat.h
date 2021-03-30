@@ -1,4 +1,3 @@
-
 #ifndef __vasprintf_compat_h
 #define __vasprintf_compat_h
 

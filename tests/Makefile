@@ -19,18 +19,23 @@ export LD_LIBRARY_PATH
 # Build Tea Test (Unit Test Framework for C project)
 #
 ###################################################################
+TEST_OBJ	:=
 FWTEST_SO	:= $(BASE_DIR)/tests/libteatest.so
 FWTEST_OBJ	:= $(BASE_DIR)/tests/teatest.o
-
+OBJ_PRE_CC_WITHOUT_MAIN := $(filter-out $(BASE_DIR)/src/gwbot/main.o,$(OBJ_PRE_CC))
 
 
 $(FWTEST_OBJ):
 	$(S)echo "   CC		" "$(@:$(BASE_DIR)/%=%)"
-	$(Q)$(CC) $(DEPFLAGS) $(CFLAGS) -Wno-missing-noreturn -c $(@:.o=.c) -o $(@)
+	$(Q)$(CC) $(DEPFLAGS) \
+		$(filter-out -Wstack-usage=$(STACK_USAGE_SIZE), $(CFLAGS)) \
+		-Wno-missing-noreturn \
+		-Wno-alloca \
+		-c $(@:.o=.c) -o $(@)
 
 
 
-$(FWTEST_SO): $(FWTEST_OBJ) $(OBJ_CC) $(OBJ_PRE_CC) $(SHARED_LIB)
+$(FWTEST_SO): $(FWTEST_OBJ) $(OBJ_CC) $(OBJ_PRE_CC_WITHOUT_MAIN) $(SHARED_LIB)
 	$(S)echo "   LD		" "$(@:$(BASE_DIR)/%=%)"
 	$(Q)$(LD) $(LDFLAGS) $(^) -shared -o "$@" $(LIB_LDFLAGS)
 

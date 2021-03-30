@@ -9,6 +9,7 @@
 
 #include <teatest.h>
 #include <gwbot/base.h>
+#include <gwbot/lib/string.h>
 
 #define TSTACK_TEST (1)
 #include <gwbot/lib/tstack.h>
@@ -156,7 +157,9 @@ static TEATEST(002_tstack, push_and_pop_maintain_the_lifo_properly)
 }
 
 
-static const test_entry_t entry[] = {
+
+extern const test_entry_t entry[];
+const test_entry_t entry[] = {
 	FN_TEATEST(002_tstack, init_stack_must_be_empty),
 	FN_TEATEST(002_tstack, push_must_increment_the_count),
 	FN_TEATEST(002_tstack, pop_must_decrement_the_count_and_must_be_lifo),
@@ -165,20 +168,3 @@ static const test_entry_t entry[] = {
 	FN_TEATEST(002_tstack, push_and_pop_maintain_the_lifo_properly),
 	NULL
 };
-
-
-int main(int argc, char *argv[])
-{
-	int ret;
-
-	if (argc > 1)
-		return spawn_valgrind(argc, argv);
-
-
-	ret = init_test(entry);
-	if (ret != 0)
-		return ret;
-
-	ret = run_test(entry);
-	return ret;
-}

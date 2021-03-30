@@ -35,6 +35,9 @@ TARGET_BIN	:= gwbot
 MSHARED_BIN	:= libgwbot.so
 
 
+STACK_USAGE_SIZE := 2097152
+
+
 #
 # Package files
 #
@@ -90,7 +93,7 @@ else
 		-Wformat-signedness \
 		-Wsequence-point \
 		-Wstrict-aliasing=3 \
-		-Wstack-usage=2097152 \
+		-Wstack-usage=$(STACK_USAGE_SIZE) \
 		-Wunsafe-loop-optimizations
 
 	CFLAGS		:= -fchecking=2 -fcompare-debug
@@ -276,6 +279,10 @@ SHARED_LIB	:=
 #######################################
 
 
+MAKE_PID := $(shell echo $$PPID)
+JOBS := $(shell ps T | sed -n 's/.*$(MAKE_PID).*$(MAKE).* \(-j\|--jobs=\) *\([0-9][0-9]*\).*/\2/p')
+
+
 
 ifneq ($(words $(subst :, ,$(BASE_DIR))), 1)
 $(error Source directory cannot contain spaces or colons)
@@ -325,9 +332,9 @@ $(OBJ_CC): $(MAKEFILE_FILE) | $(DEP_DIRS)
 # Add more dependency chain to object that is not
 # compiled from the main Makefile
 #
-$(OBJ_PRE_CC): $(MAKEFILE_FILE) | $(DEP_DIRS)
-$(TEST_OBJ): $(MAKEFILE_FILE) | $(DEP_DIRS)
-$(FWTEST_OBJ): $(MAKEFILE_FILE) | $(DEP_DIRS)
+$(OBJ_PRE_CC): $(MAKEFILE_FILE) $(SHARED_LIB) | $(DEP_DIRS)
+$(TEST_OBJ): $(MAKEFILE_FILE) $(SHARED_LIB) | $(DEP_DIRS)
+$(FWTEST_OBJ): $(MAKEFILE_FILE) $(SHARED_LIB) | $(DEP_DIRS)
 
 
 #

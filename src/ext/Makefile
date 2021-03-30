@@ -33,7 +33,7 @@ $(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so:
 	+$(Q)cd  $(BASE_DIR)/src/ext/json-c && \
 	mkdir -pv build.dir && \
 	cd build.dir && \
-	cmake .. && \
+	cmake CMAKE_C_FLAGS_RELEASE=1 .. && \
 	$(MAKE) --no-print-directory;
 
 build_json_c: $(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so
@@ -50,7 +50,7 @@ test_json_c: $(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so
 	mkdir -pv build.dir && \
 	cd build.dir && \
 	cmake .. && \
-	$(MAKE) test --no-print-directory;
+	$(MAKE) test ARGS="-j$(JOBS)" --no-print-directory;
 
 
 test_ext: test_json_c

@@ -9,6 +9,7 @@
 
 #include <teatest.h>
 #include <gwbot/base.h>
+#include <gwbot/lib/string.h>
 
 #define SQE_TEST (1)
 #include <gwbot/lib/sqe.h>
@@ -247,27 +248,11 @@ static TEATEST(003_sqe, sqe_must_maintain_the_fifo)
 }
 
 
-static const test_entry_t entry[] = {
+extern const test_entry_t entry[];
+const test_entry_t entry[] = {
 	FN_TEATEST(003_sqe, init_sqe_must_be_empty),
 	FN_TEATEST(003_sqe, sqe_enqueue_must_increment_count),
 	FN_TEATEST(003_sqe, sqe_dequeue_must_decrement_count_and_must_be_fifo),
 	FN_TEATEST(003_sqe, sqe_must_maintain_the_fifo),
 	NULL
 };
-
-
-int main(int argc, char *argv[])
-{
-	int ret;
-
-	if (argc > 1)
-		return spawn_valgrind(argc, argv);
-
-
-	ret = init_test(entry);
-	if (ret != 0)
-		return ret;
-
-	ret = run_test(entry);
-	return ret;
-}
