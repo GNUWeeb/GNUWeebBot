@@ -27,7 +27,11 @@ OBJ_PRE_CC_WITHOUT_MAIN := $(filter-out $(BASE_DIR)/src/gwbot/main.o,$(OBJ_PRE_C
 
 $(FWTEST_OBJ):
 	$(S)echo "   CC		" "$(@:$(BASE_DIR)/%=%)"
-	$(Q)$(CC) $(DEPFLAGS) $(filter-out -Wstack-usage=$(STACK_USAGE_SIZE), $(CFLAGS)) -Wno-missing-noreturn -c $(@:.o=.c) -o $(@)
+	$(Q)$(CC) $(DEPFLAGS) \
+		$(filter-out -Wstack-usage=$(STACK_USAGE_SIZE), $(CFLAGS)) \
+		-Wno-missing-noreturn \
+		-Wno-alloca \
+		-c $(@:.o=.c) -o $(@)
 
 
 

@@ -26,7 +26,6 @@ static int __pipe_wr_fd = -1;
 static bool __want_to_run_test = false;
 static uint32_t __total_credit = 0, __credit = 0;
 
-char *__crash_generator = NULL;
 #define BT_BUF_SIZE (0x8000u)
 
 static void pr_backtrace()
@@ -304,7 +303,7 @@ int spawn_valgrind(int argc, char *argv[])
 	char **vla_argv;
 	char pipe_fd_arg[16];
 
-	vla_argc  = argc & 0xfu; /* (argc & 0xfu) allows max argc up to 15 */
+	vla_argc  = (uint8_t)argc & 0xfu; /* (argc & 0xfu) allows max argc up to 15 */
 	vla_argc += 1; /* Allocate more space for spawn_arg and pipe_fd_arg */
 
 	if (unlikely(pipe(pipe_fd) < 0)) {
@@ -317,10 +316,10 @@ int spawn_valgrind(int argc, char *argv[])
 
 	/* We inform the write pipe fd to child via argument */
 	snprintf(pipe_fd_arg, sizeof(pipe_fd_arg), "%d", pipe_fd[1]);
-	vla_argv = alloca((vla_argc + 1) * sizeof(*vla_argv));
+	vla_argv = alloca((size_t)(vla_argc + 1) * sizeof(*vla_argv));
 
 	/* Copy arguments */
-	memmove(&vla_argv[0], &argv[1], (vla_argc - 2) * sizeof(*argv));
+	memmove(&vla_argv[0], &argv[1], (size_t)(vla_argc - 2) * sizeof(*argv));
 	vla_argv[vla_argc - 2] = argv[0];
 	vla_argv[vla_argc - 1] = pipe_fd_arg;
 	vla_argv[vla_argc - 0] = NULL;
@@ -330,7 +329,8 @@ int spawn_valgrind(int argc, char *argv[])
 	if (unlikely(child_pid < 0)) {
 		err = errno;
 		pr_err("fork(): " PRERF, PREAR(err));
-		return -1;
+		ret = -1;
+		goto out;
 	}
 
 	if (child_pid == 0) {
@@ -345,6 +345,7 @@ int spawn_valgrind(int argc, char *argv[])
 	}
 
 	ret = handle_wait(child_pid, pipe_fd);
+out:
 	close(pipe_fd[0]);
 	close(pipe_fd[1]);
 	return ret;
