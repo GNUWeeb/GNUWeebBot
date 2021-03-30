@@ -1,3 +1,4 @@
+
 #ifndef __vasprintf_compat_h
 #define __vasprintf_compat_h
 
@@ -10,7 +11,7 @@
 
 #include <stdlib.h>
 
-#if !defined(HAVE_VASPRINTF)
+#if !defined(HAVE_VASPRINTF) || defined(__clang__)
 /* CAW: compliant version of vasprintf */
 static int vasprintf(char **buf, const char *fmt, va_list ap)
 {
