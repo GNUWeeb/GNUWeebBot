@@ -57,9 +57,9 @@ static uint64_t get_msg_id(struct tgev *evt)
 int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread,
 				  struct tgev *evt)
 {
-	size_t len;
-	char reply_text[0x2500];
+	size_t len, hlen;
 	tg_api_handle *thandle;
+	char reply_text[0x9000];
 	struct json_object *json_obj;
 	struct gwbot_cfg *cfg = thread->state->cfg;
 	const char *text, *json_pretty, *json_str = thread->uni_pkt.pkt.data;
@@ -68,9 +68,9 @@ int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread,
 	text = get_text(evt);
 	if (text == NULL)
 		return 0;
+
 	if (strncmp(text, "/debug", 6) != 0)
 		return 0;
-
 
 	json_obj = json_tokener_parse(json_str);
 	json_pretty = json_object_to_json_string_ext(
@@ -79,7 +79,13 @@ int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread,
 		);
 
 
-	len = htmlspecialchars(mempcpy(reply_text, "<pre>", 5), json_pretty);
+	hlen = (sizeof(reply_text) - sizeof("<pre>") - sizeof("</pre>")) / 6;
+	len  = htmlspecialchars(
+		mempcpy(reply_text, "<pre>", 5),
+		hlen,
+		json_pretty,
+		strnlen(json_pretty, hlen)
+	);
 	*(char *)mempcpy(&reply_text[5 + len], "</pre>", 6) = '\0';
 
 

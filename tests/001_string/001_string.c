@@ -43,9 +43,87 @@ static TEATEST(001_string, trim_not_copy)
 }
 
 
+static TEATEST(001_string, htmlspecialchars)
+{
+	TQ_START;
+	size_t len;
+	char out[1024];
+
+	{
+		TQ_VOID(memset(out, 0, sizeof(out)));
+		const char in[] = "Hello World";
+		size_t inlen    = sizeof(in) - 1;
+		TQ_VOID(len = htmlspecialchars(out, sizeof(out), in, inlen));
+		TQ_ASSERT(len == sizeof(in));
+		TQ_ASSERT(!memcmp(out, in, len));
+	}
+
+
+	{
+		TQ_VOID(memset(out, 0, sizeof(out)));
+		const char in[] = "<a href=\"https://www.google.com\">Google</a>";
+		const char ex[] = "&lt;a href=&quot;https://www.google.com&quot;&gt;Google&lt;/a&gt;";
+		size_t inlen    = sizeof(in) - 1;
+		TQ_VOID(len = htmlspecialchars(out, sizeof(out), in, inlen));
+		TQ_ASSERT(len == sizeof(ex));
+		TQ_ASSERT(!memcmp(out, ex, len));
+	}
+
+
+	{
+		TQ_VOID(memset(out, 0, sizeof(out)));
+		const char in[]  = "<a href=\"https://www.google.com\">Google</a><<>>";
+		const char _ex[] = "&lt;a href=&quot;https://www.google.com&quot;&gt;Google&lt;/a&gt;&lt;&lt;&gt;&gt;";
+		const char ex[]  = "&lt;a href=&quot;https://www.google.com&quot;&gt;Google&lt;/a&gt;&lt;&lt;&gt;\0\0\0\0";
+		size_t inlen     = sizeof(in) - 1;
+
+		TQ_VOID(len = htmlspecialchars(out, sizeof(_ex), in, inlen));
+		TQ_ASSERT(len == sizeof(_ex));
+		TQ_ASSERT(!memcmp(out, _ex, sizeof(_ex)));
+
+		TQ_VOID(len = htmlspecialchars(out, sizeof(_ex) - 1, in, inlen));
+		TQ_ASSERT(len == sizeof(ex) - 4);
+		TQ_ASSERT(!memcmp(out, _ex, len));
+
+		TQ_VOID(len = htmlspecialchars(out, sizeof(_ex) - 2, in, inlen));
+		TQ_ASSERT(len == sizeof(ex) - 4);
+		TQ_ASSERT(!memcmp(out, _ex, len));
+
+		TQ_VOID(len = htmlspecialchars(out, sizeof(_ex) - 3, in, inlen));
+		TQ_ASSERT(len == sizeof(ex) - 4);
+		TQ_ASSERT(!memcmp(out, _ex, len));
+
+		TQ_VOID(len = htmlspecialchars(out, sizeof(_ex) - 4, in, inlen));
+		TQ_ASSERT(len == sizeof(ex) - 4);
+		TQ_ASSERT(!memcmp(out, _ex, len));
+
+
+		TQ_VOID(len = htmlspecialchars(out, sizeof(_ex) - 5, in, inlen));
+		TQ_ASSERT(len == sizeof(ex) - 8);
+		TQ_ASSERT(!memcmp(out, _ex, len));
+
+		TQ_VOID(len = htmlspecialchars(out, sizeof(_ex) - 6, in, inlen));
+		TQ_ASSERT(len == sizeof(ex) - 8);
+		TQ_ASSERT(!memcmp(out, _ex, len));
+
+		TQ_VOID(len = htmlspecialchars(out, sizeof(_ex) - 7, in, inlen));
+		TQ_ASSERT(len == sizeof(ex) - 8);
+		TQ_ASSERT(!memcmp(out, _ex, len));
+
+		TQ_VOID(len = htmlspecialchars(out, sizeof(_ex) - 8, in, inlen));
+		TQ_ASSERT(len == sizeof(ex) - 8);
+		TQ_ASSERT(!memcmp(out, _ex, len));
+	}
+
+
+	TQ_RETURN;
+}
+
+
 static const test_entry_t entry[] = {
 	FN_TEATEST(001_string, trim_copy),
 	FN_TEATEST(001_string, trim_not_copy),
+	FN_TEATEST(001_string, htmlspecialchars),
 	NULL
 };
 
