@@ -9,7 +9,6 @@ static TEATEST(006_tg_event_gif, 001_simple)
 	struct tgevi_entity *entity = NULL;
 	struct tgev_gif *msg_gif = NULL;
 	struct tgevi_from *from = NULL;
-	struct tgevi_from *fwd_from = NULL;
 	struct tgevi_chat *chat = NULL;
 	struct tgevi_media *anim = NULL;
 	struct tgevi_file *doc = NULL;

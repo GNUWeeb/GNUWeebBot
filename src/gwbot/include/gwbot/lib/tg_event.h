@@ -103,8 +103,6 @@ struct tgevi_entity {
 static __always_inline int parse_tgevi_file(json_object *jfile,
 					    struct tgevi_file *file)
 {
-	const char *test = json_object_get_string(jfile);
-	printf("\n\n\nJFILES: %s\n\n\n\n", test);
 	json_object *res;
 
 	if (unlikely(!json_object_object_get_ex(jfile, "file_name", &res))) {
@@ -119,7 +117,6 @@ static __always_inline int parse_tgevi_file(json_object *jfile,
 		file->mime_type = NULL;
 	} else {
 		file->mime_type = json_object_get_string(res);
-		printf("\n\n\n\n%s\n\n\n", file->mime_type);
 	}
 
 	if (unlikely(!json_object_object_get_ex(jfile, "file_id", &res))) {
