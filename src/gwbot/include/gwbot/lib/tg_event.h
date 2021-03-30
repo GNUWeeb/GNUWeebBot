@@ -186,7 +186,7 @@ static __always_inline int parse_tgevi_media(json_object *jmdia,
 		/* `title` is not mandatory */
 		imdia->duration = 0;
 	} else {
-		imdia->duration = json_object_get_uint64(res);
+		imdia->duration = (uint32_t)json_object_get_uint64(res);
 	}
 
 
