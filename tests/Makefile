@@ -30,8 +30,8 @@ $(FWTEST_OBJ):
 
 
 
-$(FWTEST_SO): $(FWTEST_OBJ) $(OBJ_CC) $(OBJ_PRE_CC)
-	$(S)echo "   LD		" "$(@)"
+$(FWTEST_SO): $(FWTEST_OBJ) $(OBJ_CC) $(OBJ_PRE_CC) $(SHARED_LIB)
+	$(S)echo "   LD		" "$(@:$(BASE_DIR)/%=%)"
 	$(Q)$(LD) $(LDFLAGS) $(^) -shared -o "$@" $(LIB_LDFLAGS)
 
 

@@ -28,10 +28,10 @@ jobs:
     - name: (GCC Debug Mode) Build
       run: make BAN_WARN=1 CC=gcc CXX=g++ -j$(nproc);
     - name: (GCC Debug Mode) Run Test
-      run: make BAN_WARN=1 CC=gcc CXX=g++ test -j$(nproc);
+      run: make BAN_WARN=1 CC=gcc CXX=g++ test_all -j$(nproc);
 
     - name: Clean Build
-      run: make clean;
+      run: make clean_all;
 
     #
     #  Release mode
@@ -39,7 +39,7 @@ jobs:
     - name: (GCC Release Mode) Build
       run: make RELEASE_MODE=1 BAN_WARN=1 CC=gcc CXX=g++ -j$(nproc);
     - name: (GCC Release Mode) Run Test
-      run: make RELEASE_MODE=1 BAN_WARN=1 CC=gcc CXX=g++ SANITIZE=1 test -j$(nproc);
+      run: make RELEASE_MODE=1 BAN_WARN=1 CC=gcc CXX=g++ SANITIZE=1 test_all -j$(nproc);
     
     - name: Store artifact
       uses: actions/upload-artifact@v2

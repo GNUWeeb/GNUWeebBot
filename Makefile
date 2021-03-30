@@ -347,6 +347,10 @@ clean_all: clean clean_test clean_ext
 
 
 
+test_all: test test_ext
+
+
+
 release_pack:
 	+$(MAKE) --no-print-directory RELEASE_MODE=1
 	+$(MAKE) --no-print-directory test
@@ -372,4 +376,4 @@ run_vg: $(TARGET_BIN)
 
 
 
-.PHONY: all clean clean_all release_pack __build_release_pack run_vg
+.PHONY: all clean clean_all release_pack __build_release_pack run_vg test_all
