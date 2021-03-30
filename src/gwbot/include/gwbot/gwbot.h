@@ -24,7 +24,7 @@
 
 struct gwbot_thread {
 	time_t			started_at;
-	uint16_t		thread_idx;
+	uint32_t		thread_idx;
 	bool			is_online;
 	bool			has_event;
 	struct_pad(0, 2);

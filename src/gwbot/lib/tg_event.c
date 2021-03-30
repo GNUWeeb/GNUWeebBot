@@ -68,9 +68,11 @@ int parse_message(json_object *json_obj, struct tgev *evt)
 	ret = parse_event_photo(jmsg, evt);
 	if (ret == 0 || ret != -ECANCELED)
 		return ret;
+
 	ret = parse_event_sticker(jmsg, evt);
 	if (ret == 0 || ret != -ECANCELED)
 		return ret;
+
 	pr_err("Unknown event from JSON");
 	return ret;
 }

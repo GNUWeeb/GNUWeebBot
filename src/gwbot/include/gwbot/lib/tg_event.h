@@ -360,6 +360,7 @@ struct tgev {
 #undef INCLUDE_SUB_TG_EVENT
 
 
+int parse_message(json_object *json_obj, struct tgev *evt);
 int tg_event_load_str_len(const char *json_str, size_t length, struct tgev *evt);
 int tg_event_load_str(const char *json_str, struct tgev *evt);
 void tg_event_destroy(struct tgev *evt);

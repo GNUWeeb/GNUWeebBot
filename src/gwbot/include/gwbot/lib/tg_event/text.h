@@ -115,7 +115,7 @@ static __always_inline int parse_event_text(json_object *jmsg,
 							"event");
 			return -EINVAL;
 		} else {
-			etext->forward_date = json_object_get_uint64(res);
+			etext->forward_date = (time_t)json_object_get_int64(res);
 		}
 	}
 
@@ -133,7 +133,7 @@ static __always_inline int parse_event_text(json_object *jmsg,
 		/* `date` is not mandatory */
 		etext->date = 0ul;
 	} else {
-		etext->date = json_object_get_uint64(res);
+		etext->date = (time_t)json_object_get_int64(res);
 	}
 
 

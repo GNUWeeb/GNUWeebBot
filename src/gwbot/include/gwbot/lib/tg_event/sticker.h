@@ -164,14 +164,14 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 		if (likely(!json_object_object_get_ex(jstk, 
 						"forward_sender_name", &res)))
 		{
-			estk->forward_date = 0ul;
-			estk->is_forwarded 	= false;
-			estk->is_unknown_fwd 	= false;
-			estk->fwd_sender_name 	= NULL;
+			estk->forward_date	= 0;
+			estk->is_forwarded	= false;
+			estk->is_unknown_fwd	= false;
+			estk->fwd_sender_name	= NULL;
 		} else {
-			estk->fwd_sender_name = json_object_get_string(res);
-			estk->is_forwarded 	= true;
-			estk->is_unknown_fwd 	= true;
+			estk->fwd_sender_name	= json_object_get_string(res);
+			estk->is_forwarded	= true;
+			estk->is_unknown_fwd	= true;
 		}
 	} else {
 		ret = parse_tgevi_from(res, &estk->forward_from);
@@ -196,7 +196,7 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 							"event");
 			return -EINVAL;
 		} else {
-			estk->forward_date = json_object_get_uint64(res);
+			estk->forward_date = (time_t)json_object_get_int64(res);
 		}
 	}
 
@@ -214,7 +214,7 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 		pr_err("Cannot find \"date\" key on sticker event");
 		return -EINVAL;
 	} else {
-		estk->date = json_object_get_uint64(res);
+		estk->date = (time_t)json_object_get_int64(res);
 	}
 
 
