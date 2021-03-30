@@ -35,6 +35,9 @@ TARGET_BIN	:= gwbot
 MSHARED_BIN	:= libgwbot.so
 
 
+STACK_USAGE_SIZE := 2097152
+
+
 #
 # Package files
 #
@@ -90,7 +93,7 @@ else
 		-Wformat-signedness \
 		-Wsequence-point \
 		-Wstrict-aliasing=3 \
-		-Wstack-usage=2097152 \
+		-Wstack-usage=$(STACK_USAGE_SIZE) \
 		-Wunsafe-loop-optimizations
 
 	CFLAGS		:= -fchecking=2 -fcompare-debug
