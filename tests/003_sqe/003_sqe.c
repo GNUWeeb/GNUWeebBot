@@ -65,7 +65,7 @@ static TEATEST(003_sqe, sqe_dequeue_must_decrement_count_and_must_be_fifo)
 {
 	TQ_START;
 	struct sqe_master sqe;
-	struct sqe_node *node;
+	struct sqe_node *node = NULL;
 
 	TQ_ASSERT(sqe_init(&sqe, 100) == &sqe);
 	TQ_ASSERT(sqe_count(&sqe) == 0);
@@ -125,7 +125,7 @@ static TEATEST(003_sqe, sqe_must_maintain_the_fifo)
 {
 	TQ_START;
 	struct sqe_master sqe;
-	struct sqe_node *node;
+	struct sqe_node *node = NULL;
 
 	TQ_ASSERT(sqe_init(&sqe, 10) == &sqe);
 	TQ_ASSERT(sqe_count(&sqe) == 0);
