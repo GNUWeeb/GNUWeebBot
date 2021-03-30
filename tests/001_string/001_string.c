@@ -115,31 +115,14 @@ static TEATEST(001_string, htmlspecialchars)
 		TQ_ASSERT(!memcmp(out, _ex, len));
 	}
 
-
 	TQ_RETURN;
 }
 
 
-static const test_entry_t entry[] = {
+extern const test_entry_t entry[];
+const test_entry_t entry[] = {
 	FN_TEATEST(001_string, trim_copy),
 	FN_TEATEST(001_string, trim_not_copy),
 	FN_TEATEST(001_string, htmlspecialchars),
 	NULL
 };
-
-
-int main(int argc, char *argv[])
-{
-	int ret;
-
-	if (argc > 1)
-		return spawn_valgrind(argc, argv);
-
-
-	ret = init_test(entry);
-	if (ret != 0)
-		return ret;
-
-	ret = run_test(entry);
-	return ret;
-}

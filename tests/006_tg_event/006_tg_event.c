@@ -1,6 +1,7 @@
 
 
 #include <teatest.h>
+#include <gwbot/lib/string.h>
 #include <gwbot/lib/tg_event.h>
 
 
@@ -14,7 +15,8 @@ int nnstrcmp(const char *s1, const char *s2);
 #include "text/003_private.h"
 
 
-static const test_entry_t entry[] = {
+extern const test_entry_t entry[];
+const test_entry_t entry[] = {
 	FN_TEATEST(006_tg_event_photo, 001_simple),
 
 	FN_TEATEST(006_tg_event_sticker, 001_simple),
@@ -23,21 +25,6 @@ static const test_entry_t entry[] = {
 	FN_TEATEST(006_tg_event_text, 003_private),
 	NULL
 };
-
-int main(int argc, char *argv[])
-{
-	int ret;
-
-	if (argc > 1)
-		return spawn_valgrind(argc, argv);
-
-	ret = init_test(entry);
-	if (ret != 0)
-		return ret;
-
-	ret = run_test(entry);
-	return ret;
-}
 
 
 int nnstrcmp(const char *s1, const char *s2)

@@ -276,6 +276,10 @@ SHARED_LIB	:=
 #######################################
 
 
+MAKE_PID := $(shell echo $$PPID)
+JOBS := $(shell ps T | sed -n 's/.*$(MAKE_PID).*$(MAKE).* \(-j\|--jobs=\) *\([0-9][0-9]*\).*/\2/p')
+
+
 
 ifneq ($(words $(subst :, ,$(BASE_DIR))), 1)
 $(error Source directory cannot contain spaces or colons)
