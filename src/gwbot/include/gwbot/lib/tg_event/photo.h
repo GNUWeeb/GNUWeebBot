@@ -22,6 +22,7 @@ struct tgev_photo {
         struct tgevi_from	forward_from;
 	const char 		*fwd_sender_name;
 	struct tgevi_chat	chat;
+	struct tgevi_chat	sender_chat;
 	time_t			date;
 	time_t			forward_date;
         bool                    is_forwarded;
@@ -169,14 +170,17 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 	if (unlikely(ret != 0))
 		return ret;
 
+	if (unlikely(json_object_object_get_ex(jphoto, "sender_chat", &res))) {
+		ret = parse_tgevi_chat(res, &ephoto->sender_chat);
+		if (unlikely(ret != 0))
+			return ret;
+	}
 
         if (unlikely(!json_object_object_get_ex(jphoto, "date", &res))) {
 		pr_err("Cannot find \"date\" key on photo event");
 		return -EINVAL;
-	} else {
-		ephoto->date = (time_t)json_object_get_int64(res);
 	}
-
+	ephoto->date = (time_t)json_object_get_int64(res);
 
 	if (unlikely(!json_object_object_get_ex(jphoto, "caption", &res))) {
 		/*

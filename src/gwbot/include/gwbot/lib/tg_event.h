@@ -25,12 +25,12 @@
  */
 
 
-
 typedef enum _tgev_type_t {
 	TGEV_UNKNOWN	= (1 << 0),
 	TGEV_TEXT	= (1 << 1),
 	TGEV_PHOTO	= (1 << 2),
 	TGEV_STICKER	= (1 << 3),
+	TGEV_GIF	= (1 << 4),
 } tgev_type_t;
 
 
@@ -41,14 +41,30 @@ typedef enum _tgev_chat_type_t {
 } tgev_chat_type_t;
 
 
+
 struct tgevi_file {
+	const char		*file_name;
 	const char 		*file_id;
 	const char		*file_unique_id;
+	const char		*mime_type;
 	size_t			file_size;
 	uint16_t		width;
 	uint16_t		height;
 };
 
+struct tgevi_media {
+	const char 		*file_id;
+	const char		*file_name;
+	const char		*mime_type;
+	const char		*title;
+	const char		*performer;
+	const char		*file_unique_id;
+	size_t			file_size;
+	uint32_t		duration;
+	uint16_t		width;
+	uint16_t		height;
+	struct tgevi_file	thumb;
+};
 
 
 struct tgevi_from {
@@ -82,10 +98,26 @@ struct tgevi_entity {
 
 
 
+
+
 static __always_inline int parse_tgevi_file(json_object *jfile,
 					    struct tgevi_file *file)
 {
 	json_object *res;
+
+	if (unlikely(!json_object_object_get_ex(jfile, "file_name", &res))) {
+		/* `file_name` is not mandatory */
+		file->file_name = NULL;
+	} else {
+		file->file_name = json_object_get_string(res);
+	}
+	
+	if (unlikely(!json_object_object_get_ex(jfile, "mime_type", &res))) {
+		/* `mime_type` is not mandatory */
+		file->mime_type = NULL;
+	} else {
+		file->mime_type = json_object_get_string(res);
+	}
 
 	if (unlikely(!json_object_object_get_ex(jfile, "file_id", &res))) {
 		pr_err("Cannot find \"file_id\" key in \"file\"");
@@ -93,14 +125,12 @@ static __always_inline int parse_tgevi_file(json_object *jfile,
 	}
 	file->file_id = json_object_get_string(res);
 
-
-
-	if (unlikely(!json_object_object_get_ex(jfile, "file_unique_id", &res))) {
+	if (unlikely(!json_object_object_get_ex(jfile, 
+					"file_unique_id", &res))) {
 		pr_err("Cannot find \"file_unique_id\" key in \"file\"");
 		return -EINVAL;
 	}
 	file->file_unique_id = json_object_get_string(res);
-
 
 	if (unlikely(!json_object_object_get_ex(jfile, "file_size", &res))) {
 		pr_err("Cannot find \"file_size\" key in \"file\"");
@@ -108,27 +138,123 @@ static __always_inline int parse_tgevi_file(json_object *jfile,
 	}
 	file->file_size = json_object_get_uint64(res);
 
-
-
 	if (unlikely(!json_object_object_get_ex(jfile, "width", &res))) {
-		pr_err("Cannot find \"width\" key in \"file\"");
-		return -EINVAL;
+		/* `width` is not mandatory */
+		file->width  = 0u;
+		file->height = 0u;
+	} else {
+		file->width = (uint16_t)json_object_get_uint64(res);
+		if (unlikely(!json_object_object_get_ex(jfile, "height", 
+								&res))) {
+			/*
+		 	* `height` is originally not mandatory, but since
+		 	* there is `width` parameter, when there SHOULD be
+		 	* a height parameter in the json data.
+		 	*/
+			pr_err("Cannot find \"height\" key in \"file\"");
+			return -EINVAL;
+		}
+		file->height = (uint16_t)json_object_get_uint64(res);
 	}
-	file->width = (uint16_t)json_object_get_uint64(res);
+	
 
-
-	if (unlikely(!json_object_object_get_ex(jfile, "height", &res))) {
-		pr_err("Cannot find \"height\" key in \"file\"");
-		return -EINVAL;
-	}
-	file->height = (uint16_t)json_object_get_uint64(res);
 
 	return 0;
 }
 
 
+static __always_inline int parse_tgevi_media(json_object *jmdia,
+					       struct tgevi_media *imdia)
+{
+	int ret;
+	json_object *res;
+
+	if (unlikely(!json_object_object_get_ex(jmdia, "file_name", &res))) {
+		pr_err("Cannot find \"file_name\" key in \"media\"");
+		return -EINVAL;
+	}
+	imdia->file_name = json_object_get_string(res);
 
 
+	if (unlikely(!json_object_object_get_ex(jmdia, "mime_type", &res))) {
+		pr_err("Cannot find \"mime_type\" key in \"media\"");
+		return -EINVAL;
+	}
+	imdia->mime_type = json_object_get_string(res);
+
+	if (unlikely(!json_object_object_get_ex(jmdia, "duration", &res))) {
+		/* `title` is not mandatory */
+		imdia->duration = 0;
+	} else {
+		imdia->duration = (uint32_t)json_object_get_uint64(res);
+	}
+
+
+	if (unlikely(!json_object_object_get_ex(jmdia, "width", &res))) {
+		/* `width` is not mandatory */
+		imdia->width  = 0u;
+		imdia->height = 0u;
+	} else {
+		imdia->width = (uint16_t)json_object_get_uint64(res);
+		if (unlikely(!json_object_object_get_ex(jmdia, "height", 
+								&res))) {
+			/*
+		 	* `height` is originally not mandatory, but since
+		 	* there is `width` parameter, when there SHOULD be
+		 	* a height parameter in the json data.
+		 	*/
+			pr_err("Cannot find \"height\" key in \"file\"");
+			return -EINVAL;
+		}
+		imdia->height = (uint16_t)json_object_get_uint64(res);
+	}
+	
+	if (unlikely(!json_object_object_get_ex(jmdia, "title", &res))) {
+		/* `title` is not mandatory */
+		imdia->title = NULL;
+	} else {
+		imdia->title = json_object_get_string(res);
+	}
+
+	if (unlikely(!json_object_object_get_ex(jmdia, "performer", &res))) {
+		/* `performer` is not mandatory */
+		imdia->performer = NULL;
+	} else {
+		imdia->performer = json_object_get_string(res);
+	}
+
+
+	if (unlikely(!json_object_object_get_ex(jmdia, "file_id", &res))) {
+		pr_err("Cannot find \"file_id\" key in \"media\"");
+		return -EINVAL;
+	}
+	imdia->file_id = json_object_get_string(res);
+
+
+	if (unlikely(!json_object_object_get_ex(jmdia, 
+				"file_unique_id", &res))) {
+		pr_err("Cannot find \"file_unique_id\" key in \"media\"");
+		return -EINVAL;
+	}
+	imdia->file_unique_id = json_object_get_string(res);
+
+
+	if (unlikely(!json_object_object_get_ex(jmdia, "file_size", &res))) {
+		pr_err("Cannot find \"file_size\" key in \"file\"");
+		return -EINVAL;
+	}
+	imdia->file_size = json_object_get_uint64(res);
+
+	if (unlikely(!json_object_object_get_ex(jmdia, "thumb", &res))) {
+		/* `thumb` is not mandatory */
+	} else {
+		ret = parse_tgevi_file(jmdia, &imdia->thumb);
+		if (unlikely(ret != 0))
+			return ret;
+		
+	}
+	return 0;
+}
 
 
 static __always_inline int parse_tgevi_entities(json_object *jentities,
@@ -165,9 +291,6 @@ static __always_inline int parse_tgevi_entities(json_object *jentities,
 	*entities = entities_tmp;
 	return 0;
 }
-
-
-
 
 
 static __always_inline int parse_tgevi_from(json_object *jfrom,
@@ -229,10 +352,6 @@ static __always_inline int parse_tgevi_from(json_object *jfrom,
 
 	return 0;
 }
-
-
-
-
 
 
 static __always_inline int parse_tgevi_chat(json_object *jchat,
@@ -326,6 +445,7 @@ static __always_inline int parse_tgevi_chat(json_object *jchat,
 #include <gwbot/lib/tg_event/text.h>
 #include <gwbot/lib/tg_event/photo.h>
 #include <gwbot/lib/tg_event/sticker.h>
+#include <gwbot/lib/tg_event/gif.h>
 #undef INCLUDE_SUB_TG_EVENT
 
 
@@ -344,6 +464,7 @@ struct tgev {
 	tgev_type_t	type;
 	struct_pad(0, 4);
 	union {
+		struct tgev_gif		msg_gif;
 		struct tgev_text	msg_text;
 		struct tgev_photo	msg_photo;
 		struct tgev_sticker	msg_sticker;
@@ -356,6 +477,7 @@ struct tgev {
 #include <gwbot/lib/tg_event/text.h>
 #include <gwbot/lib/tg_event/photo.h>
 #include <gwbot/lib/tg_event/sticker.h>
+#include <gwbot/lib/tg_event/gif.h>
 #undef SUB_TG_EVENT_CIRCULAR_INLINE
 #undef INCLUDE_SUB_TG_EVENT
 
