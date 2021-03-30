@@ -73,6 +73,10 @@ int parse_message(json_object *json_obj, struct tgev *evt)
 	if (ret == 0 || ret != -ECANCELED)
 		return ret;
 
+	ret = parse_event_gif(jmsg, evt);
+	if (ret == 0 || ret != -ECANCELED)
+		return ret;
+
 	pr_err("Unknown event from JSON");
 	return ret;
 }
@@ -167,6 +171,13 @@ static void tg_event_destroy_photo(struct tgev_photo *ephoto)
 		free(ephoto->caption_entities);
 }
 
+static void tg_event_destroy_gif(struct tgev_gif *egif)
+{
+	if (unlikely(egif->caption_entity_c > 0))
+		free(egif->caption_entities);
+}
+
+
 void tg_event_destroy(struct tgev *evt)
 {
 	int ret;
@@ -184,6 +195,9 @@ void tg_event_destroy(struct tgev *evt)
 		tg_event_destroy_photo(&evt->msg_photo);
 		break;
 	case TGEV_STICKER:
+		break;
+	case TGEV_GIF:
+		tg_event_destroy_gif(&evt->msg_gif);
 		break;
 	}
 

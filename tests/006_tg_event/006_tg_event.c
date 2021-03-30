@@ -12,15 +12,17 @@ int nnstrcmp(const char *s1, const char *s2);
 #include "sticker/001_simple.h"
 #include "text/001_simple.h"
 #include "text/003_private.h"
+#include "gif/001_simple.h"
 
 
 static const test_entry_t entry[] = {
-	FN_TEATEST(006_tg_event_photo, 001_simple),
+	//FN_TEATEST(006_tg_event_photo, 001_simple),
 
-	FN_TEATEST(006_tg_event_sticker, 001_simple),
+	//FN_TEATEST(006_tg_event_sticker, 001_simple),
 
-	FN_TEATEST(006_tg_event_text, 001_simple),
+	//FN_TEATEST(006_tg_event_text, 001_simple),
 	FN_TEATEST(006_tg_event_text, 003_private),
+	FN_TEATEST(006_tg_event_gif, 001_simple),
 	NULL
 };
 

@@ -2,9 +2,9 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_event/text.h
  *
- *  Text message header for events
+ *  Text text header for events
  *
- *  Copyright (C) 2021  aliwoto
+ *  Copyright (C) 2021 - aliwoto
  */
 
 #ifndef GWBOT__LIB__TG_EVENT__TEXT_H
@@ -20,6 +20,7 @@ struct tgev_text {
 	struct tgevi_from	forward_from;
 	const char		*fwd_sender_name;
 	struct tgevi_chat	chat;
+	struct tgevi_chat	sender_chat;
 	time_t			date;
 	time_t			forward_date;
 	const char		*text;
@@ -127,15 +128,17 @@ static __always_inline int parse_event_text(json_object *jmsg,
 	if (unlikely(ret != 0))
 		return ret;
 
-
-
-	if (unlikely(!json_object_object_get_ex(jmsg, "date", &res))) {
-		/* `date` is not mandatory */
-		etext->date = 0ul;
-	} else {
-		etext->date = (time_t)json_object_get_int64(res);
+	if (unlikely(json_object_object_get_ex(jmsg, "sender_chat", &res))) {
+		ret = parse_tgevi_chat(res, &etext->sender_chat);
+		if (unlikely(ret != 0))
+			return ret;
 	}
 
+	if (unlikely(!json_object_object_get_ex(jmsg, "date", &res))) {
+		pr_err("Cannot find \"date\" key on sticker event");
+		return -EINVAL;
+	}
+	etext->date = (time_t)json_object_get_int64(res);
 
 
 	if (unlikely(!json_object_object_get_ex(jmsg, "entities", &res))) {

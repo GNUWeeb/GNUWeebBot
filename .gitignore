@@ -10,6 +10,7 @@
 /gwbot
 /libgwbot.so
 /.vscode
+/aliwoto
 # Ignore used config
 /*.ini
 build.dir
