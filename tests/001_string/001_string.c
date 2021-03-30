@@ -46,7 +46,7 @@ static TEATEST(001_string, trim_not_copy)
 static TEATEST(001_string, htmlspecialchars)
 {
 	TQ_START;
-	size_t len;
+	size_t len = 0;
 	char out[1024];
 
 	{

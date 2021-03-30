@@ -53,7 +53,7 @@ test: $(FWTEST_SO) $(TEST_EXEC)
 
 
 clean_test:
-	$(Q)rm -vf $(FWTEST_SO) $(FWTEST_OBJ) $(TEST_EXEC) $(TEST_OBJ)
+	$(Q)rm -vf $(FWTEST_SO) $(FWTEST_OBJ) $(TEST_EXEC:%__exec=%.test) $(TEST_OBJ)
 
 
 
