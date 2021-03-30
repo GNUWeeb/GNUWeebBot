@@ -1,19 +1,39 @@
-name: Testing
+name: C/C++ (Linux)
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, ammarfaizi2-dev ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, ammarfaizi2-dev ]
     
 jobs:
-        test:
-                runs-on: ubuntu-latest
-                steps:
-                        - uses: actions/checkout@v2
-                        - name : install depend for testing
-                          run : sudo apt install -y git gcc g++ make cmake libcurl4-openssl-dev valgrind doxygen;
-                        - name : build
-                          run : make -j$(nproc);
-                        - name : test
-                          run : make test;
+  main:
+    name: Build and Test
+    strategy:
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Dependencies
+      run: sudo apt install -y git gcc g++ make cmake libcurl4-openssl-dev valgrind doxygen;
+
+    - name: (Debug Mode) Build
+      run: make CC=gcc CXX=g++ -j$(nproc);
+    - name: (Debug Mode) Run Test
+      run: make CC=gcc CXX=g++ test;
+
+    - name: Clean Build
+      run: make clean;
+
+    - name: (Release Mode) Build
+      run: make CC=gcc CXX=g++ -j$(nproc) RELEASE_MODE=1;
+    - name: (Release Mode) Run Test
+      run: make CC=gcc CXX=g++ SANITIZE=1 test RELEASE_MODE=1;
+    
+    - name: Store artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: gwbot
+        path: gwbot
