@@ -6,10 +6,10 @@ static TEATEST(006_tg_event_text, 003_private)
 	int ret = 0;
 	struct tgev evt;
 	char *json_str = NULL;
-	struct tgevi_entity *entity;
-	struct tgev_text *msg_text;
-	struct tgevi_from *from;
-	struct tgevi_chat *chat;
+	struct tgevi_entity *entity = NULL;
+	struct tgev_text *msg_text = NULL;
+	struct tgevi_from *from = NULL;
+	struct tgevi_chat *chat = NULL;
 
 
 	TQ_VOID(json_str = load_str_from_file("text/003_private.json"));
@@ -23,11 +23,11 @@ static TEATEST(006_tg_event_text, 003_private)
 	TQ_ASSERT((evt.update_id == 346091871));
 
 
-	msg_text = &evt.msg_text;
+	TQ_VOID(msg_text = &evt.msg_text);
 	TQ_ASSERT((msg_text->msg_id == 82945));
 
 
-	from = &msg_text->from;
+	TQ_VOID(from = &msg_text->from);
 	TQ_ASSERT((from->id == 243692601));
 	TQ_ASSERT((from->is_bot == false));
 	TQ_ASSERT((!nnstrcmp(from->first_name, "io_uring_enter")));
@@ -36,7 +36,7 @@ static TEATEST(006_tg_event_text, 003_private)
 	TQ_ASSERT((!nnstrcmp(from->lang, "en")));
 
 
-	chat = &msg_text->chat;
+	TQ_VOID(chat = &msg_text->chat);
 	TQ_ASSERT((chat->id == 243692601));
 	TQ_ASSERT((chat->title == NULL));
 	TQ_ASSERT((!nnstrcmp(chat->first_name, "io_uring_enter")));
@@ -51,7 +51,7 @@ static TEATEST(006_tg_event_text, 003_private)
 	TQ_ASSERT((msg_text->entities != NULL));
 
 
-	entity = &msg_text->entities[0];
+	TQ_VOID(entity = &msg_text->entities[0]);
 	TQ_ASSERT((entity->offset == 0));
 	TQ_ASSERT((entity->length == 6));
 	TQ_ASSERT((!nnstrcmp(entity->type, "bot_command")));

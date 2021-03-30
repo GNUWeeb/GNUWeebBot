@@ -6,11 +6,11 @@ static TEATEST(006_tg_event_photo, 001_simple)
 	int ret = 0;
 	struct tgev evt;
 	char *json_str = NULL;
-	struct tgevi_entity *entity;
-	struct tgev_photo *msg_photo;
-	struct tgevi_from *from;
-	struct tgevi_chat *chat;
-	struct tgevi_file *photo;
+	struct tgevi_entity *entity = NULL;
+	struct tgev_photo *msg_photo = NULL;
+	struct tgevi_from *from = NULL;
+	struct tgevi_chat *chat = NULL;
+	struct tgevi_file *photo = NULL;
 
 	TQ_VOID(json_str = load_str_from_file("photo/001_simple.json"));
 	TQ_VOID(ret = tg_event_load_str(json_str, &evt));
@@ -23,11 +23,11 @@ static TEATEST(006_tg_event_photo, 001_simple)
 	TQ_ASSERT((evt.update_id == 346089825));
 
 
-	msg_photo = &evt.msg_photo;
+	TQ_VOID(msg_photo = &evt.msg_photo);
 	TQ_ASSERT((msg_photo->msg_id == 576));
 
 
-	from = &msg_photo->from;
+	TQ_VOID(from = &msg_photo->from);
 	TQ_ASSERT((from->id == 243692601));
 	TQ_ASSERT((from->is_bot == false));
 	TQ_ASSERT((!nnstrcmp(from->first_name, "io_uring_enter")));
@@ -36,7 +36,7 @@ static TEATEST(006_tg_event_photo, 001_simple)
 	TQ_ASSERT((!nnstrcmp(from->lang, "en")));
 
 
-	chat = &msg_photo->chat;
+	TQ_VOID(chat = &msg_photo->chat);
 	TQ_ASSERT((chat->id == -1001422514298l));
 	TQ_ASSERT((!nnstrcmp(chat->title, "GNU/Weeb Test Driven Development")));
 	TQ_ASSERT((!nnstrcmp(chat->username, "GNUWeebTDD")));
@@ -46,7 +46,7 @@ static TEATEST(006_tg_event_photo, 001_simple)
 	TQ_ASSERT((msg_photo->date == 1616657218));
 
 
-	photo = msg_photo->photo;
+	TQ_VOID(photo = msg_photo->photo);
 	TQ_ASSERT((msg_photo->photo_c == 3));
 	TQ_ASSERT(
 		   (photo != NULL)
@@ -75,7 +75,7 @@ static TEATEST(006_tg_event_photo, 001_simple)
 	TQ_ASSERT((msg_photo->caption_entity_c == 3));
 
 
-	entity = msg_photo->caption_entities;
+	TQ_VOID(entity = msg_photo->caption_entities);
 	TQ_ASSERT(
 		   (entity != NULL)
 		&& (entity[0].offset == 38)
