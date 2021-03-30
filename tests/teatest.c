@@ -56,6 +56,8 @@ static void pr_backtrace()
 
 static void sig_handler(int sig)
 {
+	int err;
+	ssize_t write_ret;
 	struct cred_prot cred;
 
 	/*
@@ -65,7 +67,11 @@ static void sig_handler(int sig)
 	 */
 	cred.total_credit = __total_credit;
 	cred.credit = __credit;
-	write(__pipe_wr_fd, &cred, sizeof(cred));
+	write_ret = write(__pipe_wr_fd, &cred, sizeof(cred));
+	if (unlikely(write_ret < 0)) {
+		err = errno;
+		pr_err("write(): " PRERF, PREAR(err));
+	}
 
 	signal(sig, SIG_DFL);
 
@@ -183,7 +189,9 @@ bool tq_assert_hook(void)
 
 int init_test(const char *pipe_write_fd, const test_entry_t *tests)
 {
+	int err;
 	int pipe_wr_fd;
+	ssize_t write_ret;
 	struct cred_prot cred;
 	const test_entry_t *test_entry = tests;
 	signal(SIGSEGV, sig_handler);
@@ -207,7 +215,12 @@ int init_test(const char *pipe_write_fd, const test_entry_t *tests)
 	 */
 	cred.total_credit = __total_credit;
 	cred.credit = __credit;
-	write(pipe_wr_fd, &cred, sizeof(cred));
+
+	write_ret = write(pipe_wr_fd, &cred, sizeof(cred));
+	if (unlikely(write_ret < 0)) {
+		err = errno;
+		pr_err("write(): " PRERF, PREAR(err));
+	}
 
 	return 0;
 }
