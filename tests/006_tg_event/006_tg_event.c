@@ -55,6 +55,7 @@ char *load_str_from_file(const char *file)
 	FILE *handle;
 	char *ret = NULL;
 	char filename[1024];
+	size_t fread_ret;
 
 	snprintf(filename, sizeof(filename), THIS_TEST_BASEPATH "/%s", file);
 
@@ -86,7 +87,12 @@ char *load_str_from_file(const char *file)
 	}
 
 	rewind(handle);
-	fread(ret, sizeof(char), (size_t)pos, handle);
+	fread_ret = fread(ret, sizeof(char), (size_t)pos, handle);
+	if (unlikely(fread_ret != (size_t)pos)) {
+		printf("Invalid fread return value: ret = %zu; expected = %zu\n",
+			fread_ret, (size_t)pos);
+		abort();
+	}
 	ret[pos] = '\0';
 	fclose(handle);
 	return ret;

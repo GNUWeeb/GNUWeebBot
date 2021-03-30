@@ -3,9 +3,9 @@
 static TEATEST(006_tg_event_text, 003_private)
 {
 	TQ_START;
-	int ret;
-	char *json_str;
+	int ret = 0;
 	struct tgev evt;
+	char *json_str = NULL;
 	struct tgevi_entity *entity;
 	struct tgev_text *msg_text;
 	struct tgevi_from *from;

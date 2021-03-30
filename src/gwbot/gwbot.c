@@ -218,7 +218,7 @@ static int init_state(struct gwbot_state *state)
 
 
 	for (uint32_t i = thread_c; i--;) {
-		int32_t ret;
+		int32_t __maybe_unused ret;
 		uint16_t i16 = (uint16_t)i;
 
 		ret = tss_push(&state->chan_stack, i16);

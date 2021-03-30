@@ -99,6 +99,12 @@ endif
 
 
 
+ifeq ($(BAN_WARN),1)
+	WARN_FLAGS := -Werror $(WARN_FLAGS)
+endif
+
+
+
 #
 # File dependency generator (especially for headers)
 #

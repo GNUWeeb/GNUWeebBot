@@ -1,0 +1,48 @@
+name: Clang (Linux)
+
+on:
+  push:
+    branches: [ master, ammarfaizi2-dev ]
+  pull_request:
+    branches: [ master, ammarfaizi2-dev ]
+    
+jobs:
+  main:
+    name: Clang Build and Test
+    strategy:
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Dependencies
+      run: sudo apt install -y git clang clang++ make cmake libcurl4-openssl-dev valgrind doxygen;
+
+    - name: Clang version
+      run: clang --version && clang++ --version;
+
+    #
+    #  Debug mode
+    #
+    - name: (Clang Debug Mode) Build
+      run: make BAN_WARN=1 CC=clang CXX=clang++ -j$(nproc);
+    - name: (Clang Debug Mode) Run Test
+      run: make BAN_WARN=1 CC=clang CXX=clang++ test -j$(nproc);
+
+    - name: Clean Build
+      run: make clean;
+
+    #
+    #  Release mode
+    #
+    - name: (Clang Release Mode) Build
+      run: make RELEASE_MODE=1 BAN_WARN=1 CC=clang CXX=clang++ -j$(nproc);
+    - name: (Clang Release Mode) Run Test
+      run: make RELEASE_MODE=1 BAN_WARN=1 CC=clang CXX=clang++ SANITIZE=1 test -j$(nproc);
+    
+    - name: Store artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: gwbot_clang
+        path: gwbot
