@@ -86,7 +86,7 @@ int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread,
 		json_pretty,
 		strnlen(json_pretty, hlen)
 	);
-	*(char *)mempcpy(&reply_text[5 + len], "</pre>", 6) = '\0';
+	*(char *)mempcpy(&reply_text[5 + len - 1], "</pre>", 6) = '\0';
 
 
 	thandle = tg_api_hcreate(cfg->cred.token);

@@ -15,27 +15,39 @@
 
 #ifdef INCLUDE_SUB_TG_API
 #  include <gwbot/lib/tg_api/send_message.h>
+#  include <gwbot/lib/tg_api/send_message.h>
 #endif
 
-// /*
-//  * See: https://core.telegram.org/bots/api#user
-//  */
-// struct tga_user {
-// 	uint64_t	id;
-// 	bool		is_bot;
-// 	const char	*first_name;
-// 	const char	*last_name;
-// 	const char	*username;
-// 	char		lang[4];
-// };
+/*
+ * See: https://core.telegram.org/bots/api#user
+ */
+struct tga_user {
+	uint64_t	id;
+	const char	*first_name;
+	const char	*last_name;
+	const char	*username;
+	bool		is_bot;
+	char		lang[4];
+};
 
 
-// /*
-//  * See: https://core.telegram.org/bots/api#chatmember
-//  */
-// struct tga_chat_member {
+typedef enum _chmem_status {
+	CREATOR		= (1 << 0),
+	ADMINISTRATOR	= (1 << 1),
+	MEMBER		= (1 << 2),
+	RESTRICTED	= (1 << 3),
+	LEFT		= (1 << 4),
+	KICKED		= (1 << 5),
+} chmem_status_t;
 
-// };
+
+/*
+ * See: https://core.telegram.org/bots/api#chatmember
+ */
+struct tga_chat_member {
+	struct tga_user		user;
+	chmem_status_t		status;
+};
 
 
 

@@ -26,7 +26,7 @@ static __always_inline int tg_event_json_parse(const char *json_str,
 
 
 	if (unlikely(jerr != json_tokener_success)) {
-		ret = -1;
+		ret = -EINVAL;
 		pr_err("JSON parse: %s", json_tokener_error_desc(jerr));
 	}
 
@@ -42,7 +42,7 @@ static int parse_update_id(json_object *json_obj, struct tgev *evt)
 
 	if (unlikely(!json_object_object_get_ex(json_obj, "update_id", &res))) {
 		pr_err("Cannot find key \"update_id\" from JSON");
-		return -1;
+		return -EINVAL;
 	}
 	evt->update_id = json_object_get_uint64(res);
 
@@ -57,7 +57,7 @@ int parse_message(json_object *json_obj, struct tgev *evt)
 
 	if (unlikely(!json_object_object_get_ex(json_obj, "message", &jmsg))) {
 		pr_err("Cannot find key \"message\" from JSON");
-		return -1;
+		return -EINVAL;
 	}
 	evt->json = json_obj;
 
