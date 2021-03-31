@@ -2,7 +2,7 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_api/send_message.h
  *
- *  String helpers header for TeaVPN2
+ *  Send message API for GNUWeebBot
  *
  *  Copyright (C) 2021  Ammar Faizi
  */

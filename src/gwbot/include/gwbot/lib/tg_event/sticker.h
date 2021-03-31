@@ -2,9 +2,9 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_event/sticker.h
  *
- *  Text message header for events
+ *  Text sticker header for events
  *
- *  Copyright (C) 2021  aliwoto
+ *  Copyright (C) 2021 - aliwoto
  */
 
 #ifndef GWBOT__LIB__TG_EVENT__STICKER_H
@@ -33,6 +33,7 @@ struct tgev_sticker {
 	struct tgevi_from	forward_from;
 	const			char *fwd_sender_name;
 	struct tgevi_chat	chat;
+	struct tgevi_chat	sender_chat;
 	struct tgevi_sticker	sticker;
 	time_t			date;
 	time_t			forward_date;
@@ -164,14 +165,14 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 		if (likely(!json_object_object_get_ex(jstk, 
 						"forward_sender_name", &res)))
 		{
-			estk->forward_date = 0ul;
-			estk->is_forwarded 	= false;
-			estk->is_unknown_fwd 	= false;
-			estk->fwd_sender_name 	= NULL;
+			estk->forward_date	= 0;
+			estk->is_forwarded	= false;
+			estk->is_unknown_fwd	= false;
+			estk->fwd_sender_name	= NULL;
 		} else {
-			estk->fwd_sender_name = json_object_get_string(res);
-			estk->is_forwarded 	= true;
-			estk->is_unknown_fwd 	= true;
+			estk->fwd_sender_name	= json_object_get_string(res);
+			estk->is_forwarded	= true;
+			estk->is_unknown_fwd	= true;
 		}
 	} else {
 		ret = parse_tgevi_from(res, &estk->forward_from);
@@ -196,7 +197,7 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 							"event");
 			return -EINVAL;
 		} else {
-			estk->forward_date = json_object_get_uint64(res);
+			estk->forward_date = (time_t)json_object_get_int64(res);
 		}
 	}
 
@@ -209,14 +210,19 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 	if (unlikely(ret != 0))
 		return ret;
 
+	if (unlikely(json_object_object_get_ex(jstk, "sender_chat", &res))) {
+		ret = parse_tgevi_chat(res, &estk->sender_chat);
+		if (unlikely(ret != 0))
+			return ret;
+	}
+
+
 
         if (unlikely(!json_object_object_get_ex(jstk, "date", &res))) {
 		pr_err("Cannot find \"date\" key on sticker event");
 		return -EINVAL;
-	} else {
-		estk->date = json_object_get_uint64(res);
 	}
-
+	estk->date = (time_t)json_object_get_int64(res);
 
 	if (!json_object_object_get_ex(jstk, "reply_to_message", &res)) {
 		/* `reply_to` is not mandatory */
@@ -232,5 +238,4 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 
 
 
-#endif //SUB_TG_EVENT_CIRCULAR_INLINE
-
+#endif /* #ifdef SUB_TG_EVENT_CIRCULAR_INLINE */

@@ -16,7 +16,7 @@
 
 typedef int (*test_entry_t)(uint32_t *____total_credit, uint32_t *____credit);
 
-int init_test(const test_entry_t *tests);
+int init_test(const char *pipe_write_fd, const test_entry_t *tests);
 int run_test(const test_entry_t *tests);
 
 bool tq_assert_hook(void);
@@ -26,6 +26,11 @@ int spawn_valgrind(int argc, char *argv[]);
 
 /* TODO: Make core dump */
 #define core_dump()
+
+struct cred_prot {
+	uint32_t credit;
+	uint32_t total_credit;
+};
 
 #define FN_TEATEST(PACKAGE, NAME) test_##PACKAGE##_##NAME
 

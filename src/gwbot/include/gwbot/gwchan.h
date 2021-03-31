@@ -17,7 +17,7 @@
 
 struct chan_pkt {
 	uint16_t		len;
-	char			data[8192];
+	char			data[0x4000];
 };
 
 

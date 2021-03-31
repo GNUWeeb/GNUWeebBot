@@ -22,6 +22,7 @@ struct tgev_photo {
         struct tgevi_from	forward_from;
 	const char 		*fwd_sender_name;
 	struct tgevi_chat	chat;
+	struct tgevi_chat	sender_chat;
 	time_t			date;
 	time_t			forward_date;
         bool                    is_forwarded;
@@ -126,14 +127,14 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 		if (likely(!json_object_object_get_ex(jphoto, 
 						"forward_sender_name", &res)))
 		{
-			ephoto->forward_date = 0ul;
+			ephoto->forward_date	= 0;
 			ephoto->is_forwarded 	= false;
 			ephoto->is_unknown_fwd 	= false;
 			ephoto->fwd_sender_name	= NULL;
 		} else {
-			ephoto->fwd_sender_name = json_object_get_string(res);
-			ephoto->is_forwarded 	= true;
-			ephoto->is_unknown_fwd 	= true;
+			ephoto->fwd_sender_name	= json_object_get_string(res);
+			ephoto->is_forwarded	= true;
+			ephoto->is_unknown_fwd	= true;
 		}
 	} else {
 		ret = parse_tgevi_from(res, &ephoto->forward_from);
@@ -157,7 +158,7 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 								"event");
 			return -EINVAL;
 		} else {
-			ephoto->forward_date = json_object_get_uint64(res);
+			ephoto->forward_date = (time_t)json_object_get_int64(res);
 		}
 	}
 
@@ -169,14 +170,17 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 	if (unlikely(ret != 0))
 		return ret;
 
+	if (unlikely(json_object_object_get_ex(jphoto, "sender_chat", &res))) {
+		ret = parse_tgevi_chat(res, &ephoto->sender_chat);
+		if (unlikely(ret != 0))
+			return ret;
+	}
 
         if (unlikely(!json_object_object_get_ex(jphoto, "date", &res))) {
 		pr_err("Cannot find \"date\" key on photo event");
 		return -EINVAL;
-	} else {
-		ephoto->date = json_object_get_uint64(res);
 	}
-
+	ephoto->date = (time_t)json_object_get_int64(res);
 
 	if (unlikely(!json_object_object_get_ex(jphoto, "caption", &res))) {
 		/*

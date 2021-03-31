@@ -13,15 +13,19 @@
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
+#include <alloca.h>
 #include <sys/file.h>
 #include <sys/wait.h>
 #include <gwbot/base.h>
+#include <gwbot/lib/string.h>
 
 #include <teatest.h>
 #include <execinfo.h>
 
+static int __pipe_wr_fd = -1;
 static bool __want_to_run_test = false;
 static uint32_t __total_credit = 0, __credit = 0;
+
 #define BT_BUF_SIZE (0x8000u)
 
 static void pr_backtrace()
@@ -33,8 +37,10 @@ static void pr_backtrace()
 	nptrs = backtrace(buffer, BT_BUF_SIZE);
 	printf(" backtrace() returned %d addresses\n", nptrs);
 
-	/* The call backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO)
-	would produce similar output to the following: */
+	/*
+	 * The call backtrace_symbols_fd(buffer, nptrs, STDOUT_FILENO)
+	 * would produce similar output to the following:
+	 */
 
 	strings = backtrace_symbols(buffer, nptrs);
 	if (strings == NULL) {
@@ -48,26 +54,85 @@ static void pr_backtrace()
 	free(strings);
 }
 
-
 static void sig_handler(int sig)
 {
+	int err;
+	ssize_t write_ret;
+	struct cred_prot cred;
+
+	/*
+	 * Panic!
+	 *
+	 * Report total credit!
+	 */
+	cred.total_credit = __total_credit;
+	cred.credit = __credit;
+	write_ret = write(__pipe_wr_fd, &cred, sizeof(cred));
+	if (unlikely(write_ret < 0)) {
+		err = errno;
+		pr_err("write(): " PRERF, PREAR(err));
+	}
+
+	signal(sig, SIG_DFL);
+
 	if (sig == SIGSEGV) {
 		core_dump();
 		panic("SIGSEGV caught!");
 		pr_emerg("You crashed the program memory!");
 		pr_emerg("Segmentation Fault (core dumped)");
 		pr_emerg("===============================================");
-		pr_backtrace();
-		exit(1);
 	} else if (sig == SIGABRT) {
 		core_dump();
 		panic("SIGABRT caught!");
 		pr_emerg("Aborted (core dumped)");
 		pr_emerg("===============================================");
-		exit(1);
 	}
-	exit(0);
+	pr_backtrace();
+	raise(sig);
+	exit(1);
 }
+
+
+static int fd_set_nonblock(int fd)
+{
+	int err;
+	int flags;
+
+	/* If we have O_NONBLOCK, use the POSIX way to do it */
+#if defined(O_NONBLOCK)
+	/*
+	 * Fixme:
+	 * O_NONBLOCK is defined but broken on SunOS 4.1.x and AIX 3.2.5.
+	 */
+
+	flags = fcntl(fd, F_GETFL, 0);
+	if (unlikely(flags < 0)) {
+		err = errno;
+		pr_err("fcntl(%d, F_GETFL, 0): " PRERF, fd, PREAR(err));
+		return -err;
+	}
+	
+	flags = fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+	if (unlikely(flags < 0)) {
+		err = errno;
+		pr_err("fcntl(%d, F_SETFL, %d): " PRERF, fd, flags, PREAR(err));
+		return -err;
+	}
+
+	return flags;
+#else
+	/* Otherwise, use the old way of doing it */
+	flags = 1;
+	if (unlikely(ioctl(fd, FIONBIO, &flags) < 0)) {
+		err = errno;
+		pr_err("ioctl(%d, FIONBIO, &flags): " PRERF, fd, PREAR(err));
+		return -err;
+	}
+
+	return 0;
+#endif
+}
+
 
 
 static void print_info(int ret, uint32_t total_credit, uint32_t credit)
@@ -122,19 +187,39 @@ bool tq_assert_hook(void)
 
 
 
-int init_test(const test_entry_t *tests)
+int init_test(const char *pipe_write_fd, const test_entry_t *tests)
 {
+	int err;
+	int pipe_wr_fd;
+	ssize_t write_ret;
+	struct cred_prot cred;
 	const test_entry_t *test_entry = tests;
 	signal(SIGSEGV, sig_handler);
 	signal(SIGABRT, sig_handler);
 
-	pr_notice("Initializing test...");
+	pipe_wr_fd = atoi(pipe_write_fd);
+	__pipe_wr_fd = pipe_wr_fd;
+
+	pr_notice("Initializing test (pipe_wr_fd: %d)...", pipe_wr_fd);
 	__want_to_run_test = 0;
 	while (*test_entry) {
 		/*
 		 * Calculate total credit
 		 */
 		(*test_entry++)(&__total_credit, &__credit);
+	}
+
+	/*
+	 * Report total credit to parent to prevent misinformation
+	 * when panic
+	 */
+	cred.total_credit = __total_credit;
+	cred.credit = __credit;
+
+	write_ret = write(pipe_wr_fd, &cred, sizeof(cred));
+	if (unlikely(write_ret < 0)) {
+		err = errno;
+		pr_err("write(): " PRERF, PREAR(err));
 	}
 
 	return 0;
@@ -162,18 +247,40 @@ int run_test(const test_entry_t *tests)
 }
 
 
-static int handle_wait(pid_t child)
+static int handle_wait(pid_t child, int pipe_fd[2])
 {
+	int err;
 	int wstatus;
 	pid_t wait_ret;
 
 	wait_ret = wait(&wstatus);
 	if (WIFEXITED(wstatus) && (wait_ret == child)) {
+		union {
+			struct cred_prot cred;
+			char buf[sizeof(uint32_t) * 2];
+		} buf;
+		ssize_t read_ret;
 		int exit_code = WEXITSTATUS(wstatus);
 
 		if (exit_code == 0) {
 			/* Success */
 			return 0;
+		}
+
+		read_ret = read(pipe_fd[0], buf.buf, sizeof(buf.buf));
+		if (unlikely(read_ret < 0)) {
+			err = errno;
+			pr_err("read(): " PRERF, PREAR(err));
+			/* Keep it run */
+		}
+
+
+		read_ret = read(pipe_fd[0], buf.buf, sizeof(buf.buf));
+		if (unlikely(read_ret < 0)) {
+			err = errno;
+			if (err != EAGAIN)
+				pr_err("read(): " PRERF, PREAR(err));
+				/* Keep it run */
 		}
 
 		pr_err("\x1b[31mTEST FAILED!\x1b[0m");
@@ -185,6 +292,8 @@ static int handle_wait(pid_t child)
 			pr_err("Reading valgrind backtrace is not trivial, "
 				"please be serious!");
 		}
+
+		print_info(exit_code, buf.cred.total_credit, buf.cred.credit);
 		return exit_code;
 	}
 
@@ -199,24 +308,83 @@ extern char **environ;
 
 int spawn_valgrind(int argc, char *argv[])
 {
-	pid_t child;
-	char *cmdline = argv[0];
+	int ret;
+	int err;
+	pid_t child_pid;
+	int pipe_fd[2];
+	int vla_argc;
+	char **vla_argv;
+	char pipe_fd_arg[16];
 
-	memmove(&argv[0], &argv[1], sizeof(char *) * ((size_t)argc - 1));
-	argv[argc - 1] = cmdline;
+	vla_argc  = (uint8_t)argc & 0xfu; /* (argc & 0xfu) allows max argc up to 15 */
+	vla_argc += 1; /* Allocate more space for spawn_arg and pipe_fd_arg */
 
-	child  = fork();
-
-	if (unlikely(child == -1)) {
-		pr_err("fork(): " PRERF, PREAR(errno));	
+	if (unlikely(pipe(pipe_fd) < 0)) {
+		err = errno;
+		pr_err("pipe(): " PRERF, PREAR(err));
 		return -1;
 	}
 
-	if (child == 0) {
-		execve(argv[0], argv, environ);
-		pr_err("execve(): " PRERF, PREAR(errno));
+	fd_set_nonblock(pipe_fd[0]);
+
+	/* We inform the write pipe fd to child via argument */
+	snprintf(pipe_fd_arg, sizeof(pipe_fd_arg), "%d", pipe_fd[1]);
+	vla_argv = alloca((size_t)(vla_argc + 1) * sizeof(*vla_argv));
+
+	/* Copy arguments */
+	memmove(&vla_argv[0], &argv[1], (size_t)(vla_argc - 2) * sizeof(*argv));
+	vla_argv[vla_argc - 2] = argv[0];
+	vla_argv[vla_argc - 1] = pipe_fd_arg;
+	vla_argv[vla_argc - 0] = NULL;
+
+	child_pid = fork();
+
+	if (unlikely(child_pid < 0)) {
+		err = errno;
+		pr_err("fork(): " PRERF, PREAR(err));
+		ret = -1;
+		goto out;
+	}
+
+	if (child_pid == 0) {
+
+		/* We're the child process */
+		execve(vla_argv[0], vla_argv, environ);
+
+		/* execve won't return if success */
+		err = errno;
+		pr_err("execve(\"%s\"): " PRERF, vla_argv[0], PREAR(err));
 		return -1;
 	}
 
-	return handle_wait(child);
+	ret = handle_wait(child_pid, pipe_fd);
+out:
+	close(pipe_fd[0]);
+	close(pipe_fd[1]);
+	return ret;
+}
+
+
+extern const test_entry_t entry[];
+
+int main(int argc, char *argv[])
+{
+	int ret;
+	char fpath[0xffu];
+
+	sane_strncpy(fpath, argv[1], sizeof(fpath));
+	if (strcmp(basename(fpath), "valgrind") == 0)
+		return spawn_valgrind(argc, argv);
+
+	if (argc == 2) {
+		ret = init_test(argv[1], entry);
+		if (ret != 0)
+			return ret;
+
+		ret = run_test(entry);
+		return ret;
+	}
+
+	printf("Invalid argument\n");
+	return EINVAL;
 }

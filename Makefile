@@ -1,10 +1,11 @@
 #
 # SPDX-License-Identifier: GPL-2.0
+# 
+# GNUWeebBot (GNUWeeb Telegram Bot)
+# 
+# https://github.com/GNUWeeb/GNUWeebBot
 #
-# @author Ammar Faizi <ammarfaizi2@gmail.com> https://www.facebook.com/ammarfaizi2
-# @license GNU GPL-v2
-#
-# TeaVPN2 - Fast and Free VPN Software
+# Main Makefile
 #
 
 VERSION	= 0
@@ -33,6 +34,9 @@ BASE_DEP_DIR	:= $(BASE_DIR)/.deps
 MAKEFILE_FILE	:= $(lastword $(MAKEFILE_LIST))
 TARGET_BIN	:= gwbot
 MSHARED_BIN	:= libgwbot.so
+
+
+STACK_USAGE_SIZE := 2097152
 
 
 #
@@ -90,11 +94,17 @@ else
 		-Wformat-signedness \
 		-Wsequence-point \
 		-Wstrict-aliasing=3 \
-		-Wstack-usage=2097152 \
+		-Wstack-usage=$(STACK_USAGE_SIZE) \
 		-Wunsafe-loop-optimizations
 
 	CFLAGS		:= -fchecking=2 -fcompare-debug
 	CXXFLAGS	:= -fchecking=2 -fcompare-debug
+endif
+
+
+
+ifeq ($(BAN_WARN),1)
+	WARN_FLAGS := -Werror $(WARN_FLAGS)
 endif
 
 
@@ -270,6 +280,10 @@ SHARED_LIB	:=
 #######################################
 
 
+MAKE_PID := $(shell echo $$PPID)
+JOBS := $(shell ps T | sed -n 's/.*$(MAKE_PID).*$(MAKE).* \(-j\|--jobs=\) *\([0-9][0-9]*\).*/\2/p')
+
+
 
 ifneq ($(words $(subst :, ,$(BASE_DIR))), 1)
 $(error Source directory cannot contain spaces or colons)
@@ -319,9 +333,9 @@ $(OBJ_CC): $(MAKEFILE_FILE) | $(DEP_DIRS)
 # Add more dependency chain to object that is not
 # compiled from the main Makefile
 #
-$(OBJ_PRE_CC): $(MAKEFILE_FILE) | $(DEP_DIRS)
-$(TEST_OBJ): $(MAKEFILE_FILE) | $(DEP_DIRS)
-$(FWTEST_OBJ): $(MAKEFILE_FILE) | $(DEP_DIRS)
+$(OBJ_PRE_CC): $(MAKEFILE_FILE) $(SHARED_LIB) | $(DEP_DIRS)
+$(TEST_OBJ): $(MAKEFILE_FILE) $(SHARED_LIB) | $(DEP_DIRS)
+$(FWTEST_OBJ): $(MAKEFILE_FILE) $(SHARED_LIB) | $(DEP_DIRS)
 
 
 #
@@ -338,6 +352,10 @@ clean: clean_test
 
 
 clean_all: clean clean_test clean_ext
+
+
+
+test_all: test test_ext
 
 
 
@@ -366,4 +384,4 @@ run_vg: $(TARGET_BIN)
 
 
 
-.PHONY: all clean clean_all release_pack __build_release_pack run_vg
+.PHONY: all clean clean_all release_pack __build_release_pack run_vg test_all

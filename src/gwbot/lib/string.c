@@ -229,41 +229,53 @@ char *urlencode(char *alloc, const char *s, size_t len, bool raw)
 }
 
 
-/*
- * Thanks to Roland Seuhs
- * Ref: https://stackoverflow.com/a/29599904/7275114
- */
-size_t htmlspecialchars(char *output, const char *input)
+size_t htmlspecialchars(char * restrict _output, size_t outlen,
+			const char * restrict _input, size_t inlen)
 {
-	size_t i = 0, j = 0;
+	struct html_char_map {
+		const char	to[8];
+		const uint8_t	len;
+	};
 
-	while (input[i]) {
-		switch (input[i]) {
-		case '<':
-			memcpy(&output[j], "&lt;", 4);
-			j += 4;
-			break;
-		case '>':
-			memcpy(&output[j], "&gt;", 4);
-			j += 4;
-			break;
-		case '"':
-			memcpy(&output[j], "&quot;", 6);
-			j += 6;
-			break;
-		case '&':
-			memcpy(&output[j], "&amp;", 5);
-			j += 5;
-			break;
-		default:
-			output[j] = input[i];
-			j += 1;
-			break;
+	static const struct html_char_map html_map[0xffu] = {
+		['<'] = {"&lt;",	4},
+		['>'] = {"&gt;",	4},
+		['"'] = {"&quot;",	6},
+		['&'] = {"&amp;",	5},
+	};
+
+
+	size_t j = 0;
+	uint8_t len = 0;
+	unsigned char * restrict output = (unsigned char *)_output;
+	const unsigned char * restrict input  = (const unsigned char *)_input;
+	const unsigned char *in_end = input + inlen;
+
+	while (likely(input < in_end)) {
+		const unsigned char *cp;
+		const struct html_char_map *map_to = &html_map[(size_t)*input];
+
+		if (likely(*map_to->to == '\0')) {
+			cp  = input;
+			len = 1;
+		} else {
+			cp  = (const unsigned char *)map_to->to;
+			len = map_to->len;
 		}
-		i++;
+
+		if (unlikely((j + len - 1) >= outlen))
+			break;
+
+		memcpy(&output[j], cp, len);
+		j += len;
+		input++;
 	}
-	if (j > 0)
-		output[j] = '\0';
+
+	if (likely(outlen > 0)) {
+		if (unlikely((j + 1) > outlen))
+			j -= len;
+		output[++j] = '\0';
+	}
 
 	return j;
 }

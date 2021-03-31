@@ -3,14 +3,14 @@
 static TEATEST(006_tg_event_sticker, 001_simple)
 {
 	TQ_START;
-	int ret;
-	char *json_str;
+	int ret = 0;
 	struct tgev evt;
-	struct tgev_sticker *msg_sticker;
-	struct tgevi_from *from;
-	struct tgevi_chat *chat;
-	struct tgevi_sticker *sticker;
-	struct tgevi_file *thumb;
+	char *json_str = NULL;
+	struct tgev_sticker *msg_sticker = NULL;
+	struct tgevi_from *from = NULL;
+	struct tgevi_chat *chat = NULL;
+	struct tgevi_sticker *sticker = NULL;
+	struct tgevi_file *thumb = NULL;
 
 	TQ_VOID(json_str = load_str_from_file("sticker/001_simple.json"));
 	TQ_VOID(ret = tg_event_load_str(json_str, &evt));

@@ -33,15 +33,27 @@ $(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so:
 	+$(Q)cd  $(BASE_DIR)/src/ext/json-c && \
 	mkdir -pv build.dir && \
 	cd build.dir && \
-	cmake .. && \
+	cmake CMAKE_C_FLAGS_RELEASE=1 .. && \
 	$(MAKE) --no-print-directory;
 
 build_json_c: $(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so
 
+
+
 clean_json_c:
-	$(Q)rm -rf $(BASE_DIR)/src/ext/json-c/build.dir;
+	$(Q)rm -rfv $(BASE_DIR)/src/ext/json-c/build.dir;
 
 
+
+test_json_c: $(BASE_DIR)/src/ext/json-c/build.dir/libjson-c.so
+	+$(Q)cd  $(BASE_DIR)/src/ext/json-c && \
+	mkdir -pv build.dir && \
+	cd build.dir && \
+	cmake .. && \
+	$(MAKE) test ARGS="-j$(JOBS)" --no-print-directory;
+
+
+test_ext: test_json_c
 
 #
 # Clean all extension build
@@ -49,4 +61,4 @@ clean_json_c:
 clean_ext: clean_json_c
 
 
-.PHONY: build_json_c clean_json_c clean_ext
+.PHONY: build_json_c clean_json_c test_json_c clean_ext

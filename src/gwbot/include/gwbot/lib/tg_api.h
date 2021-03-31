@@ -17,6 +17,28 @@
 #  include <gwbot/lib/tg_api/send_message.h>
 #endif
 
+// /*
+//  * See: https://core.telegram.org/bots/api#user
+//  */
+// struct tga_user {
+// 	uint64_t	id;
+// 	bool		is_bot;
+// 	const char	*first_name;
+// 	const char	*last_name;
+// 	const char	*username;
+// 	char		lang[4];
+// };
+
+
+// /*
+//  * See: https://core.telegram.org/bots/api#chatmember
+//  */
+// struct tga_chat_member {
+
+// };
+
+
+
 /* 
  * Request.
  */
