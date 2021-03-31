@@ -51,7 +51,8 @@ We are usually online on Telegram, see: https://t.me/GNUWeeb
 - OpenSSL 1.1.1 (under Apache-2.0 license) (https://github.com/openssl/openssl)
 - liburing-2.0 (under LGPL + MIT) (https://github.com/axboe/liburing)
 - libcurl4-openssl-dev 7.74.0 (MIT) (https://github.com/curl/curl)
-- json-c-0.15-20200726 (https://github.com/json-c/json-c)
+- json-c-0.15-20200726 (MIT) (https://github.com/json-c/json-c)
+- mysql8 (GPL) (https://dev.mysql.com/downloads/c-api/)
 
 
 # Contributing
