@@ -2,7 +2,7 @@
 /*
  *  src/gwbot/config.c
  *
- *  Config parser for TeaVPN2 server
+ *  Config parser for GNUWeebBot
  *
  *  Copyright (C) 2021  Ammar Faizi
  */
@@ -46,7 +46,29 @@ static int parser_handler(void *user, const char *section, const char *name,
 		/* TODO: Parse storage config */
 	} else
 	rmatch_s("mysql") {
-		/* TODO: Parse MySQL config */
+		rmatch_n("use_db") {
+			cfg->use_db = (bool)atoi(value);
+		} else
+		rmatch_n("host") {
+			cfg->mysql.host = ar_strndup(value, 255);
+		} else
+		rmatch_n("port") {
+			cfg->mysql.port = (uint16_t)atoi(value);
+		} else
+		rmatch_n("user") {
+			cfg->mysql.user = ar_strndup(value, 255);
+		} else
+		rmatch_n("pass") {
+			cfg->mysql.pass = ar_strndup(value, 255);
+		} else
+		rmatch_n("dbname") {
+			cfg->mysql.db = ar_strndup(value, 255);
+		} else
+		rmatch_n("unix_sock") {
+			cfg->mysql.unix_sock = ar_strndup(value, 255);
+		} else {
+			goto out_invalid_name;
+		}
 	} else
 	rmatch_s("socket") {
 		rmatch_n("bind_addr") {

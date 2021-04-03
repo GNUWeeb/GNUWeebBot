@@ -37,8 +37,7 @@ struct tgev_text {
 
 #ifdef SUB_TG_EVENT_CIRCULAR_INLINE
 
-static __always_inline int parse_event_text(json_object *jmsg, 
-						struct tgev *evt)
+static __always_inline int parse_event_text(json_object *jmsg, struct tgev *evt)
 {
 	int ret;
 	json_object *res;
@@ -83,8 +82,7 @@ static __always_inline int parse_event_text(json_object *jmsg,
 		 * the `forward_sender_name` parameter for unknown forward.
 		 */
 		if (likely(!json_object_object_get_ex(jmsg, 
-						"forward_sender_name", &res)))
-		{
+						"forward_sender_name", &res))) {
 			etext->forward_date = 0ul;
 			etext->is_forwarded 	= false;
 			etext->is_unknown_fwd 	= false;
@@ -103,8 +101,7 @@ static __always_inline int parse_event_text(json_object *jmsg,
 		etext->fwd_sender_name 	= NULL;
 	}
 	
-	if (etext->is_forwarded)
-	{
+	if (unlikely(etext->is_forwarded)) {
 		if (unlikely(!json_object_object_get_ex(jmsg, 
 						"forward_date", &res))) {
 			/*
@@ -113,7 +110,7 @@ static __always_inline int parse_event_text(json_object *jmsg,
 		 	 * there SHOULD be `forward_date` parameter. 
 			 */
 			pr_err("Cannot find \"forward_date\" key on text "
-							"event");
+			       "event");
 			return -EINVAL;
 		} else {
 			etext->forward_date = (time_t)json_object_get_int64(res);

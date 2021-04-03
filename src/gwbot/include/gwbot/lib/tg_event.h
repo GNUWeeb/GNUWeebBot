@@ -231,8 +231,8 @@ static __always_inline int parse_tgevi_media(json_object *jmdia,
 	imdia->file_id = json_object_get_string(res);
 
 
-	if (unlikely(!json_object_object_get_ex(jmdia, 
-				"file_unique_id", &res))) {
+	if (unlikely(!json_object_object_get_ex(jmdia, "file_unique_id",
+						&res))) {
 		pr_err("Cannot find \"file_unique_id\" key in \"media\"");
 		return -EINVAL;
 	}
@@ -336,8 +336,11 @@ static __always_inline int parse_tgevi_from(json_object *jfrom,
 		/* `lang` is not mandatory */
 		from->lang[0] = '\0';
 	} else {
-		sane_strncpy(from->lang, json_object_get_string(res),
-			     sizeof(from->lang));
+		const char *lang = json_object_get_string(res);
+		if (lang)
+			sane_strncpy(from->lang, lang, sizeof(from->lang));
+		else
+			from->lang[0] = '\0';
 	}
 
 
@@ -367,10 +370,15 @@ static __always_inline int parse_tgevi_chat(json_object *jchat,
 	chat->id = json_object_get_int64(res);
 
 	if (unlikely(!json_object_object_get_ex(jchat, "type", &res))) {
+	out_missing_chat_type:
 		pr_err("Cannot find \"type\" on key \"chat\"");
 		return -EINVAL;
 	}
+
 	type = json_object_get_string(res);
+	if (unlikely(!type))
+		goto out_missing_chat_type;
+
 	switch (type[0]) {
 	case 's':
 		chat->type = TGEV_CHAT_SUPERGROUP;

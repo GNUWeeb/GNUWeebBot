@@ -9,6 +9,7 @@
 
 #include <time.h>
 #include <errno.h>
+#include <mysql.h>
 #include <assert.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -953,6 +954,8 @@ static void destroy_state(struct gwbot_state *state)
 	free(state->epl_map_chan);
 	free(state->threads);
 	free(state->chans);
+
+	//mysql_thread_end();
 }
 
 
@@ -961,6 +964,7 @@ int gwbot_run(struct gwbot_cfg *cfg)
 	int ret;
 	struct gwbot_state state;
 
+	mysql_thread_init();
 	memset(&state, 0, sizeof(state));
 
 	state.cfg = cfg;

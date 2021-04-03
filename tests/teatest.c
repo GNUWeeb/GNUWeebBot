@@ -229,8 +229,13 @@ int init_test(const char *pipe_write_fd, const test_entry_t *tests)
 
 int run_test(const test_entry_t *tests)
 {
+	int err;
 	int ret = 0;
+	ssize_t write_ret;
+	bool fail = false;
 	const test_entry_t *test_entry = tests;
+	struct cred_prot cred;
+
 	signal(SIGSEGV, sig_handler);
 	signal(SIGABRT, sig_handler);
 
@@ -238,12 +243,22 @@ int run_test(const test_entry_t *tests)
 	__want_to_run_test = 1;
 	while (*test_entry) {
 		ret = (*test_entry++)(&__total_credit, &__credit);
+		if (ret != 0)
+			fail = true;
 	}
 
-	print_info(ret, __total_credit, __credit);
+	cred.total_credit = __total_credit;
+	cred.credit = __credit;
+	write_ret = write(__pipe_wr_fd, &cred, sizeof(cred));
+	if (unlikely(write_ret < 0)) {
+		err = errno;
+		pr_err("write(): " PRERF, PREAR(err));
+	}
+
+
 	for (int i = 0; i < 1000; i++)
 		close(i);
-	return ret;
+	return fail ? 1 : 0;
 }
 
 
@@ -262,26 +277,18 @@ static int handle_wait(pid_t child, int pipe_fd[2])
 		ssize_t read_ret;
 		int exit_code = WEXITSTATUS(wstatus);
 
-		if (exit_code == 0) {
-			/* Success */
-			return 0;
+		
+		for (int i = 0; i < 5; i++) {
+			read_ret = read(pipe_fd[0], buf.buf, sizeof(buf.buf));
+			if (unlikely(read_ret < 0)) {
+				err = errno;
+				if (err != EAGAIN)
+					pr_err("read(): " PRERF, PREAR(err));
+			}
 		}
 
-		read_ret = read(pipe_fd[0], buf.buf, sizeof(buf.buf));
-		if (unlikely(read_ret < 0)) {
-			err = errno;
-			pr_err("read(): " PRERF, PREAR(err));
-			/* Keep it run */
-		}
-
-
-		read_ret = read(pipe_fd[0], buf.buf, sizeof(buf.buf));
-		if (unlikely(read_ret < 0)) {
-			err = errno;
-			if (err != EAGAIN)
-				pr_err("read(): " PRERF, PREAR(err));
-				/* Keep it run */
-		}
+		if (exit_code == 0)
+			goto out_exit;
 
 		pr_err("\x1b[31mTEST FAILED!\x1b[0m");
 		pr_err("Exit code: %d", exit_code);
@@ -292,7 +299,7 @@ static int handle_wait(pid_t child, int pipe_fd[2])
 			pr_err("Reading valgrind backtrace is not trivial, "
 				"please be serious!");
 		}
-
+	out_exit:
 		print_info(exit_code, buf.cred.total_credit, buf.cred.credit);
 		return exit_code;
 	}
