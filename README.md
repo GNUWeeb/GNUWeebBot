@@ -3,8 +3,9 @@ GNUWeeb Telegram Bot
 
 
 # Features
-[ ] Group Management
-[ ] Event Logger
+- [x] Event Debug
+- [ ] Event Logger
+- [ ] Group Management
 
 
 # Requirements
@@ -53,19 +54,19 @@ repository https://github.com/GNUWeeb/GNUWeebBot
 
 
 # Community
-We are usually online on Telegram, see: https://t.me/GNUWeeb
+We are online on Telegram, see: https://t.me/GNUWeeb
 
 
 # Third Party Libraries
 
- No. | Link                                    | Name                  | License                 |
------|-----------------------------------------|-----------------------|---------------------------
- 1.  | https://github.com/benhoyt/inih         | inih 53               | New BSD license
- 2.  | https://github.com/openssl/openssl      | OpenSSL 1.1.1         | Apache-2.0
- 3.  | https://github.com/axboe/liburing       | liburing-2.0          | LGPL + MIT
- 4.  | https://github.com/curl/curl            | libcurl4-openssl-dev  | MIT
- 5.  | https://github.com/json-c/json-c        | json-c-0.15-20200726  | MIT
- 6.  | https://dev.mysql.com/downloads/c-api   | MySQL 8               | GPL-v2
+| No.   | Link                                    | Name                  | License                   |
+|:-----:|:----------------------------------------|:----------------------|:--------------------------|
+| 1.    | https://github.com/benhoyt/inih         | inih 53               | New BSD license           |
+| 2.    | https://github.com/openssl/openssl      | OpenSSL 1.1.1         | Apache-2.0                |
+| 3.    | https://github.com/axboe/liburing       | liburing-2.0          | LGPL + MIT                |
+| 4.    | https://github.com/curl/curl            | libcurl4-openssl-dev  | MIT                       |
+| 5.    | https://github.com/json-c/json-c        | json-c-0.15-20200726  | MIT                       |
+| 6.    | https://dev.mysql.com/downloads/c-api   | MySQL 8               | GPL-v2                    |
 
 
 # Contributing
