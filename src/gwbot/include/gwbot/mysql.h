@@ -14,6 +14,7 @@
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wdocumentation-unknown-command"
 #endif
+
 #include <mysql.h>
 
 #if defined(__clang__)
