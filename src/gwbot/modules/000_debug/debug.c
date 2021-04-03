@@ -36,8 +36,7 @@ int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread,
 	struct gwbot_cfg *cfg = thread->state->cfg;
 	const char *text, *json_pretty, *json_str = thread->uni_pkt.pkt.data;
 
-
-	text = get_text(evt);
+	text = tge_get_text(evt);
 	if (text == NULL)
 		return 0;
 
@@ -63,8 +62,8 @@ int GWMOD_ENTRY_DEFINE(000_debug, const struct gwbot_thread *thread,
 
 	thandle = tg_api_hcreate(cfg->cred.token);
 	tg_api_send_msg(thandle, &(const struct tga_send_msg){
-		.chat_id		= get_chat_id(evt),
-		.reply_to_msg_id	= get_msg_id(evt),
+		.chat_id		= tge_get_chat_id(evt),
+		.reply_to_msg_id	= tge_get_msg_id(evt),
 		.text			= reply_text,
 		.parse_mode		= PARSE_MODE_HTML
 	});

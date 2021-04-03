@@ -496,7 +496,7 @@ int tg_event_load_str(const char *json_str, struct tgev *evt);
 void tg_event_destroy(struct tgev *evt);
 
 
-static inline int64_t get_chat_id(struct tgev *evt)
+static inline int64_t tge_get_chat_id(struct tgev *evt)
 {
 	switch (evt->type) {
 	case TGEV_UNKNOWN:
@@ -514,7 +514,7 @@ static inline int64_t get_chat_id(struct tgev *evt)
 }
 
 
-static inline const char *get_text(struct tgev *evt)
+static inline const char *tge_get_text(struct tgev *evt)
 {
 	switch (evt->type) {
 	case TGEV_UNKNOWN:
@@ -533,7 +533,7 @@ static inline const char *get_text(struct tgev *evt)
 }
 
 
-static inline uint64_t get_msg_id(struct tgev *evt)
+static inline uint64_t tge_get_msg_id(struct tgev *evt)
 {
 	switch (evt->type) {
 	case TGEV_UNKNOWN:
