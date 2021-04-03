@@ -954,8 +954,7 @@ static void destroy_state(struct gwbot_state *state)
 	free(state->epl_map_chan);
 	free(state->threads);
 	free(state->chans);
-
-	//mysql_thread_end();
+	mysql_thread_end();
 }
 
 
@@ -964,8 +963,13 @@ int gwbot_run(struct gwbot_cfg *cfg)
 	int ret;
 	struct gwbot_state state;
 
-	mysql_thread_init();
 	memset(&state, 0, sizeof(state));
+
+	/*
+	 * `mysql_thread_init()` should be called before
+	 * setting interrupt handler.
+	 */
+	mysql_thread_init();
 
 	state.cfg = cfg;
 	g_state = &state;

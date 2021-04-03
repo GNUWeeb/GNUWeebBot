@@ -18,34 +18,6 @@
 #include "header.h"
 
 
-static int64_t get_chat_id(struct tgev *evt)
-{
-	if (evt->type == TGEV_TEXT)
-		return evt->msg_text.chat.id;
-	if (evt->type == TGEV_PHOTO)
-		return evt->msg_photo.chat.id;
-	return -1;
-}
-
-
-static const char *get_text(struct tgev *evt)
-{
-	if (evt->type == TGEV_TEXT)
-		return evt->msg_text.text;
-	if (evt->type == TGEV_PHOTO)
-		return evt->msg_photo.caption;
-	return NULL;
-}
-
-
-static uint64_t get_msg_id(struct tgev *evt)
-{
-	if (evt->type == TGEV_TEXT)
-		return evt->msg_text.msg_id;
-	if (evt->type == TGEV_PHOTO)
-		return evt->msg_photo.msg_id;
-	return 0;
-}
 
 
 

@@ -496,4 +496,60 @@ int tg_event_load_str(const char *json_str, struct tgev *evt);
 void tg_event_destroy(struct tgev *evt);
 
 
+static inline int64_t get_chat_id(struct tgev *evt)
+{
+	switch (evt->type) {
+	case TGEV_UNKNOWN:
+		break;
+	case TGEV_TEXT:
+		return evt->msg_text.chat.id;
+	case TGEV_PHOTO:
+		return evt->msg_photo.chat.id;
+	case TGEV_STICKER:
+		return evt->msg_sticker.chat.id;
+	case TGEV_GIF:
+		return evt->msg_gif.chat.id;
+	}
+	return -1;
+}
+
+
+static inline const char *get_text(struct tgev *evt)
+{
+	switch (evt->type) {
+	case TGEV_UNKNOWN:
+		break;
+	case TGEV_TEXT:
+		return evt->msg_text.text;
+	case TGEV_PHOTO:
+		return evt->msg_photo.caption;
+	case TGEV_STICKER:
+		/* No text */
+		break;
+	case TGEV_GIF:
+		return evt->msg_gif.caption;
+	}
+	return NULL;
+}
+
+
+static inline uint64_t get_msg_id(struct tgev *evt)
+{
+	switch (evt->type) {
+	case TGEV_UNKNOWN:
+		break;
+	case TGEV_TEXT:
+		return evt->msg_text.msg_id;
+	case TGEV_PHOTO:
+		return evt->msg_photo.msg_id;
+	case TGEV_STICKER:
+		return evt->msg_sticker.msg_id;
+	case TGEV_GIF:
+		return evt->msg_gif.msg_id;
+	}
+	return 0;
+}
+
+
+
 #endif /* #ifndef GWBOT__LIB__TG_EVENT_H */

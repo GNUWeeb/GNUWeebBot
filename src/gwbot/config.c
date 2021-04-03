@@ -47,7 +47,7 @@ static int parser_handler(void *user, const char *section, const char *name,
 	} else
 	rmatch_s("mysql") {
 		rmatch_n("use_db") {
-			cfg->use_db = (bool)atoi(value);
+			cfg->use_db = atoi(value) ? true : false;
 		} else
 		rmatch_n("host") {
 			cfg->mysql.host = ar_strndup(value, 255);
