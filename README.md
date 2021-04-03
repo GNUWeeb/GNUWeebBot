@@ -3,8 +3,8 @@ GNUWeeb Telegram Bot
 
 
 # Features
-[] Group Management
-[] Event Logger
+[ ] Group Management
+[ ] Event Logger
 
 
 # Requirements
@@ -59,7 +59,7 @@ We are usually online on Telegram, see: https://t.me/GNUWeeb
 # Third Party Libraries
 
  No. | Link                                    | Name                  | License                 |
----------------------------------------------------------------------------------------------------
+-----|-----------------------------------------|-----------------------|---------------------------
  1.  | https://github.com/benhoyt/inih         | inih 53               | New BSD license
  2.  | https://github.com/openssl/openssl      | OpenSSL 1.1.1         | Apache-2.0
  3.  | https://github.com/axboe/liburing       | liburing-2.0          | LGPL + MIT
