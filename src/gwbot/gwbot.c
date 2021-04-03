@@ -9,7 +9,6 @@
 
 #include <time.h>
 #include <errno.h>
-#include <mysql.h>
 #include <assert.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -20,6 +19,7 @@
 #include <sys/epoll.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
+#include <gwbot/mysql.h>
 #include <gwbot/common.h>
 #include <gwbot/gwchan.h>
 #include <gwbot/lib/sqe.h>

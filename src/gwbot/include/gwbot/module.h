@@ -7,8 +7,8 @@
  *  Copyright (C) 2021  Ammar Faizi
  */
 
-#ifndef GWBOT__MODULE_H_H
-#define GWBOT__MODULE_H_H
+#ifndef GWBOT__MODULE_H
+#define GWBOT__MODULE_H
 
 #include <gwbot/event_handler.h>
 
@@ -31,4 +31,4 @@ struct module_table {
 
 #define GWMOD_REG_END {NULL, 0}
 
-#endif /* #ifndef GWBOT__MODULE_H_H */
+#endif /* #ifndef GWBOT__MODULE_H */
