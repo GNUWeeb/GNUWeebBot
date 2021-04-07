@@ -9,19 +9,42 @@
 
 #include <gwbot/gwbot.h>
 #include <gwbot/gwchan.h>
-#include <gwbot/lib/sqe.h>
+#include <gwbot/lib/que.h>
 #include <gwbot/gwthread.h>
 #include <gwbot/lib/string.h>
-#include <gwbot/event_handler.h>
+#include <gwbot/event_logger.h>
 
-void *gw_event_logger(struct gwbot_state *state)
+
+static __always_inline void *internal_gw_event_logger(struct gwbot_state *state)
 {
-	gw_mutex_lock(&state->cqe_lock);
+	atomic_fetch_add_explicit(&state->online_thread, 1,
+				  memory_order_acquire);
 
-	while (sqe_count(&state->cqes) == 0) {
-		gw_cond_wait(&state->cqe_cond, &state->cqe_lock);
-	}
+	/*
+	 * Tell the main thread that we have been spawned.
+	 */
+	gw_mutex_lock(&state->log_lock);
+	gw_cond_signal(&state->log_cond);
+	gw_mutex_unlock(&state->log_lock);
 
-	gw_mutex_unlock(&state->cqe_lock);
+
+again:
+	gw_mutex_lock(&state->log_lock);
+	gw_cond_timedwait_rel(&state->log_cond, &state->log_lock, 1);
+	gw_mutex_unlock(&state->log_lock);
+
+	if (!state->stop_el)
+		goto again;
+
+	prl_notice(0, "Logger thread is shutting down...");
+	atomic_fetch_sub_explicit(&state->online_thread, 1,
+				  memory_order_acquire);
 	return NULL;
+}
+
+
+void *gw_event_logger(void *state_p)
+{
+	struct gwbot_state *state = state_p;
+	return internal_gw_event_logger(state);
 }

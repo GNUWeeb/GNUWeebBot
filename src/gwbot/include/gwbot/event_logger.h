@@ -7,17 +7,9 @@
  *  Copyright (C) 2021  Ammar Faizi
  */
 
-#ifndef GWBOT__EVENT_HANDLER_H
-#define GWBOT__EVENT_HANDLER_H
+#ifndef GWBOT__EVENT_LOGGER_H
+#define GWBOT__EVENT_LOGGER_H
 
-#include <unistd.h>
-#include <gwbot/base.h>
-#include <json-c/json.h>
-#include <gwbot/gwbot.h>
-#include <gwbot/lib/tg_event.h>
-#include <gwbot/event_handler.h>
-#include <gwbot/lib/tg_api/send_message.h>
+void *gw_event_logger(void *state_p);
 
-void *gw_event_logger(struct gwbot_state *state);
-
-#endif /* #ifndef GWBOT__EVENT_HANDLER_H */
+#endif /* #ifndef GWBOT__EVENT_LOGGER_H */

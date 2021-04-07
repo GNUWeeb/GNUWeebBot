@@ -13,7 +13,9 @@
 
 #include <gwbot/module.h>
 
+GWMOD_NAME_DECLARE(000_debug);
+GWMOD_STARTUP_DECLARE(000_debug);
+GWMOD_SHUTDOWN_DECLARE(000_debug);
 GWMOD_ENTRY_DECLARE(000_debug);
-
 
 #endif /* #ifndef GWBOT__MODULES__000_DEBUG__HEADER_H */

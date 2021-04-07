@@ -19,6 +19,7 @@ OBJ_TMP_CC	:= \
 	$(BASE_DIR)/src/gwbot/argv.o \
 	$(BASE_DIR)/src/gwbot/config.o \
 	$(BASE_DIR)/src/gwbot/event_handler.o \
+	$(BASE_DIR)/src/gwbot/event_logger.o \
 	$(BASE_DIR)/src/gwbot/help.o \
 	$(BASE_DIR)/src/gwbot/gwbot.o \
 	$(BASE_DIR)/src/gwbot/print.o \
