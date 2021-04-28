@@ -3,9 +3,9 @@
 
 $json = <<<'JSON'
 {
-  "update_id":733656170,
+  "update_id":733656182,
   "message":{
-    "message_id":3366,
+    "message_id":12175,
     "from":{
       "id":243692601,
       "is_bot":false,
@@ -15,12 +15,11 @@ $json = <<<'JSON'
       "language_code":"en"
     },
     "chat":{
-      "id":-508064181,
-      "title":"massive",
-      "type":"group",
-      "all_members_are_administrators":true
+      "id":-1001226735471,
+      "title":"Private Cloud",
+      "type":"supergroup"
     },
-    "date":1617809408,
+    "date":1617871583,
     "text":"/debug",
     "entities":[
       {
@@ -46,19 +45,25 @@ function main(): int
 		return 1;
 
 	$payload     = pack("n", strlen($json)).$json;
-	$write_len   = socket_write($sock, $payload);
+	$write_len   = socket_write($sock, substr($payload, 0, 30));
+  sleep(2);
+  $write_len   = socket_write($sock, substr($payload, 30, 30));
+  sleep(2);
+  $write_len   = socket_write($sock, substr($payload, 60, 30));
+  sleep(2);
+  $write_len   = socket_write($sock, substr($payload, 90));
 	$correct_len = strlen($payload);
 
-	if ($write_len != $correct_len) {
-		printf("socket_write failed: write_len = %d; correct_len = %d\n",
-		       $write_len, $correct_len);
-		$ret = 1;
-	}
+	// if ($write_len != $correct_len) {
+	// 	printf("socket_write failed: write_len = %d; correct_len = %d\n",
+	// 	       $write_len, $correct_len);
+	// 	$ret = 1;
+	// }
 	socket_close($sock);
 	return $ret;
 }
 
-for ($i=0; $i < 100; $i++) { 
+for ($i=0; $i < 5; $i++) { 
     main();
 }
 

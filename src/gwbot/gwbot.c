@@ -662,8 +662,8 @@ again:
 		/*
 		 * We don't have event to be processed here.
 		 */
-		ret = gw_cond_timedwait_rel(&thread->ev_cond, &thread->ev_lock,
-					    1);
+		ret = gw_cond_timedwait_rel(&thread->ev_cond,
+					    &thread->ev_lock, 1);
 		if ((ret && counter++ == 300) || state->stop_el)
 			goto out;
 	}
@@ -718,7 +718,7 @@ static int spawn_thread(struct gwbot_thread *thread)
 	int ret;
 	ret = pthread_create(&thread->thread, NULL, handle_thread, thread);
 	if (unlikely(ret)) {
-		ret = ret > 0 ? ret : -ret;
+		ret = (ret > 0) ? ret : -ret;
 		pr_err("pthread_create(): " PRERF, PREAR(ret));
 		return -ret;
 	}
@@ -1002,7 +1002,7 @@ static int monitor_client_time(struct gwbot_state *state)
 			continue;
 
 		diff = now - chan->accepted_at;
-		if (diff > 5) {
+		if (diff > 10) {
 			shutdown(chan->chan_fd, SHUT_RDWR);
 			prl_notice(0, "Client " PRWIU
 				   " has reached its timeout", W_IU(chan));
@@ -1095,9 +1095,6 @@ static int run_event_loop(struct gwbot_state *state)
 
 		if (tss_count(&state->chan_stk) != state->chan_stk.capacity)
 			monitor_client_time(state);
-
-
-		/* TODO: Thread timeout monitoring */
 
 		epoll_ret = epoll_wait(epl_fd, events, maxevents, timeout);
 		if (unlikely(epoll_ret == 0)) {

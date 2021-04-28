@@ -191,6 +191,10 @@ ifeq ($(SANITIZE),1)
 	LIB_LDFLAGS += -lubsan
 endif
 
+ifeq ($(LTO),1)
+	CCXXFLAGS	:= $(CCXXFLAGS) -flto
+	LDFLAGS		:= $(LDFLAGS) -flto
+endif
 
 
 CCXXFLAGS := \
