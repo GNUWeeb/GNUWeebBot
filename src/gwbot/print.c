@@ -17,7 +17,8 @@
 #if defined(__linux__)
 
 #  include <pthread.h>
-static pthread_mutex_t get_time_mt  = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t get_time_mt = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t pr_print    = PTHREAD_MUTEX_INITIALIZER;
 #else
 #  define pthread_mutex_lock
 #  define pthread_mutex_unlock
@@ -71,7 +72,7 @@ static __always_inline char *get_time(char *buf)
 	 * These `time` functions are not thread-safe, hence
 	 * we need mutex.
 	 */
-	pthread_mutex_busy_lock(&get_time_mt, 10000);
+	pthread_mutex_busy_lock(&get_time_mt, 5000);
 	time(&rawtime);
 	timeinfo = localtime(&rawtime);
 	time_chr = asctime(timeinfo);
@@ -92,9 +93,11 @@ __pr_notice(const char *fmt, ...)
 
 	va_start(vl, fmt);
 
+	pthread_mutex_busy_lock(&pr_print, 5000);
 	printf("[%s] ", get_time(buf));
 	vprintf(fmt, vl);
 	putchar('\n');
+	pthread_mutex_unlock(&pr_print);
 
 	va_end(vl);
 }
@@ -108,9 +111,11 @@ __pr_error(const char *fmt, ...)
 
 	va_start(vl, fmt);
 
+	pthread_mutex_busy_lock(&pr_print, 5000);
 	printf("[%s] Error: ", get_time(buf));
 	vprintf(fmt, vl);
 	putchar('\n');
+	pthread_mutex_unlock(&pr_print);
 
 	va_end(vl);
 }
@@ -124,9 +129,11 @@ __pr_emerg(const char *fmt, ...)
 
 	va_start(vl, fmt);
 
+	pthread_mutex_busy_lock(&pr_print, 5000);
 	printf("[%s] Emergency: ", get_time(buf));
 	vprintf(fmt, vl);
 	putchar('\n');
+	pthread_mutex_unlock(&pr_print);
 
 	va_end(vl);
 }

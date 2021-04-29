@@ -6,7 +6,7 @@
 #include <gwbot/lib/tg_api/send_message.h>
 
 
-int tg_api_send_msg(tg_api_handle *handle, const struct tga_send_msg *ctx)
+int tga_send_msg(tga_handle_t *handle, const tga_send_msg_t *ctx)
 {
 	size_t pos = 0;
 	size_t text_len;
@@ -43,9 +43,13 @@ int tg_api_send_msg(tg_api_handle *handle, const struct tga_send_msg *ctx)
 	pos += sizeof("&text=") - 1u;
 
 	text_len = strnlen(ctx->text, ((space - pos) / 3) - 1);
+
+	/*
+	 * TODO: Make urlencode less dangerous
+	 */
 	urlencode(buf + pos, ctx->text, text_len, true);
 
-	tg_api_set_method(handle, "sendMessage");
-	tg_api_set_body(handle, buf);
+	tga_set_body(handle, buf);
+	tga_set_method(handle, "sendMessage");
 	return tg_api_post(handle);
 }

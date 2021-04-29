@@ -7,10 +7,10 @@
 #
 
 
-DEP_DIRS	+= $(BASE_DEP_DIR)/tests/003_sqe
-TEST_TVAR	:= $(BASE_DIR)/tests/003_sqe/003_sqe
+DEP_DIRS	+= $(BASE_DEP_DIR)/tests/003_que
+TEST_TVAR	:= $(BASE_DIR)/tests/003_que/003_que
 TEST_EXEC	+= $(TEST_TVAR)__exec
-TEST_TVAR_OBJ	:= $(BASE_DIR)/tests/003_sqe/003_sqe.o
+TEST_TVAR_OBJ	:= $(BASE_DIR)/tests/003_que/003_que.o
 TEST_OBJ	+= $(TEST_TVAR_OBJ)
 
 

@@ -14,7 +14,7 @@
 #include <pthread.h>
 #include <gwbot/base.h>
 
-
+#if QWE
 struct chan_pkt {
 	uint16_t		len;
 	char			data[0x4000];
@@ -34,6 +34,6 @@ struct gwchan {
 	char			src_ip[IPV4_L];
 	struct_pad(0, 4);
 };
-
+#endif
 
 #endif /* #ifndef GWBOT__GWCHAN_H */

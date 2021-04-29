@@ -19,9 +19,7 @@ int nnstrcmp(const char *s1, const char *s2);
 extern const test_entry_t entry[];
 const test_entry_t entry[] = {
 	FN_TEATEST(006_tg_event_photo, 001_simple),
-
 	FN_TEATEST(006_tg_event_sticker, 001_simple),
-
 	FN_TEATEST(006_tg_event_text, 001_simple),
 	FN_TEATEST(006_tg_event_text, 003_private),
 	FN_TEATEST(006_tg_event_gif, 001_simple),

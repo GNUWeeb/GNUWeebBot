@@ -28,12 +28,24 @@ struct gwbot_wrk_cfg {
 };
 
 
+struct gwbot_mysql_cfg {
+	char			*host;
+	char			*user;
+	char			*pass;
+	char			*db;
+	uint16_t		port;
+	char			*unix_sock;
+	unsigned int		flags;
+};
+
+
 struct gwbot_cfg {
 	char			*cfg_file;
 	struct gwbot_cred_cfg	cred;
 	struct gwbot_sock_cfg	sock;
 	struct gwbot_wrk_cfg    worker;
-	struct_pad(0, 6);
+	struct gwbot_mysql_cfg	mysql;
+	bool			use_db;
 };
 
 

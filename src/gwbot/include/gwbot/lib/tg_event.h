@@ -231,8 +231,8 @@ static __always_inline int parse_tgevi_media(json_object *jmdia,
 	imdia->file_id = json_object_get_string(res);
 
 
-	if (unlikely(!json_object_object_get_ex(jmdia, 
-				"file_unique_id", &res))) {
+	if (unlikely(!json_object_object_get_ex(jmdia, "file_unique_id",
+						&res))) {
 		pr_err("Cannot find \"file_unique_id\" key in \"media\"");
 		return -EINVAL;
 	}
@@ -336,8 +336,11 @@ static __always_inline int parse_tgevi_from(json_object *jfrom,
 		/* `lang` is not mandatory */
 		from->lang[0] = '\0';
 	} else {
-		sane_strncpy(from->lang, json_object_get_string(res),
-			     sizeof(from->lang));
+		const char *lang = json_object_get_string(res);
+		if (lang)
+			sane_strncpy(from->lang, lang, sizeof(from->lang));
+		else
+			from->lang[0] = '\0';
 	}
 
 
@@ -367,10 +370,15 @@ static __always_inline int parse_tgevi_chat(json_object *jchat,
 	chat->id = json_object_get_int64(res);
 
 	if (unlikely(!json_object_object_get_ex(jchat, "type", &res))) {
+	out_missing_chat_type:
 		pr_err("Cannot find \"type\" on key \"chat\"");
 		return -EINVAL;
 	}
+
 	type = json_object_get_string(res);
+	if (unlikely(!type))
+		goto out_missing_chat_type;
+
 	switch (type[0]) {
 	case 's':
 		chat->type = TGEV_CHAT_SUPERGROUP;
@@ -486,6 +494,62 @@ int parse_message(json_object *json_obj, struct tgev *evt);
 int tg_event_load_str_len(const char *json_str, size_t length, struct tgev *evt);
 int tg_event_load_str(const char *json_str, struct tgev *evt);
 void tg_event_destroy(struct tgev *evt);
+
+
+static inline int64_t tge_get_chat_id(struct tgev *evt)
+{
+	switch (evt->type) {
+	case TGEV_UNKNOWN:
+		break;
+	case TGEV_TEXT:
+		return evt->msg_text.chat.id;
+	case TGEV_PHOTO:
+		return evt->msg_photo.chat.id;
+	case TGEV_STICKER:
+		return evt->msg_sticker.chat.id;
+	case TGEV_GIF:
+		return evt->msg_gif.chat.id;
+	}
+	return -1;
+}
+
+
+static inline const char *tge_get_text(struct tgev *evt)
+{
+	switch (evt->type) {
+	case TGEV_UNKNOWN:
+		break;
+	case TGEV_TEXT:
+		return evt->msg_text.text;
+	case TGEV_PHOTO:
+		return evt->msg_photo.caption;
+	case TGEV_STICKER:
+		/* No text */
+		break;
+	case TGEV_GIF:
+		return evt->msg_gif.caption;
+	}
+	return NULL;
+}
+
+
+static inline uint64_t tge_get_msg_id(struct tgev *evt)
+{
+	switch (evt->type) {
+	case TGEV_UNKNOWN:
+		break;
+	case TGEV_TEXT:
+		return evt->msg_text.msg_id;
+	case TGEV_PHOTO:
+		return evt->msg_photo.msg_id;
+	case TGEV_STICKER:
+		return evt->msg_sticker.msg_id;
+	case TGEV_GIF:
+		return evt->msg_gif.msg_id;
+	}
+	return 0;
+}
+
 
 
 #endif /* #ifndef GWBOT__LIB__TG_EVENT_H */

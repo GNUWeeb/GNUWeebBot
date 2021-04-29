@@ -35,6 +35,10 @@
 #  define offsetof(TYPE, ELEMENT) ((size_t)&(((TYPE *)0)->ELEMENT))
 #endif
 
+#ifndef member_size
+#  define member_size(type, member) sizeof(((type *)0)->member)
+#endif
+
 #ifndef INET_ADDRSTRLEN
 #  define IPV4_L (sizeof("xxx.xxx.xxx.xxx"))
 #else

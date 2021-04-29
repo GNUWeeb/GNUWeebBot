@@ -12,7 +12,7 @@ VERSION	= 0
 PATCHLEVEL = 1
 SUBLEVEL = 0
 EXTRAVERSION =
-NAME = Blue Tea
+NAME = Useless Servant
 PACKAGE_NAME = gwbot-$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 
 CC 	:= cc
@@ -126,7 +126,6 @@ VGFLAGS		:= \
 	--track-origins=yes \
 	--track-fds=yes \
 	--error-exitcode=99 \
-	--exit-on-first-error=yes \
 	-s
 
 
@@ -192,6 +191,10 @@ ifeq ($(SANITIZE),1)
 	LIB_LDFLAGS += -lubsan
 endif
 
+ifeq ($(LTO),1)
+	CCXXFLAGS	:= $(CCXXFLAGS) -flto
+	LDFLAGS		:= $(LDFLAGS) -flto
+endif
 
 
 CCXXFLAGS := \
