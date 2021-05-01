@@ -11,7 +11,7 @@ static __always_inline int tg_event_json_parse(const char *json_str,
 			       		       json_object **json_obj_p)
 {
 	int ret = 0;
-	json_object *json_obj;
+	json_object *json_obj = NULL;
 	struct json_tokener *tok;
 	enum json_tokener_error jerr;
 
@@ -59,7 +59,6 @@ int parse_message(json_object *json_obj, struct tgev *evt)
 		pr_err("Cannot find key \"message\" from JSON");
 		return -EINVAL;
 	}
-	evt->json = json_obj;
 
 	ret = parse_event_text(jmsg, evt);
 	if (ret == 0 || ret != -ECANCELED)
@@ -86,18 +85,16 @@ static int internal_tg_event_load_str(const char *json_str, size_t length,
 				      struct tgev *evt)
 {
 	int ret;
-	json_object *json_obj = NULL;
 
-	evt->json = NULL;
-	ret = tg_event_json_parse(json_str, length, &json_obj);
+	ret = tg_event_json_parse(json_str, length, &evt->json);
 	if (unlikely(ret) < 0)
 		return ret;
 
-	ret = parse_update_id(json_obj, evt);
+	ret = parse_update_id(evt->json, evt);
 	if (unlikely(ret != 0)) 
 		goto out_err;
 
-	ret = parse_message(json_obj, evt);
+	ret = parse_message(evt->json, evt);
 	if (unlikely(ret != 0)) 
 		goto out_err;
 

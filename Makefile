@@ -15,8 +15,8 @@ EXTRAVERSION =
 NAME = Useless Servant
 PACKAGE_NAME = gwbot-$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
 
-CC 	:= cc
-CXX	:= c++
+CC 	:= clang
+CXX	:= clang++
 LD	:= $(CXX)
 VG	:= valgrind
 
