@@ -4,7 +4,7 @@ static TEATEST(006_tg_event_text, 003_private)
 {
 	TQ_START;
 	int ret = 0;
-	struct tgev evt, *reply_to;
+	struct tgev evt, *reply_to = NULL;
 	char *json_str = NULL;
 	struct tgevi_entity *entity = NULL;
 	struct tgev_text *msg_text = NULL;

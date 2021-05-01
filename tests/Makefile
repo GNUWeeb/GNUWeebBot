@@ -45,9 +45,9 @@ $(FWTEST_SO): $(FWTEST_OBJ) $(OBJ_CC) $(OBJ_PRE_CC_WITHOUT_MAIN) $(SHARED_LIB)
 ##################################################################
 
 
-# include $(BASE_DIR)/tests/001_string/Makefile
-# include $(BASE_DIR)/tests/002_tstack/Makefile
-# include $(BASE_DIR)/tests/003_que/Makefile
+include $(BASE_DIR)/tests/001_string/Makefile
+include $(BASE_DIR)/tests/002_tstack/Makefile
+include $(BASE_DIR)/tests/003_que/Makefile
 include $(BASE_DIR)/tests/006_tg_event/Makefile
 
 
