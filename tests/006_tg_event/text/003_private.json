@@ -33,7 +33,7 @@
                 "type": "private"
             },
             "date": 1616779165,
-            "text": "/debug",
+            "text": "/debug replied string message",
             "entities": [
                 {
                     "offset": 0,

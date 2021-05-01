@@ -470,7 +470,8 @@ struct tgev {
 
 	uint64_t	update_id;
 	tgev_type_t	type;
-	struct_pad(0, 4);
+	bool		is_replied_node;
+	struct_pad(0, 3);
 	union {
 		struct tgev_gif		msg_gif;
 		struct tgev_text	msg_text;
@@ -478,6 +479,30 @@ struct tgev {
 		struct tgev_sticker	msg_sticker;
 	};
 };
+
+
+int parse_message(json_object *json_obj, struct tgev *evt);
+int tg_event_load_str_len(const char *json_str, size_t length, struct tgev *evt);
+int tg_event_load_str(const char *json_str, struct tgev *evt);
+void tg_event_destroy(struct tgev *evt);
+int parse_message_json_obj(json_object *jmsg, struct tgev *evt);
+
+#define TGEV_JSON_REPLY_TO ((void *)1)
+
+static inline struct tgev *parse_replied_msg(json_object *jmsg)
+{
+	struct tgev *reply_to = malloc(sizeof(*reply_to));
+	memset(reply_to, '\0', sizeof(*reply_to));
+
+	if (unlikely(parse_message_json_obj(jmsg, reply_to) != 0)) {
+		free(reply_to);
+		return NULL;
+	}
+	reply_to->is_replied_node = true;
+	reply_to->json = TGEV_JSON_REPLY_TO;
+
+	return reply_to;
+}
 
 
 #define INCLUDE_SUB_TG_EVENT
@@ -490,10 +515,7 @@ struct tgev {
 #undef INCLUDE_SUB_TG_EVENT
 
 
-int parse_message(json_object *json_obj, struct tgev *evt);
-int tg_event_load_str_len(const char *json_str, size_t length, struct tgev *evt);
-int tg_event_load_str(const char *json_str, struct tgev *evt);
-void tg_event_destroy(struct tgev *evt);
+
 
 
 static inline int64_t tge_get_chat_id(struct tgev *evt)

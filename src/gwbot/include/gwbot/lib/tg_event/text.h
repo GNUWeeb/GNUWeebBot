@@ -37,6 +37,7 @@ struct tgev_text {
 
 #ifdef SUB_TG_EVENT_CIRCULAR_INLINE
 
+
 static __always_inline int parse_event_text(json_object *jmsg, struct tgev *evt)
 {
 	int ret;
@@ -160,11 +161,10 @@ static __always_inline int parse_event_text(json_object *jmsg, struct tgev *evt)
 
 
 parse_reply_to:
-	if (!json_object_object_get_ex(jmsg, "reply_to_message_id", &res)) {
-		/* `reply_to` is not mandatory */
-		etext->reply_to = NULL;
+	if (json_object_object_get_ex(jmsg, "reply_to_message", &res) && res) {
+		etext->reply_to = parse_replied_msg(res);
 	} else {
-		/* TODO: Parse reply to */
+		/* `reply_to` is not mandatory */
 		etext->reply_to = NULL;
 	}
 

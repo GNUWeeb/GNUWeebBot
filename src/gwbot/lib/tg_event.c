@@ -49,16 +49,9 @@ static int parse_update_id(json_object *json_obj, struct tgev *evt)
 	return 0;
 }
 
-
-int parse_message(json_object *json_obj, struct tgev *evt)
+int parse_message_json_obj(json_object *jmsg, struct tgev *evt)
 {
 	int ret;
-	json_object *jmsg = NULL;
-
-	if (unlikely(!json_object_object_get_ex(json_obj, "message", &jmsg))) {
-		pr_err("Cannot find key \"message\" from JSON");
-		return -EINVAL;
-	}
 
 	ret = parse_event_text(jmsg, evt);
 	if (ret == 0 || ret != -ECANCELED)
@@ -76,7 +69,27 @@ int parse_message(json_object *json_obj, struct tgev *evt)
 	if (ret == 0 || ret != -ECANCELED)
 		return ret;
 
-	pr_err("Unknown event from JSON");
+	evt->type = TGEV_UNKNOWN;
+	return ret;
+}
+
+
+int parse_message(json_object *json_obj, struct tgev *evt)
+{
+	int ret;
+	json_object *jmsg = NULL;
+
+	if (unlikely(!json_object_object_get_ex(json_obj, "message", &jmsg))) {
+		pr_err("Cannot find key \"message\" from JSON");
+		return -EINVAL;
+	}
+
+	evt->is_replied_node = false;
+
+	ret = parse_message_json_obj(jmsg, evt);
+	if (evt->type == TGEV_UNKNOWN)
+		pr_err("Unknown event from JSON");
+
 	return ret;
 }
 
@@ -155,10 +168,20 @@ int tg_event_load_str(const char *json_str, struct tgev *evt)
 }
 
 
+static void destroy_reply_to_msg(struct tgev *evt)
+{
+	tg_event_destroy(evt);
+	free(evt);	
+}
+
+
 static void tg_event_destroy_text(struct tgev_text *etext)
 {
 	if (unlikely(etext->entity_c > 0))
 		free(etext->entities);
+
+	if (etext->reply_to)
+		destroy_reply_to_msg(etext->reply_to);
 }
 
 static void tg_event_destroy_photo(struct tgev_photo *ephoto)
@@ -179,9 +202,6 @@ void tg_event_destroy(struct tgev *evt)
 {
 	int ret;
 
-	if (unlikely(evt->json == NULL))
-		return;
-
 	switch (evt->type) {
 	case TGEV_UNKNOWN:
 		break;
@@ -198,8 +218,15 @@ void tg_event_destroy(struct tgev *evt)
 		break;
 	}
 
+	if (evt->is_replied_node)
+		return;
+
+	if (unlikely(evt->json == NULL || evt->json == TGEV_JSON_REPLY_TO))
+		return;
+
 
 	ret = json_object_put(evt->json);
+	evt->json = NULL;
 	if (unlikely(ret != 1)) {
 		panic("Invalid tg_event_destroy, object has more than 1 "
 		      "reference (ret: %d)", ret);
