@@ -189,12 +189,25 @@ static void tg_event_destroy_photo(struct tgev_photo *ephoto)
 	free(ephoto->photo);
 	if (unlikely(ephoto->caption_entity_c > 0))
 		free(ephoto->caption_entities);
+
+	if (ephoto->reply_to)
+		destroy_reply_to_msg(ephoto->reply_to);
 }
 
 static void tg_event_destroy_gif(struct tgev_gif *egif)
 {
 	if (unlikely(egif->caption_entity_c > 0))
 		free(egif->caption_entities);
+
+	if (egif->reply_to)
+		destroy_reply_to_msg(egif->reply_to);
+}
+
+
+static void tg_event_destroy_sticker(struct tgev_sticker *esticker)
+{
+	if (esticker->reply_to)
+		destroy_reply_to_msg(esticker->reply_to);
 }
 
 
@@ -212,6 +225,7 @@ void tg_event_destroy(struct tgev *evt)
 		tg_event_destroy_photo(&evt->msg_photo);
 		break;
 	case TGEV_STICKER:
+		tg_event_destroy_sticker(&evt->msg_sticker);
 		break;
 	case TGEV_GIF:
 		tg_event_destroy_gif(&evt->msg_gif);
