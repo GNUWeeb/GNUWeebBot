@@ -515,6 +515,22 @@ static inline struct tgev *parse_replied_msg(json_object *jmsg)
 #undef INCLUDE_SUB_TG_EVENT
 
 
+static inline struct tgev *tge_get_reply_to(struct tgev *evt)
+{
+	switch (evt->type) {
+	case TGEV_UNKNOWN:
+		break;
+	case TGEV_TEXT:
+		return evt->msg_text.reply_to;
+	case TGEV_PHOTO:
+		return evt->msg_text.reply_to;
+	case TGEV_STICKER:
+		return evt->msg_text.reply_to;
+	case TGEV_GIF:
+		return evt->msg_text.reply_to;
+	}
+	return NULL;
+}
 
 
 

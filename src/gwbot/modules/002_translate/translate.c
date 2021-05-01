@@ -39,13 +39,24 @@ static int handle_translate_module(const char *payload, size_t payload_len,
 				   struct tgev *evt,
 				   const struct gwbot_thread *thread);
 
+static int do_translate(const struct gwbot_thread *thread, struct tgev *evt);
+
+
 
 int GWMOD_ENTRY_DEFINE(002_translate, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
-	size_t text_len, rcx, payload_len;
+	return do_translate(thread, evt);
+}
+
+
+static int do_translate(const struct gwbot_thread *thread, struct tgev *evt)
+{
+	size_t text_len, rcx, payload_len, rt_text_len;
 	char payload[TEXT_BUFFER_SIZE + 0x30u], c, *payload_ptr = payload;
 	const char *text = tge_get_text(evt), *back, *start_text;
+	struct tgev *reply_to = tge_get_reply_to(evt);
+	const char *rt_text = NULL;
 
 	if (text == NULL)
 		goto cancel;
@@ -68,9 +79,28 @@ int GWMOD_ENTRY_DEFINE(002_translate, const struct gwbot_thread *thread,
 	if (c != 'r' && c != 'l')
 		goto cancel;
 
+	if (reply_to)
+		rt_text = tge_get_text(reply_to);
+
 	c = *text++;
-	if (c != ' ')
+	if (c != ' ') {
+		if (c == '\0') {
+		auto_tr:
+			if (rt_text == NULL)
+				goto cancel;
+
+			memcpy(payload_ptr, "fr=auto&to=en&text=\0", 20);
+			payload_ptr += 19;
+		build_reply_to_text_payload:
+			rt_text_len = strnlen(rt_text, TEXT_BUFFER_SIZE / 3u);
+			if (rt_text_len > ((TEXT_BUFFER_SIZE / 3u) - 1u))
+				goto cancel;
+
+			memcpy(payload_ptr, rt_text, rt_text_len);
+			goto out_payload_calc;
+		}
 		goto cancel;
+	}
 
 
 	/*
@@ -79,6 +109,9 @@ int GWMOD_ENTRY_DEFINE(002_translate, const struct gwbot_thread *thread,
 	while (*text == ' ')
 		text++;
 
+
+	if (*text == '\0')
+		goto auto_tr;
 
 	/*
 	 * Take source language code (from)
@@ -132,8 +165,14 @@ int GWMOD_ENTRY_DEFINE(002_translate, const struct gwbot_thread *thread,
 
 
 	c = *text;
-	if (c != ' ')
+	if (c != ' ') {
+		if (c == '\0' && rt_text != NULL) {
+			memcpy(payload_ptr, "&text=\0\0", 8);
+			payload_ptr += 6;
+			goto build_reply_to_text_payload;
+		}
 		goto cancel;
+	}
 
 
 	/*
@@ -150,6 +189,8 @@ int GWMOD_ENTRY_DEFINE(002_translate, const struct gwbot_thread *thread,
 	payload_len = text_len - (size_t)(text - start_text);
 	urlencode(payload_ptr, text, payload_len, true);
 
+
+out_payload_calc:
 	payload_len = (size_t)(payload_ptr - payload);
 	while (*payload_ptr != '\0') {
 		payload_ptr++;
