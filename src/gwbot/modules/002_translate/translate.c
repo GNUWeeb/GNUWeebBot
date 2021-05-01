@@ -283,6 +283,8 @@ static int handle_translate_module(const char *payload, size_t payload_len,
 	if (json_object_object_get_ex(obj, "error", &res)) {
 		const char *err  = json_object_get_string(res);
 		reply_text = err ? err : "Error: unknown error!";
+	} else {
+		reply_text = "Error: unknown error!";
 	}
 
 
