@@ -277,8 +277,8 @@ static int handle_translate_module(const char *payload, size_t payload_len,
 
 
 	if (json_object_object_get_ex(obj, "result", &res)) {
-		const char *ret = json_object_get_string(res);
-		reply_text = ret ? ret : "Error: `result` is NULL";
+		const char *ret_s = json_object_get_string(res);
+		reply_text = ret_s ? ret_s : "Error: `result` is NULL";
 	} else
 	if (json_object_object_get_ex(obj, "error", &res)) {
 		const char *err  = json_object_get_string(res);
