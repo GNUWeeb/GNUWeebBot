@@ -18,6 +18,7 @@
 
 #include "header.h"
 
+#define CODE_BUFFER_SIZE (0x20ull)
 #define TEXT_BUFFER_SIZE (0x8000ull)
 #define CURL_BUFFER_SIZE (TEXT_BUFFER_SIZE + 0x1000ull) /* JSON is longer */
 
@@ -50,32 +51,49 @@ int GWMOD_ENTRY_DEFINE(002_translate, const struct gwbot_thread *thread,
 }
 
 
-static int do_translate(const struct gwbot_thread *thread, struct tgev *evt)
+static inline char my_tolower(char c)
 {
-	size_t text_len, rcx, payload_len, rt_text_len;
-	char payload[TEXT_BUFFER_SIZE + 0x30u], c, *payload_ptr = payload;
-	const char *text = tge_get_text(evt), *back, *start_text;
-	struct tgev *reply_to = tge_get_reply_to(evt);
+	return ('A' <= c && c <= 'Z') ? c + 32 : c;
+}
+
+
+static inline bool is_ws(char c)
+{
+	return (c == ' ') || (c == '\n') || (c == '\t') || (c == '\r');
+}
+
+
+static int parse_command(const char *text, char *payload, size_t *payload_len_p,
+			 struct tgev **evt_p)
+{
+	char c;
+	size_t rcx;
+	size_t text_len;
+	size_t rt_text_len;
+	size_t payload_len;
+	char *payload_ptr = payload;
+	const char *back;
 	const char *rt_text = NULL;
+	const char *start_text = text;
+	struct tgev *reply_to = tge_get_reply_to(*evt_p);
 
-	if (text == NULL)
+	text_len = strnlen(text, TEXT_BUFFER_SIZE / 4u);
+	if (text_len > ((TEXT_BUFFER_SIZE / 4u) - 1u))
+		/*
+		 * Message is too long (probably impossible to happen),
+		 * just for safety check.
+		 */
 		goto cancel;
-
-	text_len = strnlen(text, TEXT_BUFFER_SIZE / 3u);
-	if (text_len > ((TEXT_BUFFER_SIZE / 3u) - 1u))
-		goto cancel;
-
-	start_text = text;
 
 	c = *text;
 	if (c == '!' || c == '.' || c == '/' || c == '~')
 		text++;
 
-	c = *text++;
+	c = my_tolower(*text++);
 	if (c != 't')
 		goto cancel;
 
-	c = *text++;
+	c = my_tolower(*text++);
 	if (c != 'r' && c != 'l')
 		goto cancel;
 
@@ -83,45 +101,40 @@ static int do_translate(const struct gwbot_thread *thread, struct tgev *evt)
 		rt_text = tge_get_text(reply_to);
 
 	c = *text++;
-	if (c != ' ') {
-		if (c == '\0') {
-		auto_tr:
-			if (rt_text == NULL)
-				goto cancel;
+	if (!is_ws(c)) {
+		if (c == '\0')
+			/*
+			 * It is translate command with
+			 * no argument like: `tr`
+			 */
+			goto out_replied_0_arg;
 
-			memcpy(payload_ptr, "fr=auto&to=en&text=\0", 20);
-			payload_ptr += 19;
-		build_reply_to_text_payload:
-			rt_text_len = strnlen(rt_text, TEXT_BUFFER_SIZE / 3u);
-			if (rt_text_len > ((TEXT_BUFFER_SIZE / 3u) - 1u))
-				goto cancel;
-
-			memcpy(payload_ptr, rt_text, rt_text_len);
-			goto out_payload_calc;
-		}
 		goto cancel;
 	}
-
 
 	/*
 	 * Skip white space after command name.
 	 */
-	while (*text == ' ')
+	while (is_ws(*text))
 		text++;
-
 
 	if (*text == '\0')
-		goto auto_tr;
+		/*
+		 * It is translate command with
+		 * no argument like: `tr   ` (with trailing whitespace)
+		 */
+		goto out_replied_0_arg;
+
 
 	/*
-	 * Take source language code (from)
+	 * Take source language code (`from`)
 	 */
-	rcx = 0;
+	rcx  = 0;
 	back = text;
-	while (*text != ' ') {
-		text++;
+	while ((!is_ws(*text)) && (*text != '\0')) {
 		rcx++;
-		if (rcx >= 5)
+		text++;
+		if (rcx >= CODE_BUFFER_SIZE)
 			goto cancel;
 	}
 
@@ -131,75 +144,138 @@ static int do_translate(const struct gwbot_thread *thread, struct tgev *evt)
 	 * TODO: Make urlencode less dangerous
 	 */
 	urlencode(payload_ptr, back, rcx, true);
-	while (*payload_ptr != '\0')
-		payload_ptr++;
-
+	payload_ptr += strlen(payload_ptr);
 
 	/*
-	 * Skip white space after source language
+	 * Skip white space after source language.
 	 */
-	while (*text == ' ')
+	while (is_ws(*text))
 		text++;
 
 
-	/*
-	 * Take target language code (to)
-	 */
-	rcx = 0;
-	back = text;
-	while (*text != ' ') {
-		text++;
-		rcx++;
-		if (rcx >= 5)
-			goto cancel;
+	if (*text == '\0') {
+		/*
+		 * Potential reply to message translate.
+		 * Message: `tr {to}`
+		 *
+		 * With replied message.
+		 */
+
+		/*
+		 * Update `fr` to `to`.
+		 */
+		memcpy(payload, "to", 2);
+		goto out_replied_1_arg;
 	}
 
+
+	/*
+	 *
+	 * Take target language code (`to`)
+	 *
+	 */
+	rcx  = 0;
+	back = text;
+	while ((!is_ws(*text)) && (*text != '\0')) {
+		rcx++;
+		text++;
+		if (rcx >= CODE_BUFFER_SIZE)
+			goto cancel;
+	}
 	memcpy(payload_ptr, "&to=", 4);
 	payload_ptr += 4;
 	/*
 	 * TODO: Make urlencode less dangerous
 	 */
 	urlencode(payload_ptr, back, rcx, true);
-	while (*payload_ptr != '\0')
-		payload_ptr++;
-
-
-	c = *text;
-	if (c != ' ') {
-		if (c == '\0' && rt_text != NULL) {
-			memcpy(payload_ptr, "&text=\0\0", 8);
-			payload_ptr += 6;
-			goto build_reply_to_text_payload;
-		}
-		goto cancel;
-	}
-
+	payload_ptr += strlen(payload_ptr);
 
 	/*
-	 * Skip white space after target language
+	 * Skip white space after target language.
 	 */
-	while (*text == ' ')
+	while (is_ws(*text))
 		text++;
+
+	if (*text == '\0')
+		/*
+		 * It is translate command with 2 arguments:
+		 * `tr {from} {to}`
+		 *
+		 * It has potential to be translate replied message.
+		 */
+		goto out_replied_2_arg;
+
 
 	memcpy(payload_ptr, "&text=\0\0", 8);
 	payload_ptr += 6;
 	/*
 	 * TODO: Make urlencode less dangerous
 	 */
-	payload_len = text_len - (size_t)(text - start_text);
+	payload_len = text_len - (size_t)(uintptr_t)(text - start_text);
 	urlencode(payload_ptr, text, payload_len, true);
+	payload_ptr += strlen(payload_ptr);
+	payload_len  = (size_t)(uintptr_t)(payload_ptr - payload);
 
+	*payload_len_p = payload_len;
+	return 0;
 
-out_payload_calc:
-	payload_len = (size_t)(payload_ptr - payload);
-	while (*payload_ptr != '\0') {
-		payload_ptr++;
-		payload_len++;
-	}
+out_replied_0_arg:
+	memcpy(payload_ptr, "to=en\0\0\0", 8);
+	payload_ptr += 5;
+out_replied_1_arg:
+	memcpy(payload_ptr, "&fr=auto", 8);
+	payload_ptr += 8;
+out_replied_2_arg:
+	if (rt_text == NULL)
+		goto cancel;
 
-	return handle_translate_module(payload, payload_len, evt, thread);
+	rt_text_len = strnlen(rt_text, TEXT_BUFFER_SIZE / 4u);
+	if (rt_text_len > ((TEXT_BUFFER_SIZE / 4u) - 1u))
+		/*
+		 * Message is too long (probably impossible to happen),
+		 * just for safety.
+		 */
+		goto cancel;
+
+	memcpy(payload_ptr, "&text=\0\0", 8);
+	payload_ptr += 6;
+
+	/*
+	 * TODO: Make urlencode less dangerous
+	 */
+	urlencode(payload_ptr, rt_text, rt_text_len, true);
+
+	payload_len  = (size_t)(uintptr_t)(payload_ptr - payload);
+	payload_len += strlen(payload_ptr);
+
+	*payload_len_p = payload_len;
+	*evt_p = reply_to;
+	return 0;
 cancel:
 	return -ECANCELED;
+}
+
+
+static int do_translate(const struct gwbot_thread *thread, struct tgev *evt)
+{
+	int ret;
+	size_t payload_len;
+	char payload[TEXT_BUFFER_SIZE + (CODE_BUFFER_SIZE * 2)];
+	const char *text = tge_get_text(evt);
+
+	if (text == NULL) {
+		ret = -ECANCELED;
+		goto out;
+	}
+
+	ret = parse_command(text, payload, &payload_len, &evt);
+	if (ret)
+		goto out;
+
+	return handle_translate_module(payload, payload_len, evt, thread);
+
+out:
+	return ret;
 }
 
 
