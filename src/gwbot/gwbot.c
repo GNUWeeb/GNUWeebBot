@@ -1198,6 +1198,7 @@ static void destroy_state(struct gwbot_state *state)
 	uint16_t thread_c = state->cfg->worker.thread_c;
 	struct gwbot_thread *threads = state->threads;
 
+	state->stop_el = true;
 	wait_for_threads(state);
 	close_fds(state);
 

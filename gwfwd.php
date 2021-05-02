@@ -55,7 +55,7 @@ function main(): int
 {
 	global $json;
 
-  $ret  = 0;
+	$ret  = 0;
 	$sock = socket_create(AF_INET, SOCK_STREAM, 0);
 	$conn = socket_connect($sock, "127.0.0.1", 55555);
 
@@ -63,7 +63,7 @@ function main(): int
 		return 1;
 
 	$payload     = pack("n", strlen($json)).$json;
-  $write_len   = socket_write($sock, $payload);
+	$write_len   = socket_write($sock, $payload);
 	$correct_len = strlen($payload);
 
 	if ($write_len != $correct_len) {

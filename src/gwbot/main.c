@@ -28,10 +28,5 @@ int main(int argc, char *argv[])
 			return ret;
 	}
 
-	ret = gwbot_run(&cfg);
-	if (unlikely(ret != 0)) {
-		printf("\n%s --help for usage information\n\n", argv[0]);
-	}
-
-	return ret;
+	return gwbot_run(&cfg);
 }

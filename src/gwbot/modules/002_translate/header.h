@@ -7,8 +7,8 @@
  *  Copyright (C) 2021  Ammar Faizi
  */
 
-#ifndef GWBOT__MODULES__000_TRANSLATE__HEADER_H
-#define GWBOT__MODULES__000_TRANSLATE__HEADER_H
+#ifndef GWBOT__MODULES__002_TRANSLATE__HEADER_H
+#define GWBOT__MODULES__002_TRANSLATE__HEADER_H
 
 
 #include <gwbot/module.h>
@@ -18,4 +18,4 @@ GWMOD_STARTUP_DECLARE(002_translate);
 GWMOD_SHUTDOWN_DECLARE(002_translate);
 GWMOD_ENTRY_DECLARE(002_translate);
 
-#endif /* #ifndef GWBOT__MODULES__000_TRANSLATE__HEADER_H */
+#endif /* #ifndef GWBOT__MODULES__002_TRANSLATE__HEADER_H */

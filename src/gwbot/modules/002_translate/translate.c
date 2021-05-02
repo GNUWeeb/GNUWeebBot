@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-only
 /*
- *  src/gwbot/modules/002_translate/header.h
+ *  src/gwbot/modules/002_translate/translate.c
  *
  *  Trnslate module for GNUWeebBot
  *
@@ -9,8 +9,6 @@
 
 
 #include <stdio.h>
-#include <unistd.h>
-#include <pthread.h>
 #include <curl/curl.h>
 #include <json-c/json.h>
 #include <gwbot/module.h>
