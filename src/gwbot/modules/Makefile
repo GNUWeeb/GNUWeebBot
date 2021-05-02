@@ -9,4 +9,4 @@
 DEP_DIRS	+= $(BASE_DEP_DIR)/src/gwbot/modules
 
 include $(BASE_DIR)/src/gwbot/modules/000_debug/Makefile
-
+include $(BASE_DIR)/src/gwbot/modules/002_translate/Makefile

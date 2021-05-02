@@ -224,11 +224,10 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 	}
 	estk->date = (time_t)json_object_get_int64(res);
 
-	if (!json_object_object_get_ex(jstk, "reply_to_message", &res)) {
-		/* `reply_to` is not mandatory */
-		estk->reply_to = NULL;
+	if (json_object_object_get_ex(jstk, "reply_to_message", &res) && res) {
+		estk->reply_to = parse_replied_msg(res);
 	} else {
-		/* TODO: Parse reply to */
+		/* `reply_to` is not mandatory */
 		estk->reply_to = NULL;
 	}
 
