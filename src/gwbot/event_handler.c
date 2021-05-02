@@ -30,7 +30,7 @@ int gwbot_module_startup(struct gwbot_state *state)
 		ret = mod->startup(state);
 		if (unlikely(ret)) {
 			pr_err("Cannot starting up module: %s " PRERF,
-				mod->mod_name, PREAR(ret));
+				mod->mod_name, PREAR(-ret));
 			return ret;
 		}
 	}
@@ -61,7 +61,7 @@ int gwbot_module_shutdown(struct gwbot_state *state)
 		ret = mod->shutdown(state);
 		if (unlikely(ret)) {
 			pr_err("Cannot shutting down module: %s " PRERF,
-				mod->mod_name, PREAR(ret));
+				mod->mod_name, PREAR(-ret));
 		}
 	}
 
