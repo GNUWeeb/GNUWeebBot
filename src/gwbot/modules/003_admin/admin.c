@@ -74,10 +74,10 @@ static bool check_is_sudoer(uint64_t user_id)
 	 * TODO: Use binary search for large sudoers list.
 	 */
 	static const uint64_t sudoers[] = {
-		701123895ull,	// lappretard
-		1213668471ull,	// nrudesu
 		133862899ull,	// ryne4s,
 		243692601ull,	// ammarfaizi2
+		701123895ull,	// lappretard
+		1213668471ull,	// nrudesu
 		1472415329ull,	// mysticial
 	};
 
@@ -90,62 +90,96 @@ static bool check_is_sudoer(uint64_t user_id)
 }
 
 
+static bool process_json_msg(tga_handle_t *thandle, char *reply_text)
+{
+	bool ok = true;
+	const char *json_res = tge_get_res_body(thandle);
+	json_object *res;
+	json_object *json_obj;
+
+	json_obj = json_tokener_parse(json_res);
+	if (json_obj == NULL) {
+		ok = false;
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: Cannot parse JSON response from API");
+		goto out;
+	}
+
+	if (!json_object_object_get_ex(json_obj, "ok", &res) || !res) {
+		ok = false;
+		snprintf(reply_text, RTB_SIZE,
+			 "Cannot find \"ok\" key from JSON API");
+		goto out;
+	}
+
+
+	if (json_object_get_boolean(res))
+		/*
+		 * Successful!
+		 */
+		goto out;
+
+
+	ok = false;
+	if (!json_object_object_get_ex(json_obj, "description", &res)) {
+		memcpy(reply_text, "Error: Cannot parse JSON response from API",
+			43);
+	} else {
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: %s", json_object_get_string(res));
+	}
+
+out:
+	json_object_put(json_obj);
+	return ok;
+}
+
+
 static bool do_kick(const struct gwbot_thread *thread, char *reply_text,
 		    const tga_kick_cm_t *arg)
 {
 	int ret;
 	bool ok = true;
 	tga_handle_t thandle;
-	json_object *json_obj;
 
 	tga_screate(&thandle, thread->state->cfg->cred.token);
 	ret = tga_kick_chat_member(&thandle, arg);
 
 
 	if (ret) {
-		pr_err("tga_kick_chat_member() on exec_adm_cmd_ban(): " PRERF,
+		pr_err("tga_kick_chat_member() on do_kick(): " PRERF,
 		       PREAR(-ret));
 		snprintf(reply_text, RTB_SIZE,
 			 "Error: tga_kick_chat_member(): " PRERF, PREAR(-ret));
 		goto out;
 	} else {
-		const char *json_res = tge_get_res_body(&thandle);
-		json_object *res;
+		ok = process_json_msg(&thandle, reply_text);
+	}
 
-		json_obj = json_tokener_parse(json_res);
-		if (json_obj == NULL) {
-			ok = false;
-			snprintf(reply_text, RTB_SIZE,
-				 "Error: Cannot parse JSON response from API");
-			goto out;
-		}
-
-		if (!json_object_object_get_ex(json_obj, "ok", &res) || !res) {
-			ok = false;
-			snprintf(reply_text, RTB_SIZE,
-				 "Cannot find \"ok\" key from JSON API");
-			goto out;
-		}
+out:
+	tga_sdestroy(&thandle);
+	return ok;
+}
 
 
-		if (json_object_get_boolean(res))
-			/*
-			 *
-			 * Successful ban!
-			 *
-			 */
-			goto out;
+static bool do_unban(const struct gwbot_thread *thread, char *reply_text,
+		     const tga_unban_cm_t *arg)
+{
+	int ret;
+	bool ok = true;
+	tga_handle_t thandle;
 
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_unban_chat_member(&thandle, arg);
 
-		ok = false;
-		if (!json_object_object_get_ex(json_obj, "description", &res)) {
-			snprintf(reply_text, RTB_SIZE,
-				 "Error: Cannot parse JSON response from API");
-			goto out;
-		} else {
-			snprintf(reply_text, RTB_SIZE,
-				 "Error: %s", json_object_get_string(res));
-		}
+	if (ret) {
+		pr_err("tga_unban_chat_member() on do_unban(): " PRERF,
+		       PREAR(-ret));
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: tga_unban_chat_member(): " PRERF, PREAR(-ret));
+		goto out;
+	} else {
+		ok = process_json_msg(&thandle, reply_text);
 	}
 
 out:
@@ -156,7 +190,7 @@ out:
 
 static size_t gen_name_link(char *buf, size_t sps, const struct tgevi_from *fr)
 {
-	size_t ret, tmp;
+	size_t ret = 0, tmp;
 
 	if (sps < 32)
 		return 0;
@@ -165,7 +199,6 @@ static size_t gen_name_link(char *buf, size_t sps, const struct tgevi_from *fr)
 	 * Reserve space for </a> and null char.
 	 */
 	sps -= 5;
-	ret  = 5;
 
 	tmp = (size_t)snprintf(buf, sps,
 			       "<a href=\"tg://user?id=%" PRIu64 "\">", fr->id);
@@ -181,17 +214,15 @@ static size_t gen_name_link(char *buf, size_t sps, const struct tgevi_from *fr)
 
 	if (fr->last_name) {
 		buf[ret++] = ' ';
-		tmp = htmlspecialchars(buf + ret, sps, fr->first_name,
-				       strnlen(fr->first_name, 0xfful));
+		tmp = htmlspecialchars(buf + ret, sps, fr->last_name,
+				       strnlen(fr->last_name, 0xfful));
 		ret += tmp - 1;
 		sps += tmp;
 	}
 
-	/*
-	 * Don't change any counter here!
-	 */
-	memcpy(buf + ret, "</a>", 5);
 
+	memcpy(buf + ret, "</a>", 5);
+	ret += 4;
 	return ret;
 }
 
@@ -272,11 +303,68 @@ out:
 }
 
 
+static int kick_or_unban(const struct gwbot_thread *thread,
+			 struct tgev *evt, uint64_t target_uid,
+			 const char *reason, bool is_unban)
+{
+	bool tmp;
+	char reply_text[RTB_SIZE];
+	uint64_t reply_to_msg_id;
+	struct tgev *reply_to;
+
+	tmp = do_unban(thread, reply_text, &(const tga_unban_cm_t){
+		.chat_id = tge_get_chat_id(evt),
+		.user_id = target_uid,
+		.only_if_banned = is_unban
+	});
+
+	reply_to_msg_id = tge_get_msg_id(evt);
+
+	if (!tmp)
+		goto out;
+
+
+	reply_to = tge_get_reply_to(evt);
+	if (reply_to) {
+		size_t pos = 0, space = sizeof(reply_text);
+		const struct tgevi_from *fr = tge_get_from(reply_to);
+
+		pos = gen_name_link(reply_text, space, fr);
+		space -= pos;
+
+		if (is_unban) {
+			memcpy(reply_text + pos, " has been unbanned!", 20);
+			pos += 19;
+			space -= 19;
+		} else {
+			memcpy(reply_text + pos, " has been kicked!", 18);
+			pos += 17;
+			space -= 17;
+		}
+
+		if (reason)
+			snprintf(reply_text + pos, space, "\n<b>Reason:</b> %s",
+				 reason);
+	}
+
+out:
+	return send_reply(thread, evt, reply_text, reply_to_msg_id);
+}
+
+
 static int exec_adm_cmd_unban(const struct gwbot_thread *thread,
 			      struct tgev *evt, uint64_t target_uid,
 			      const char *reason)
 {
+	return kick_or_unban(thread, evt, target_uid, reason, true);
+}
 
+
+static int exec_adm_cmd_kick(const struct gwbot_thread *thread,
+			     struct tgev *evt, uint64_t target_uid,
+			     const char *reason)
+{
+	return kick_or_unban(thread, evt, target_uid, reason, false);
 }
 
 
@@ -395,6 +483,7 @@ run_module:
 		ret = exec_adm_cmd_unban(thread, evt, target_uid, reason);
 		break;
 	case ADM_CMD_KICK:
+		ret = exec_adm_cmd_kick(thread, evt, target_uid, reason);
 		break;
 	case ADM_CMD_WARN:
 		break;
