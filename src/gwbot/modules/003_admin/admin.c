@@ -366,7 +366,8 @@ static int exec_adm_cmd_kick(const struct gwbot_thread *thread,
 int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
-	char c;
+	size_t rcx;
+	char c, yx[8];
 	mod_cmd_t cmd = CMD_NOP;
 	int ret = -ECANCELED;
 	struct tgev *reply_to;
@@ -381,17 +382,27 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 		goto out;
 
 
+	rcx = 0;
+	while (tx[rcx]) {
+		c = tx[rcx];
+		yx[rcx] = ('A' <= c && c <= 'Z') ? c + 32 : c;
+		rcx++;
+
+		if (rcx >= sizeof(yx))
+			break;
+	}
+
 	c =
-	(!strncmp("ban",     tx, 3) && (tx += 3) && (cmd = ADM_CMD_BAN))     ||
-	(!strncmp("unban",   tx, 5) && (tx += 5) && (cmd = ADM_CMD_UNBAN))   ||
-	(!strncmp("kick",    tx, 4) && (tx += 4) && (cmd = ADM_CMD_KICK))    ||
-	(!strncmp("warn",    tx, 4) && (tx += 4) && (cmd = ADM_CMD_WARN))    ||
-	(!strncmp("mute",    tx, 4) && (tx += 4) && (cmd = ADM_CMD_MUTE))    ||
-	(!strncmp("tmute",   tx, 5) && (tx += 5) && (cmd = ADM_CMD_TMUTE))   ||
-	(!strncmp("unmute",  tx, 6) && (tx += 6) && (cmd = ADM_CMD_UNMUTE))  ||
-	(!strncmp("pin",     tx, 3) && (tx += 3) && (cmd = ADM_CMD_PIN))     ||
-	(!strncmp("report",  tx, 6) && (tx += 6) && (cmd = USR_CMD_REPORT))  ||
-	(!strncmp("delvote", tx, 7) && (tx += 7) && (cmd = USR_CMD_DELVOTE));
+	(!strncmp("ban",     yx, 3) && (tx += 3) && (cmd = ADM_CMD_BAN))     ||
+	(!strncmp("unban",   yx, 5) && (tx += 5) && (cmd = ADM_CMD_UNBAN))   ||
+	(!strncmp("kick",    yx, 4) && (tx += 4) && (cmd = ADM_CMD_KICK))    ||
+	(!strncmp("warn",    yx, 4) && (tx += 4) && (cmd = ADM_CMD_WARN))    ||
+	(!strncmp("mute",    yx, 4) && (tx += 4) && (cmd = ADM_CMD_MUTE))    ||
+	(!strncmp("tmute",   yx, 5) && (tx += 5) && (cmd = ADM_CMD_TMUTE))   ||
+	(!strncmp("unmute",  yx, 6) && (tx += 6) && (cmd = ADM_CMD_UNMUTE))  ||
+	(!strncmp("pin",     yx, 3) && (tx += 3) && (cmd = ADM_CMD_PIN))     ||
+	(!strncmp("report",  yx, 6) && (tx += 6) && (cmd = USR_CMD_REPORT))  ||
+	(!strncmp("delvote", yx, 7) && (tx += 7) && (cmd = USR_CMD_DELVOTE));
 
 
 	if (!c)
