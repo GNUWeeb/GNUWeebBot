@@ -307,7 +307,7 @@ static int fetch_api(struct tr_wr *mem, const char *payload, size_t payload_len)
 	int ret = 0;
 	CURL *curl;
 	CURLcode cres;
-	
+
 
 	curl = curl_easy_init();
 	if (unlikely(curl == NULL)) {
