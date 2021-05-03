@@ -10,7 +10,8 @@ DEP_DIRS	+= $(BASE_DEP_DIR)/src/gwbot/lib/tg_api
 
 OBJ_TMP_CC	:= \
 	$(BASE_DIR)/src/gwbot/lib/tg_api/kick_chat_member.o \
-	$(BASE_DIR)/src/gwbot/lib/tg_api/send_message.o
+	$(BASE_DIR)/src/gwbot/lib/tg_api/send_message.o \
+	$(BASE_DIR)/src/gwbot/lib/tg_api/unban_chat_member.o
 
 OBJ_PRE_CC	+= $(OBJ_TMP_CC)
 

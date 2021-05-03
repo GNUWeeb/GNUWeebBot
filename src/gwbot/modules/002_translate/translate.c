@@ -296,7 +296,6 @@ static size_t translate_write_callback(void *data, size_t size, size_t nmemb,
 		 */
 		return 0;
 
-	printf("test\n");
 	memcpy(mem->res_text + len, data, add_len);
 	mem->len += add_len;
 

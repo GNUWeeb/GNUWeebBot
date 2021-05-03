@@ -5,7 +5,7 @@ $json = <<<'JSON'
 {
     "update_id": 346120239,
     "message": {
-        "message_id": 2900,
+        "message_id": 2927,
         "from": {
             "id": 1472415329,
             "is_bot": false,

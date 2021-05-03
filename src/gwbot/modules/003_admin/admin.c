@@ -272,6 +272,14 @@ out:
 }
 
 
+static int exec_adm_cmd_unban(const struct gwbot_thread *thread,
+			      struct tgev *evt, uint64_t target_uid,
+			      const char *reason)
+{
+
+}
+
+
 int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
@@ -384,6 +392,7 @@ run_module:
 		ret = exec_adm_cmd_ban(thread, evt, target_uid, reason);
 		break;
 	case ADM_CMD_UNBAN:
+		ret = exec_adm_cmd_unban(thread, evt, target_uid, reason);
 		break;
 	case ADM_CMD_KICK:
 		break;

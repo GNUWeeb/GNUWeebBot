@@ -2,7 +2,7 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_api/kick_chat_member.h
  *
- *  Send message API for GNUWeebBot
+ *  Kick chat member API for GNUWeebBot
  *
  *  Copyright (C) 2021  Ammar Faizi
  */
