@@ -151,12 +151,10 @@ static bool do_kick(const struct gwbot_thread *thread, char *reply_text,
 		       PREAR(-ret));
 		snprintf(reply_text, RTB_SIZE,
 			 "Error: tga_kick_chat_member(): " PRERF, PREAR(-ret));
-		goto out;
 	} else {
 		ok = process_json_msg(&thandle, reply_text);
 	}
 
-out:
 	tga_sdestroy(&thandle);
 	return ok;
 }
@@ -177,12 +175,10 @@ static bool do_unban(const struct gwbot_thread *thread, char *reply_text,
 		       PREAR(-ret));
 		snprintf(reply_text, RTB_SIZE,
 			 "Error: tga_unban_chat_member(): " PRERF, PREAR(-ret));
-		goto out;
 	} else {
 		ok = process_json_msg(&thandle, reply_text);
 	}
 
-out:
 	tga_sdestroy(&thandle);
 	return ok;
 }
@@ -241,9 +237,8 @@ static int send_reply(const struct gwbot_thread *thread, struct tgev *evt,
 		.parse_mode       = PARSE_MODE_HTML
 	});
 
-	if (ret) {
+	if (ret)
  		pr_err("tga_send_msg() on send_reply(): " PRERF, PREAR(-ret));
-	}
 
 	tga_sdestroy(&thandle);
 
