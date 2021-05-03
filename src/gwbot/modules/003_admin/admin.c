@@ -23,6 +23,7 @@ GWMOD_NAME_DEFINE(003_admin, "Admin module");
 #define RTB_SIZE (0x400)
 
 typedef enum _mod_cmd_t {
+	CMD_NOP		= 0u,
 	ADM_CMD_BAN	= (1u << 0u),
 	ADM_CMD_UNBAN	= (1u << 1u),
 	ADM_CMD_KICK	= (1u << 2u),
@@ -275,7 +276,7 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
 	char c;
-	mod_cmd_t cmd;
+	mod_cmd_t cmd = CMD_NOP;
 	int ret = -ECANCELED;
 	struct tgev *reply_to;
 	uint64_t user_id, target_uid;
@@ -343,13 +344,17 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 run_module:
 	if (reply_to == NULL) {
 		if (reason == NULL) {
-			/*
-			 * TODO: Parse the reason, it may contain
-			 *       username, user_id, etc.
-			 */
+			
 			// target_uid = ???
 			goto out;
 		}
+
+
+		/*
+		 * TODO: Parse the reason, it may contain
+		 *       username, user_id, etc.
+		 */
+		goto out;
 	} else {
 		target_uid = tge_get_user_id(reply_to);
 	}
@@ -373,6 +378,8 @@ run_module:
 
 
 	switch (cmd) {
+	case CMD_NOP:
+		abort();
 	case ADM_CMD_BAN:
 		ret = exec_adm_cmd_ban(thread, evt, target_uid, reason);
 		break;
