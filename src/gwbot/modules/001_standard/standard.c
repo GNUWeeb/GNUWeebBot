@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <json-c/json.h>
 #include <gwbot/module.h>
+#include <gwbot/lib/tg_api.h>
 #include <gwbot/lib/string.h>
 
 #include "header.h"

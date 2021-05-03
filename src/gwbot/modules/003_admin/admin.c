@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <json-c/json.h>
 #include <gwbot/module.h>
+#include <gwbot/lib/tg_api.h>
 #include <gwbot/lib/string.h>
 
 #include "header.h"
@@ -41,7 +42,6 @@ typedef enum _mod_cmd_t {
 	USR_CMD_REPORT	= (1u << 8u),
 	USR_CMD_DELVOTE	= (1u << 9u),
 } mod_cmd_t;
-
 
 #define ADMIN_BITS			\
 	(				\
@@ -82,41 +82,117 @@ static bool check_is_sudoer(uint64_t user_id)
 }
 
 
-// static int send_eperm(const struct gwbot_thread *thread, struct tgev *evt)
-// {
-// 	int ret;
-// 	tga_handle_t thandle;
-// 	static const char reply_text[] 
-// 		= "You don't have permission to execute this command!";
+static int send_reply(const struct gwbot_thread *thread, struct tgev *evt,
+		      const char *reply_text, uint64_t msg_id)
+{
+	int ret;
+	tga_handle_t thandle;
 
-// 	tga_screate(&thandle, thread->state->cfg->cred.token);
-// 	ret = tga_send_msg(&thandle, &(const tga_send_msg_t){
-// 		.chat_id          = tge_get_chat_id(evt),
-// 		.reply_to_msg_id  = tge_get_msg_id(evt),
-// 		.text             = reply_text,
-// 		.parse_mode       = PARSE_MODE_OFF
-// 	});
-// 	tga_sdestroy(&thandle);
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_send_msg(&thandle, &(const tga_send_msg_t){
+		.chat_id          = tge_get_chat_id(evt),
+		.reply_to_msg_id  = msg_id,
+		.text             = reply_text,
+		.parse_mode       = PARSE_MODE_HTML
+	});
+	tga_sdestroy(&thandle);
 
-// 	if (ret) {
-// 		pr_err("tga_send_msg() on send_reply_text(): " PRERF,
-// 		       PREAR(-ret));
-// 	}
+	if (ret)
+		pr_err("tga_send_msg() on send_reply(): " PRERF, PREAR(-ret));
 
-// 	return 0;
-// }
+	return 0;
+}
+
+
+static int send_eperm(const struct gwbot_thread *thread, struct tgev *evt)
+{
+	static const char reply_text[] 
+		= "You don't have permission to execute this command!";
+
+	return send_reply(thread, evt, reply_text, tge_get_msg_id(evt));
+}
+
+
+static int exec_adm_cmd_ban(const struct gwbot_thread *thread, struct tgev *evt,
+			    uint64_t target_uid, const char *reason)
+{
+	int ret;
+	char reply_text[1024];
+	tga_handle_t thandle;
+	uint64_t reply_to_msg_id;
+	struct tgev *reply_to = tge_get_reply_to(evt);
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_kick_chat_member(&thandle, &(const tga_kick_cm_t){
+		.chat_id = tge_get_chat_id(evt),
+		.user_id = target_uid,
+		.until_date = 0,
+		.revoke_msg = false
+	});
+
+	printf("res = %s\n", tge_get_res_body(&thandle));
+
+	tga_sdestroy(&thandle);
+
+	if (ret) {
+		pr_err("tga_kick_chat_member() on exec_adm_cmd_ban(): " PRERF,
+		       PREAR(-ret));
+	}
+
+	if (reply_to) {
+		size_t tmp, pos = 0, space = sizeof(reply_text);
+		const struct tgevi_from *fr = tge_get_from(reply_to);
+
+
+		tmp = (size_t)snprintf(reply_text, space,
+				       "<a href=\"tg://user?id=%" PRIu64 "\">",
+				       target_uid);
+		pos   += tmp;
+		space -= tmp;
+
+		tmp = htmlspecialchars(
+			reply_text + pos,
+			space,
+			fr->first_name,
+			strnlen(fr->first_name, 0xfful)
+		);
+
+		pos   += tmp;
+		space -= tmp;
+
+		if (fr->last_name) {
+			reply_text[pos++] = ' ';
+			space--;
+
+			tmp = htmlspecialchars(
+				reply_text + pos,
+				space,
+				fr->last_name,
+				strnlen(fr->first_name, 0xfful)
+			);
+			pos   += tmp;
+			space -= tmp;
+		}
+
+		memcpy(reply_text + pos, "</a> has been banned!\0", 22);
+		reply_to_msg_id = tge_get_msg_id(reply_to);
+	} else {
+		reply_to_msg_id = tge_get_msg_id(evt);
+	}
+
+	return send_reply(thread, evt, reply_text, reply_to_msg_id);
+}
 
 
 int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
 	char c;
-	uint64_t user_id;
-	bool is_sudoer = false;
-	int ret = -ECANCELED;
-	const char *tx = tge_get_text(evt), *reason = NULL;
-	struct tgev *reply_to;
 	mod_cmd_t cmd;
+	int ret = -ECANCELED;
+	struct tgev *reply_to;
+	uint64_t user_id, target_uid;
+	const char *tx = tge_get_text(evt), *reason = NULL;
 
 	if (tx == NULL)
 		goto out;
@@ -180,6 +256,8 @@ run_module:
 			 */
 			goto out;
 		}
+	} else {
+		target_uid = tge_get_user_id(reply_to);
 	}
 
 
@@ -188,17 +266,40 @@ run_module:
 		 * This command requires administrator privilege
 		 */
 
-		is_sudoer = check_is_sudoer(user_id);
-		if (!is_sudoer)
+
+		if (!check_is_sudoer(user_id)) {
 			/*
 			 * TODO: Send permission denied
 			 * TODO: Group admin check
 			 */
-			goto out;
+			return send_eperm(thread, evt);
+		}
 
 	}
 
 
+	switch (cmd) {
+	case ADM_CMD_BAN:
+		return exec_adm_cmd_ban(thread, evt, target_uid, reason);
+	case ADM_CMD_UNBAN:
+		break;
+	case ADM_CMD_KICK:
+		break;
+	case ADM_CMD_WARN:
+		break;
+	case ADM_CMD_MUTE:
+		break;
+	case ADM_CMD_TMUTE:
+		break;
+	case ADM_CMD_UNMUTE:
+		break;
+	case ADM_CMD_PIN:
+		break;
+	case USR_CMD_REPORT:
+		break;
+	case USR_CMD_DELVOTE:
+		break;
+	}
 
 	printf("reason = %s\n", reason);
 	printf("cmd = %u\n", cmd);

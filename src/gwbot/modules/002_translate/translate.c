@@ -12,6 +12,7 @@
 #include <curl/curl.h>
 #include <json-c/json.h>
 #include <gwbot/module.h>
+#include <gwbot/lib/tg_api.h>
 #include <gwbot/lib/string.h>
 
 #include "header.h"
@@ -270,7 +271,7 @@ static int do_translate(const struct gwbot_thread *thread, struct tgev *evt)
 	if (ret)
 		goto out;
 
-	return handle_translate_module(payload, payload_len, evt, thread);
+	ret = handle_translate_module(payload, payload_len, evt, thread);
 
 out:
 	return ret;
