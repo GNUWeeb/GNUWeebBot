@@ -367,7 +367,7 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
 	size_t rcx;
-	char c, yx[8];
+	char c, yx[10];
 	mod_cmd_t cmd = CMD_NOP;
 	int ret = -ECANCELED;
 	struct tgev *reply_to;
@@ -388,9 +388,11 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 		yx[rcx] = ('A' <= c && c <= 'Z') ? c + 32 : c;
 		rcx++;
 
-		if (rcx >= sizeof(yx))
+		if (rcx >= (sizeof(yx) - 1))
 			break;
 	}
+
+	yx[rcx] = '\0';
 
 	c =
 	(!strncmp("ban",     yx, 3) && (tx += 3) && (cmd = ADM_CMD_BAN))     ||
