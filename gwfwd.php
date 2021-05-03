@@ -3,50 +3,43 @@
 
 $json = <<<'JSON'
 {
-  "update_id":733656607,
-  "message":{
-    "message_id":12632,
-    "from":{
-      "id":243692601,
-      "is_bot":false,
-      "first_name":"Ammar",
-      "last_name":"Faizi",
-      "username":"ammarfaizi2",
-      "language_code":"en"
-    },
-    "chat":{
-      "id":-1001226735471,
-      "title":"Private Cloud",
-      "type":"supergroup"
-    },
-    "date":1619892985,
-    "reply_to_message":{
-      "message_id":12626,
-      "from":{
-        "id":243692601,
-        "is_bot":false,
-        "first_name":"Ammar",
-        "last_name":"Faizi",
-        "username":"ammarfaizi2",
-        "language_code":"en"
-      },
-      "chat":{
-        "id":-1001226735471,
-        "title":"Private Cloud",
-        "type":"supergroup"
-      },
-      "date":1619892900,
-      "text":"besok hari apa?"
-    },
-    "text":"/ban x",
-    "entities":[
-      {
-        "offset":0,
-        "length":6,
-        "type":"bot_command"
-      }
-    ]
-  }
+    "update_id": 346120239,
+    "message": {
+        "message_id": 2900,
+        "from": {
+            "id": 1472415329,
+            "is_bot": false,
+            "first_name": "todayisold",
+            "username": "Mysticial"
+        },
+        "chat": {
+            "id": -1001347566306,
+            "title": "GNU/Weeb Test Driven Development",
+            "username": "GNUWeebTDD",
+            "type": "supergroup"
+        },
+        "date": 1620047054,
+        "reply_to_message": {
+            "message_id": 2902,
+            "from": {
+                "id": 243692601,
+                "is_bot": false,
+                "first_name": "Ammar",
+                "last_name": "Faizi",
+                "username": "ammarfaizi2",
+                "language_code": "en"
+            },
+            "chat": {
+                "id": -1001347566306,
+                "title": "GNU/Weeb Test Driven Development",
+                "username": "GNUWeebTDD",
+                "type": "supergroup"
+            },
+            "date": 1620040290,
+            "text": "etc."
+        },
+        "text": "/ban"
+    }
 }
 JSON; /* end JSON */
 
