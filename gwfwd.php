@@ -38,7 +38,7 @@ $json = <<<'JSON'
       "date":1619892900,
       "text":"besok hari apa?"
     },
-    "text":"tr en ja hello",
+    "text":"/ban x",
     "entities":[
       {
         "offset":0,
