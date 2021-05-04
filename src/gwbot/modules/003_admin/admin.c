@@ -429,11 +429,11 @@ static int mute_or_unmute(const struct gwbot_thread *thread, struct tgev *evt,
 		space -= pos;
 
 		if (is_unmute) {
-			memcpy(reply_text + pos, " has been unmuted!", 18);
+			memcpy(reply_text + pos, " has been unmuted!", 19);
 			pos += 18;
 			space -= 18;
 		} else {
-			memcpy(reply_text + pos, " has been muted!", 16);
+			memcpy(reply_text + pos, " has been muted!", 17);
 			pos += 16;
 			space -= 16;
 		}
