@@ -147,5 +147,6 @@ static __always_inline const char *tge_get_res_body(tga_handle_t *handle)
 #include <gwbot/lib/tg_api/kick_chat_member.h>
 #include <gwbot/lib/tg_api/send_message.h>
 #include <gwbot/lib/tg_api/unban_chat_member.h>
+#include <gwbot/lib/tg_api/restrict_chat_member.h>
 
 #endif /* #ifndef GWBOT__LIB__TG_API_H */

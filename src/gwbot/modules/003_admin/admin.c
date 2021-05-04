@@ -184,6 +184,32 @@ static bool do_unban(const struct gwbot_thread *thread, char *reply_text,
 }
 
 
+static bool do_mute(const struct gwbot_thread *thread, char *reply_text,
+		    const tga_restrict_cm_t *arg)
+{
+	int ret;
+	bool ok = true;
+	tga_handle_t thandle;
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_restrict_chat_member(&thandle, arg);
+
+
+	if (ret) {
+		pr_err("tga_restrict_chat_member() on do_mute(): " PRERF,
+		       PREAR(-ret));
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: tga_restrict_chat_member(): " PRERF,
+			 PREAR(-ret));
+	} else {
+		ok = process_json_msg(&thandle, reply_text);
+	}
+
+	tga_sdestroy(&thandle);
+	return ok;
+}
+
+
 static size_t gen_name_link(char *buf, size_t sps, const struct tgevi_from *fr)
 {
 	size_t ret = 0, tmp;
@@ -363,6 +389,58 @@ static int exec_adm_cmd_kick(const struct gwbot_thread *thread,
 }
 
 
+static int exec_adm_cmd_mute(const struct gwbot_thread *thread, struct tgev *evt,
+			     uint64_t target_uid, const char *reason)
+{
+	bool tmp;
+	char reply_text[RTB_SIZE];
+	uint64_t reply_to_msg_id;
+	struct tgev *reply_to;
+
+	tmp = do_mute(thread, reply_text, &(const tga_restrict_cm_t){
+		.chat_id = tge_get_chat_id(evt),
+		.user_id = target_uid,
+		.until_date = 0,
+		.permissions = {
+			.can_send_messages = false,
+			.can_send_media_messages = false,
+			.can_send_polls = false,
+			.can_send_other_messages = false,
+			.can_add_web_page_previews = false,
+			.can_change_info = false,
+			.can_invite_users = false,
+			.can_pin_messages = false
+		}
+	});
+
+	reply_to_msg_id = tge_get_msg_id(evt);
+
+	if (!tmp)
+		goto out;
+
+
+	reply_to = tge_get_reply_to(evt);
+	if (reply_to) {
+		size_t pos = 0, space = sizeof(reply_text);
+		const struct tgevi_from *fr = tge_get_from(reply_to);
+
+		pos = gen_name_link(reply_text, space, fr);
+		space -= pos;
+		memcpy(reply_text + pos, " has been muted!", 16);
+		pos += 16;
+		space -= 16;
+
+		if (reason)
+			snprintf(reply_text + pos, space, "\n<b>Reason:</b> %s",
+				 reason);
+	}
+
+out:
+	
+	return send_reply(thread, evt, reply_text, reply_to_msg_id);
+}
+
+
 int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
@@ -496,6 +574,7 @@ run_module:
 	case ADM_CMD_WARN:
 		break;
 	case ADM_CMD_MUTE:
+		ret = exec_adm_cmd_mute(thread, evt, target_uid, reason);
 		break;
 	case ADM_CMD_TMUTE:
 		break;
