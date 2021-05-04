@@ -114,6 +114,7 @@ int tg_api_post(tga_handle_t *handle)
 	tga_res_t *res;
 	tga_req_t *req;
 	char url[0x1000];
+	struct curl_slist *list = NULL;
 
 	res = &handle->res;
 	req = &handle->req;
@@ -151,11 +152,27 @@ int tg_api_post(tga_handle_t *handle)
 	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, res);
 
+	switch (handle->content_type) {
+	case APP_X_WWW_FORM_URLENCODED:
+		list = curl_slist_append(list, "Content-Type: application/x-www-form-urlencoded");
+		break;
+	case APP_JSON:
+		list = curl_slist_append(list, "Content-Type: application/json");
+		break;
+	}
+
+	if (list)
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+
 	prl_notice(7, "Curl to %s...", req->method);
 	cres = curl_easy_perform(curl);
 	if (unlikely(cres != CURLE_OK)) {
 		pr_err("curl_easy_perform(): %s", curl_easy_strerror(cres));
 		ret = -EBADMSG;
+	}
+
+	if (list != NULL) {
+		curl_slist_free_all(list);
 	}
 
 	curl_easy_cleanup(curl);

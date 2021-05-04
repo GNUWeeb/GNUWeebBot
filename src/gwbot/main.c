@@ -2,9 +2,6 @@
 #include <stdio.h>
 #include <gwbot/common.h>
 #include <gwbot/lib/arena.h>
-#include <gwbot/lib/tg_event.h>
-#include <gwbot/lib/tg_api/send_message.h>
-
 
 int main(int argc, char *argv[])
 {

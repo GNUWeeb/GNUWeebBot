@@ -10,19 +10,20 @@ High-performance bot Telegram, running on Linux environment.
 # Modules
 1. Telegram debug info.
 2. Google Translate API.
+3. Admin for group management.
 
 
 # Build Requirements
 - gcc 9.2.1+ or clang 11
 - GNU Make 4.3
 - libmysqlclient21
-- libcurl4-openssl-dev
+- libcurl4-gnutls-dev
 
 
 # Install Dependency
 ### Ubuntu
 ```sh
-sudo apt install -y git gcc g++ make cmake libmysqlclient21 libmysqlclient-dev libcurl4-openssl-dev valgrind doxygen;
+sudo apt install -y git gcc g++ make cmake libmysqlclient21 libmysqlclient-dev libcurl4-gnutls-dev valgrind doxygen;
 ```
 
 ### Arch
@@ -67,7 +68,7 @@ repository https://github.com/GNUWeeb/GNUWeebBot
 |:-----:|:----------------------------------------|:----------------------|:--------------------------|
 | 1.    | https://github.com/benhoyt/inih         | inih 53               | New BSD license           |
 | 2.    | https://github.com/axboe/liburing       | liburing-2.0          | LGPL + MIT                |
-| 3.    | https://github.com/curl/curl            | libcurl4-openssl-dev  | MIT                       |
+| 3.    | https://github.com/curl/curl            | libcurl4-gnutls-dev   | LGPL + MIT                |
 | 4.    | https://github.com/json-c/json-c        | json-c-0.15-20200726  | MIT                       |
 | 5.    | https://dev.mysql.com/downloads/c-api   | MySQL 8               | GPL-v2                    |
 

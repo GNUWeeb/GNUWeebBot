@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <json-c/json.h>
 #include <gwbot/module.h>
+#include <gwbot/lib/tg_api.h>
 #include <gwbot/lib/string.h>
 
 #include "header.h"
@@ -32,5 +33,5 @@ int GWMOD_SHUTDOWN_DEFINE(001_standard, struct gwbot_state *state)
 int GWMOD_ENTRY_DEFINE(001_standard, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
-	return 0;
+	return -ECANCELED;
 }

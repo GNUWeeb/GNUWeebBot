@@ -589,5 +589,40 @@ static inline uint64_t tge_get_msg_id(struct tgev *evt)
 }
 
 
+static inline const struct tgevi_from *tge_get_from(struct tgev *evt)
+{
+	switch (evt->type) {
+	case TGEV_UNKNOWN:
+		break;
+	case TGEV_TEXT:
+		return &evt->msg_text.from;
+	case TGEV_PHOTO:
+		return &evt->msg_photo.from;
+	case TGEV_STICKER:
+		return &evt->msg_sticker.from;
+	case TGEV_GIF:
+		return &evt->msg_gif.from;
+	}
+	return NULL;
+}
+
+
+static inline uint64_t tge_get_user_id(struct tgev *evt)
+{
+	switch (evt->type) {
+	case TGEV_UNKNOWN:
+		break;
+	case TGEV_TEXT:
+		return evt->msg_text.from.id;
+	case TGEV_PHOTO:
+		return evt->msg_photo.from.id;
+	case TGEV_STICKER:
+		return evt->msg_sticker.from.id;
+	case TGEV_GIF:
+		return evt->msg_gif.from.id;
+	}
+	return 0;
+}
+
 
 #endif /* #ifndef GWBOT__LIB__TG_EVENT_H */

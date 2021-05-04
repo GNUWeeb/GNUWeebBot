@@ -12,6 +12,7 @@
 #include <curl/curl.h>
 #include <json-c/json.h>
 #include <gwbot/module.h>
+#include <gwbot/lib/tg_api.h>
 #include <gwbot/lib/string.h>
 
 #include "header.h"
@@ -270,7 +271,7 @@ static int do_translate(const struct gwbot_thread *thread, struct tgev *evt)
 	if (ret)
 		goto out;
 
-	return handle_translate_module(payload, payload_len, evt, thread);
+	ret = handle_translate_module(payload, payload_len, evt, thread);
 
 out:
 	return ret;
@@ -295,7 +296,6 @@ static size_t translate_write_callback(void *data, size_t size, size_t nmemb,
 		 */
 		return 0;
 
-
 	memcpy(mem->res_text + len, data, add_len);
 	mem->len += add_len;
 
@@ -307,7 +307,7 @@ static int fetch_api(struct tr_wr *mem, const char *payload, size_t payload_len)
 	int ret = 0;
 	CURL *curl;
 	CURLcode cres;
-	
+
 
 	curl = curl_easy_init();
 	if (unlikely(curl == NULL)) {
