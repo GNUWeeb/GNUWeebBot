@@ -389,8 +389,9 @@ static int exec_adm_cmd_kick(const struct gwbot_thread *thread,
 }
 
 
-static int exec_adm_cmd_mute(const struct gwbot_thread *thread, struct tgev *evt,
-			     uint64_t target_uid, const char *reason)
+static int mute_or_unmute(const struct gwbot_thread *thread, struct tgev *evt,
+			  uint64_t target_uid, const char *reason,
+			  bool is_unmute)
 {
 	bool tmp;
 	char reply_text[RTB_SIZE];
@@ -402,14 +403,14 @@ static int exec_adm_cmd_mute(const struct gwbot_thread *thread, struct tgev *evt
 		.user_id = target_uid,
 		.until_date = 0,
 		.permissions = {
-			.can_send_messages = false,
-			.can_send_media_messages = false,
-			.can_send_polls = false,
-			.can_send_other_messages = false,
-			.can_add_web_page_previews = false,
-			.can_change_info = false,
-			.can_invite_users = false,
-			.can_pin_messages = false
+			.can_send_messages = is_unmute,
+			.can_send_media_messages = is_unmute,
+			.can_send_polls = is_unmute,
+			.can_send_other_messages = is_unmute,
+			.can_add_web_page_previews = is_unmute,
+			.can_change_info = is_unmute,
+			.can_invite_users = is_unmute,
+			.can_pin_messages = is_unmute
 		}
 	});
 
@@ -426,9 +427,17 @@ static int exec_adm_cmd_mute(const struct gwbot_thread *thread, struct tgev *evt
 
 		pos = gen_name_link(reply_text, space, fr);
 		space -= pos;
-		memcpy(reply_text + pos, " has been muted!", 16);
-		pos += 16;
-		space -= 16;
+
+		if (is_unmute) {
+			memcpy(reply_text + pos, " has been unmuted!", 18);
+			pos += 18;
+			space -= 18;
+		} else {
+			memcpy(reply_text + pos, " has been muted!", 16);
+			pos += 16;
+			space -= 16;
+		}
+		
 
 		if (reason)
 			snprintf(reply_text + pos, space, "\n<b>Reason:</b> %s",
@@ -439,6 +448,22 @@ out:
 	
 	return send_reply(thread, evt, reply_text, reply_to_msg_id);
 }
+
+
+static int exec_adm_cmd_mute(const struct gwbot_thread *thread, struct tgev *evt,
+			     uint64_t target_uid, const char *reason)
+{
+	return mute_or_unmute(thread, evt, target_uid, reason, false);
+}
+
+
+static int exec_adm_cmd_unmute(const struct gwbot_thread *thread,
+			       struct tgev *evt,
+			       uint64_t target_uid, const char *reason)
+{
+	return mute_or_unmute(thread, evt, target_uid, reason, true);
+}
+
 
 
 int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
@@ -579,6 +604,7 @@ run_module:
 	case ADM_CMD_TMUTE:
 		break;
 	case ADM_CMD_UNMUTE:
+		ret = exec_adm_cmd_unmute(thread, evt, target_uid, reason);
 		break;
 	case ADM_CMD_PIN:
 		break;

@@ -38,7 +38,7 @@ $json = <<<'JSON'
             "date": 1620040290,
             "text": "etc."
         },
-        "text": "/unban  test zxczxc"
+        "text": "/unmute  test zxczxc"
     }
 }
 JSON; /* end JSON */

@@ -60,10 +60,17 @@ typedef struct _tga_res_t {
 } tga_res_t;
 
 
+typedef enum _content_type_t {
+	APP_X_WWW_FORM_URLENCODED	= 0,
+	APP_JSON			= 1,
+} content_type_t;
+
+
 typedef struct _tga_handle_t {
 	const char	*token;
 	tga_req_t	req;
 	tga_res_t	res;
+	content_type_t	content_type;
 } tga_handle_t;
 
 
