@@ -96,8 +96,8 @@ static int tg_api_allocate_res(tga_res_t *res)
 		 * `res->allocated` must never be zero if
 		 * `res->body` is not NULL
 		 */
-		pr_err("Bug: res->body is not NULL, but res->allocated "
-		       "is zero");
+		panic("Bug: res->body is not NULL, but res->allocated "
+		      "is zero");
 		abort();
 	}
 out:
@@ -113,7 +113,7 @@ int tg_api_post(tga_handle_t *handle)
 	CURLcode cres;
 	tga_res_t *res;
 	tga_req_t *req;
-	char url[0x1000];
+	char url[256];
 	struct curl_slist *list = NULL;
 
 	res = &handle->res;
@@ -137,10 +137,38 @@ int tg_api_post(tga_handle_t *handle)
 		return ret;
 
 
-	snprintf(url, sizeof(url), "https://api.telegram.org/bot%s/%s",
-		 handle->token, req->method);
+	{
+		const char *cptr;
+		size_t rcx = 0, rdx = 0;
+		
+		memcpy(url, "https://api.telegram.org/bot", 28);
+		rcx += 28;
+
+		rdx = 0;
+		cptr = handle->token;
+		while (cptr[rdx]) {
+			url[rcx++] = cptr[rdx++];
+			if (rcx >= (sizeof(url) - 1)) {
+				url[rcx] = '\0';
+				goto out_curl_start;
+			}
+		}
 
 
+		rdx = 0;
+		cptr = handle->method;
+		while (cptr[rdx]) {
+			url[rcx++] = cptr[rdx++];
+			if (rcx >= (sizeof(url) - 1)) {
+				url[rcx] = '\0';
+				goto out_curl_start;
+			}
+		}
+
+		url[rcx] = '\0';
+	}
+
+out_curl_start:
 	curl = curl_easy_init();
 	if (unlikely(curl == NULL)) {
 		pr_err("curl_easy_init(): " PRERF, PREAR(ENOMEM));
