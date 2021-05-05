@@ -77,8 +77,8 @@ static bool check_is_sudoer(uint64_t user_id)
 	 */
 	static const uint64_t sudoers[] = {
 		133862899ull,	// ryne4s,
-		// 243692601ull,	// ammarfaizi2
-		// 701123895ull,	// lappretard
+		243692601ull,	// ammarfaizi2
+		701123895ull,	// lappretard
 		1213668471ull,	// nrudesu
 		// 1472415329ull,	// mysticial
 	};
