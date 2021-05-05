@@ -46,7 +46,8 @@ typedef enum _mod_cmd_t {
 		ADM_CMD_MUTE 	|	\
 		ADM_CMD_TMUTE 	|	\
 		ADM_CMD_UNMUTE	|	\
-		ADM_CMD_PIN		\
+		ADM_CMD_PIN	|	\
+		ADM_CMD_UNPIN		\
 	)
 
 
@@ -76,10 +77,10 @@ static bool check_is_sudoer(uint64_t user_id)
 	 */
 	static const uint64_t sudoers[] = {
 		133862899ull,	// ryne4s,
-		243692601ull,	// ammarfaizi2
-		701123895ull,	// lappretard
+		// 243692601ull,	// ammarfaizi2
+		// 701123895ull,	// lappretard
 		1213668471ull,	// nrudesu
-		1472415329ull,	// mysticial
+		// 1472415329ull,	// mysticial
 	};
 
 	for (size_t i = 0; i < (sizeof(sudoers) / sizeof(*sudoers)); i++) {
@@ -581,6 +582,62 @@ out:
 }
 
 
+static int is_group_admin(const struct gwbot_thread *thread, struct tgev *evt,
+			  uint64_t user_id, int64_t chat_id)
+{
+	int ret;
+	tga_handle_t thandle;
+	const char *json_res = NULL;
+	json_object *obj = NULL;
+	size_t admin_c;
+	struct tga_chat_member *admins = NULL;
+
+	char reply_text[RTB_SIZE];
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_get_chat_admins(&thandle, chat_id);
+	if (ret) {
+		pr_err("tga_get_chat_admins() on is_group_admin(): " PRERF,
+		       PREAR(-ret));
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: tga_kick_chat_member(): " PRERF, PREAR(-ret));
+	
+		goto out;
+	}
+
+	/*
+	 *
+	 * TODO: Reply with error message (non EPERM) to telegram.
+	 *
+	 */
+
+	json_res = tge_get_res_body(&thandle);
+	
+	obj = json_tokener_parse(json_res);
+	if (obj == NULL)
+		return -EINVAL;
+
+	if (parse_tga_admins(obj, &admins, &admin_c))
+		goto out;
+
+	ret = -EPERM;
+	for (size_t i = 0; i < admin_c; i++) {
+		if (admins[i].user.id == user_id) {
+			ret = 0;
+			break;
+		}
+	}
+
+	free(admins);
+out:
+	if (obj)
+		json_object_put(obj);
+
+	tga_sdestroy(&thandle);
+	return ret;
+}
+
+
 int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
@@ -590,6 +647,7 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 	int ret = -ECANCELED;
 	struct tgev *reply_to;
 	uint64_t user_id, target_uid;
+	int64_t chat_id;
 	const char *tx = tge_get_text(evt), *reason = NULL;
 
 	if (tx == NULL)
@@ -689,13 +747,23 @@ run_module:
 		 * This command requires administrator
 		 * privilege.
 		 */
+		chat_id = tge_get_chat_id(evt);
 		if (!check_is_sudoer(user_id)) {
+
 			/*
-			 * TODO: Send permission denied
-			 * TODO: Group admin check
+			 * is_group_admin():
+			 * - Returns 0 if user is privileged
+			 * - Otherwise, returns negative errno code
 			 */
-			ret = send_eperm(thread, evt);
-			goto out;
+			int tmp = is_group_admin(thread, evt, user_id, chat_id);
+
+			if (tmp != 0) {
+
+				if (tmp == -EPERM)
+					tmp = send_eperm(thread, evt);
+
+				goto out;
+			}
 		}
 	}
 

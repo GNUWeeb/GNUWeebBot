@@ -29,12 +29,13 @@ struct tga_user {
 
 
 typedef enum _chmem_status {
-	CREATOR		= (1 << 0),
-	ADMINISTRATOR	= (1 << 1),
-	MEMBER		= (1 << 2),
-	RESTRICTED	= (1 << 3),
-	LEFT		= (1 << 4),
-	KICKED		= (1 << 5),
+	NOP_STATUS	= 0,
+	CREATOR		= (1u << 1u),
+	ADMINISTRATOR	= (1u << 2u),
+	MEMBER		= (1u << 3u),
+	RESTRICTED	= (1u << 4u),
+	LEFT		= (1u << 5u),
+	KICKED		= (1u << 6u),
 } chmem_status_t;
 
 
@@ -157,5 +158,6 @@ static __always_inline const char *tge_get_res_body(tga_handle_t *handle)
 #include <gwbot/lib/tg_api/restrict_chat_member.h>
 #include <gwbot/lib/tg_api/pin_chat_message.h>
 #include <gwbot/lib/tg_api/unpin_chat_message.h>
+#include <gwbot/lib/tg_api/get_chat_administrators.h>
 
 #endif /* #ifndef GWBOT__LIB__TG_API_H */
