@@ -327,7 +327,7 @@ static int send_reply(const struct gwbot_thread *thread, struct tgev *evt,
 static int send_eperm(const struct gwbot_thread *thread, struct tgev *evt)
 {
 	static const char reply_text[] 
-		= "You don't have permission to execute this command!";
+		= "Error: EPERM (Operation not permitted) (errno=1)";
 
 	return send_reply(thread, evt, reply_text, tge_get_msg_id(evt));
 }
