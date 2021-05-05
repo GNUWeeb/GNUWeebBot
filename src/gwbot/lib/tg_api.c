@@ -113,7 +113,7 @@ int tg_api_post(tga_handle_t *handle)
 	CURLcode cres;
 	tga_res_t *res;
 	tga_req_t *req;
-	char url[256];
+	char url[512];
 	struct curl_slist *list = NULL;
 
 	res = &handle->res;
@@ -148,18 +148,19 @@ int tg_api_post(tga_handle_t *handle)
 		cptr = handle->token;
 		while (cptr[rdx]) {
 			url[rcx++] = cptr[rdx++];
-			if (rcx >= (sizeof(url) - 1)) {
+			if (rcx >= (sizeof(url) - 2)) {
 				url[rcx] = '\0';
 				goto out_curl_start;
 			}
 		}
 
+		url[rcx++] = '/';
 
 		rdx = 0;
-		cptr = handle->method;
+		cptr = handle->req.method;
 		while (cptr[rdx]) {
 			url[rcx++] = cptr[rdx++];
-			if (rcx >= (sizeof(url) - 1)) {
+			if (rcx >= (sizeof(url) - 2)) {
 				url[rcx] = '\0';
 				goto out_curl_start;
 			}

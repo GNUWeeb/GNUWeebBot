@@ -32,8 +32,9 @@ typedef enum _mod_cmd_t {
 	ADM_CMD_TMUTE	= (1u << 5u),
 	ADM_CMD_UNMUTE	= (1u << 6u),
 	ADM_CMD_PIN	= (1u << 7u),
-	USR_CMD_REPORT	= (1u << 8u),
-	USR_CMD_DELVOTE	= (1u << 9u),
+	ADM_CMD_UNPIN	= (1u << 8u),
+	USR_CMD_REPORT	= (1u << 9u),
+	USR_CMD_DELVOTE	= (1u << 10u),
 } mod_cmd_t;
 
 #define ADMIN_BITS			\
@@ -506,6 +507,7 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 	(!strncmp("tmute",   yx, 5) && (tx += 5) && (cmd = ADM_CMD_TMUTE))   ||
 	(!strncmp("unmute",  yx, 6) && (tx += 6) && (cmd = ADM_CMD_UNMUTE))  ||
 	(!strncmp("pin",     yx, 3) && (tx += 3) && (cmd = ADM_CMD_PIN))     ||
+	(!strncmp("unpin",   yx, 3) && (tx += 3) && (cmd = ADM_CMD_UNPIN))   ||
 	(!strncmp("report",  yx, 6) && (tx += 6) && (cmd = USR_CMD_REPORT))  ||
 	(!strncmp("delvote", yx, 7) && (tx += 7) && (cmd = USR_CMD_DELVOTE));
 
@@ -607,6 +609,8 @@ run_module:
 		ret = exec_adm_cmd_unmute(thread, evt, target_uid, reason);
 		break;
 	case ADM_CMD_PIN:
+		break;
+	case ADM_CMD_UNPIN:
 		break;
 	case USR_CMD_REPORT:
 		break;
