@@ -32,8 +32,9 @@ typedef enum _mod_cmd_t {
 	ADM_CMD_TMUTE	= (1u << 5u),
 	ADM_CMD_UNMUTE	= (1u << 6u),
 	ADM_CMD_PIN	= (1u << 7u),
-	USR_CMD_REPORT	= (1u << 8u),
-	USR_CMD_DELVOTE	= (1u << 9u),
+	ADM_CMD_UNPIN	= (1u << 8u),
+	USR_CMD_REPORT	= (1u << 9u),
+	USR_CMD_DELVOTE	= (1u << 10u),
 } mod_cmd_t;
 
 #define ADMIN_BITS			\
@@ -45,7 +46,8 @@ typedef enum _mod_cmd_t {
 		ADM_CMD_MUTE 	|	\
 		ADM_CMD_TMUTE 	|	\
 		ADM_CMD_UNMUTE	|	\
-		ADM_CMD_PIN		\
+		ADM_CMD_PIN	|	\
+		ADM_CMD_UNPIN		\
 	)
 
 
@@ -78,7 +80,7 @@ static bool check_is_sudoer(uint64_t user_id)
 		243692601ull,	// ammarfaizi2
 		701123895ull,	// lappretard
 		1213668471ull,	// nrudesu
-		1472415329ull,	// mysticial
+		// 1472415329ull,	// mysticial
 	};
 
 	for (size_t i = 0; i < (sizeof(sudoers) / sizeof(*sudoers)); i++) {
@@ -201,6 +203,56 @@ static bool do_mute(const struct gwbot_thread *thread, char *reply_text,
 		snprintf(reply_text, RTB_SIZE,
 			 "Error: tga_restrict_chat_member(): " PRERF,
 			 PREAR(-ret));
+	} else {
+		ok = process_json_msg(&thandle, reply_text);
+	}
+
+	tga_sdestroy(&thandle);
+	return ok;
+}
+
+
+static bool do_pin(const struct gwbot_thread *thread, char *reply_text,
+		    const tga_pin_cm_t *arg)
+{
+	int ret;
+	bool ok = true;
+	tga_handle_t thandle;
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_pin_chat_msg(&thandle, arg);
+
+
+	if (ret) {
+		pr_err("tga_pin_chat_msg() on do_pin(): " PRERF,
+		       PREAR(-ret));
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: tga_pin_chat_msg(): " PRERF, PREAR(-ret));
+	} else {
+		ok = process_json_msg(&thandle, reply_text);
+	}
+
+	tga_sdestroy(&thandle);
+	return ok;
+}
+
+
+static bool do_unpin(const struct gwbot_thread *thread, char *reply_text,
+		     const tga_unpin_cm_t *arg)
+{
+	int ret;
+	bool ok = true;
+	tga_handle_t thandle;
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_unpin_chat_msg(&thandle, arg);
+
+
+	if (ret) {
+		pr_err("tga_unpin_chat_msg() on do_pin(): " PRERF,
+		       PREAR(-ret));
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: tga_unpin_chat_msg(): " PRERF, PREAR(-ret));
 	} else {
 		ok = process_json_msg(&thandle, reply_text);
 	}
@@ -466,6 +518,127 @@ static int exec_adm_cmd_unmute(const struct gwbot_thread *thread,
 
 
 
+
+static int exec_adm_cmd_pin(const struct gwbot_thread *thread, struct tgev *evt)
+{
+	bool tmp;
+	char reply_text[RTB_SIZE];
+	const char *rep = reply_text;
+	uint64_t reply_to_msg_id;
+	struct tgev *reply_to;
+
+	reply_to = tge_get_reply_to(evt);
+	reply_to_msg_id = tge_get_msg_id(reply_to);
+	if (reply_to_msg_id == 0) {
+		rep = "Please reply to message to be pinned!";
+		goto out;
+	}
+
+	tmp = do_pin(thread, reply_text, &(const tga_pin_cm_t){
+		.chat_id = tge_get_chat_id(evt),
+		.message_id = reply_to_msg_id,
+		.disable_notification = false
+	});
+
+	if (!tmp)
+		goto out;
+
+	snprintf(reply_text, RTB_SIZE, "Message %" PRIu64 " has been pinned!",
+		 reply_to_msg_id);
+
+out:
+	return send_reply(thread, evt, rep, tge_get_msg_id(evt));
+}
+
+
+static int exec_adm_cmd_unpin(const struct gwbot_thread *thread, struct tgev *evt)
+{
+	bool tmp;
+	char reply_text[RTB_SIZE];
+	const char *rep = reply_text;
+	uint64_t reply_to_msg_id;
+	struct tgev *reply_to;
+
+	reply_to = tge_get_reply_to(evt);
+	reply_to_msg_id = tge_get_msg_id(reply_to);
+	if (reply_to_msg_id == 0) {
+		rep = "Please reply to message to be unpinned!";
+		goto out;
+	}
+
+	tmp = do_unpin(thread, reply_text, &(const tga_unpin_cm_t){
+		.chat_id = tge_get_chat_id(evt),
+		.message_id = reply_to_msg_id
+	});
+
+	if (!tmp)
+		goto out;
+
+	snprintf(reply_text, RTB_SIZE, "Message %" PRIu64 " has been unpinned!",
+		 reply_to_msg_id);
+
+out:
+	return send_reply(thread, evt, rep, tge_get_msg_id(evt));
+}
+
+
+static int is_group_admin(const struct gwbot_thread *thread, struct tgev *evt,
+			  uint64_t user_id, int64_t chat_id)
+{
+	int ret;
+	tga_handle_t thandle;
+	const char *json_res = NULL;
+	json_object *obj = NULL;
+	size_t admin_c;
+	struct tga_chat_member *admins = NULL;
+
+	char reply_text[RTB_SIZE];
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_get_chat_admins(&thandle, chat_id);
+	if (ret) {
+		pr_err("tga_get_chat_admins() on is_group_admin(): " PRERF,
+		       PREAR(-ret));
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: tga_kick_chat_member(): " PRERF, PREAR(-ret));
+	
+		goto out;
+	}
+
+	/*
+	 *
+	 * TODO: Reply with error message (non EPERM) to telegram.
+	 *
+	 */
+	(void)evt;
+
+	json_res = tge_get_res_body(&thandle);
+	
+	obj = json_tokener_parse(json_res);
+	if (obj == NULL)
+		return -EINVAL;
+
+	if (parse_tga_admins(obj, &admins, &admin_c))
+		goto out;
+
+	ret = -EPERM;
+	for (size_t i = 0; i < admin_c; i++) {
+		if (admins[i].user.id == user_id) {
+			ret = 0;
+			break;
+		}
+	}
+
+	free(admins);
+out:
+	if (obj)
+		json_object_put(obj);
+
+	tga_sdestroy(&thandle);
+	return ret;
+}
+
+
 int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
@@ -475,6 +648,7 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 	int ret = -ECANCELED;
 	struct tgev *reply_to;
 	uint64_t user_id, target_uid;
+	int64_t chat_id;
 	const char *tx = tge_get_text(evt), *reason = NULL;
 
 	if (tx == NULL)
@@ -506,6 +680,7 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 	(!strncmp("tmute",   yx, 5) && (tx += 5) && (cmd = ADM_CMD_TMUTE))   ||
 	(!strncmp("unmute",  yx, 6) && (tx += 6) && (cmd = ADM_CMD_UNMUTE))  ||
 	(!strncmp("pin",     yx, 3) && (tx += 3) && (cmd = ADM_CMD_PIN))     ||
+	(!strncmp("unpin",   yx, 5) && (tx += 5) && (cmd = ADM_CMD_UNPIN))   ||
 	(!strncmp("report",  yx, 6) && (tx += 6) && (cmd = USR_CMD_REPORT))  ||
 	(!strncmp("delvote", yx, 7) && (tx += 7) && (cmd = USR_CMD_DELVOTE));
 
@@ -573,13 +748,23 @@ run_module:
 		 * This command requires administrator
 		 * privilege.
 		 */
+		chat_id = tge_get_chat_id(evt);
 		if (!check_is_sudoer(user_id)) {
+
 			/*
-			 * TODO: Send permission denied
-			 * TODO: Group admin check
+			 * is_group_admin():
+			 * - Returns 0 if user is privileged
+			 * - Otherwise, returns negative errno code
 			 */
-			ret = send_eperm(thread, evt);
-			goto out;
+			int tmp = is_group_admin(thread, evt, user_id, chat_id);
+
+			if (tmp != 0) {
+
+				if (tmp == -EPERM)
+					tmp = send_eperm(thread, evt);
+
+				goto out;
+			}
 		}
 	}
 
@@ -607,6 +792,10 @@ run_module:
 		ret = exec_adm_cmd_unmute(thread, evt, target_uid, reason);
 		break;
 	case ADM_CMD_PIN:
+		ret = exec_adm_cmd_pin(thread, evt);
+		break;
+	case ADM_CMD_UNPIN:
+		ret = exec_adm_cmd_unpin(thread, evt);
 		break;
 	case USR_CMD_REPORT:
 		break;
