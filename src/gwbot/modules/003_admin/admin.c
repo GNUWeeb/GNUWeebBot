@@ -96,21 +96,19 @@ static bool process_json_msg(tga_handle_t *thandle, char *reply_text)
 {
 	bool ok = true;
 	const char *json_res = tge_get_res_body(thandle);
-	json_object *res;
-	json_object *json_obj;
+	json_object *res, *json_obj;
 
 	json_obj = json_tokener_parse(json_res);
 	if (json_obj == NULL) {
 		ok = false;
-		snprintf(reply_text, RTB_SIZE,
-			 "Error: Cannot parse JSON response from API");
+		memcpy(reply_text, "Error: Cannot parse JSON response from API",
+			43);
 		goto out;
 	}
 
 	if (!json_object_object_get_ex(json_obj, "ok", &res) || !res) {
 		ok = false;
-		snprintf(reply_text, RTB_SIZE,
-			 "Cannot find \"ok\" key from JSON API");
+		memcpy(reply_text, "Cannot find \"ok\" key from JSON API", 35);
 		goto out;
 	}
 
@@ -127,8 +125,12 @@ static bool process_json_msg(tga_handle_t *thandle, char *reply_text)
 		memcpy(reply_text, "Error: Cannot parse JSON response from API",
 			43);
 	} else {
-		snprintf(reply_text, RTB_SIZE,
-			 "Error: %s", json_object_get_string(res));
+		const char *str_desc = json_object_get_string(res);
+		if (str_desc)
+			snprintf(reply_text, RTB_SIZE, "Error: %s", str_desc);
+		else
+			memcpy(reply_text,
+			       "Error: Cannot parse JSON response from API", 43);
 	}
 
 out:
