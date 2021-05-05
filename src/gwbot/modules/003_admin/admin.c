@@ -610,6 +610,7 @@ static int is_group_admin(const struct gwbot_thread *thread, struct tgev *evt,
 	 * TODO: Reply with error message (non EPERM) to telegram.
 	 *
 	 */
+	(void)evt;
 
 	json_res = tge_get_res_body(&thandle);
 	
