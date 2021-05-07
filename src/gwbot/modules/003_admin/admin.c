@@ -721,7 +721,7 @@ static inline void construct_report_reply(char *rep_p, size_t sps,
 
 
 static int exec_usr_cmd_report(const struct gwbot_thread *thread,
-			       struct tgev *evt)
+			       struct tgev *evt, struct tgev *reply_to)
 {
 	int ret;
 	size_t sps;
@@ -778,6 +778,10 @@ out:
 
 	free(admins);
 	tga_sdestroy(&thandle);
+
+	if (reply_to)
+		evt = reply_to;
+
 	return send_reply(thread, evt, reply_text, tge_get_msg_id(evt));
 }
 
@@ -905,8 +909,13 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 out_run:
 	if (!reply_to) {
 
-		if (!reason)
+		if (!reason) {
+
+			if (cmd == USR_CMD_REPORT)
+				goto out_run_priv_chk;
+
 			return ret;
+		}
 
 		/*
 		 * TODO: Parse the reason, it may contain
@@ -953,7 +962,7 @@ out_run_priv_chk:
 		ret = exec_adm_cmd_unpin(thread, evt);
 		break;
 	case USR_CMD_REPORT:
-		ret = exec_usr_cmd_report(thread, evt);
+		ret = exec_usr_cmd_report(thread, evt, reply_to);
 		break;
 	case USR_CMD_DELVOTE:
 		break;
