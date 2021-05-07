@@ -800,9 +800,10 @@ static inline bool strtolower_cp(char *dest, const char *src, size_t dst_len)
 
 static inline bool is_an_admin_mention(const char *tx)
 {
-	char yx[10];
+	char c, yx[10];
 
-	if (*tx != '@')
+	c = *tx;
+	if ((c != '!') && (c != '/') && (c != '.') && (c != '~'))
 		return false;
 
 	tx++;
