@@ -13,13 +13,13 @@
 #include <gwbot/lib/tg_api.h>
 
 
-typedef struct _tga_delete_chat_t {
+typedef struct _tga_delete_message_t {
         int64_t		chat_id;
-	uint64_t	message_id;
-} tga_delete_chat_t;
+        uint64_t        message_id;
+} tga_delete_message_t;
 
 
-int tga_delete_chat(tga_handle_t *handle, const tga_delete_chat_t *ctx);
+int tga_delete_message(tga_handle_t *handle, const tga_delete_message_t *ctx);
 
 
-#endif /* ifdef GWBOT__LIB__TG_API__DELETE_CHAT_MESSAGE_H */
+#endif /* ifdef GWBOT__LIB__TG_API__DELETE_MESSAGE_H */
