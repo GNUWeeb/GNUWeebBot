@@ -18,6 +18,7 @@
 
 GWMOD_NAME_DEFINE(003_admin, "Admin module");
 
+
 int GWMOD_STARTUP_DEFINE(003_admin, struct gwbot_state *state)
 {
 	return 0;
@@ -65,20 +66,6 @@ typedef enum _mod_cmd_t {
 		ADM_CMD_UNPIN		\
 	)
 
-
-static inline void strtolower_cp(char *dest, const char *src, size_t dst_len)
-{
-	size_t i = 0;
-
-	while (src[i]) {
-		char c = src[i];
-		dest[i] = ('A' <= c && c <= 'Z') ? c + 32 : c;
-
-		if (++i >= dst_len)
-			break;
-	}
-	dest[i] = '\0';
-}
 
 
 static bool check_is_sudoer(uint64_t user_id)
@@ -360,6 +347,76 @@ static bool do_unban(const struct gwbot_thread *thread, char *reply_text,
 }
 
 
+static bool do_mute(const struct gwbot_thread *thread, char *reply_text,
+		    const tga_restrict_cm_t *arg)
+{
+	int ret;
+	bool ok = true;
+	tga_handle_t thandle;
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_restrict_chat_member(&thandle, arg);
+
+	if (ret) {
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: tga_restrict_chat_member(): " PRERF,
+			 PREAR(-ret));
+	} else {
+		ok = process_json_msg(&thandle, reply_text);
+	}
+
+	tga_sdestroy(&thandle);
+	return ok;
+}
+
+
+static bool do_pin(const struct gwbot_thread *thread, char *reply_text,
+		    const tga_pin_cm_t *arg)
+{
+	int ret;
+	bool ok = true;
+	tga_handle_t thandle;
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_pin_chat_msg(&thandle, arg);
+
+	if (ret) {
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: tga_pin_chat_msg(): " PRERF, PREAR(-ret));
+	} else {
+		ok = process_json_msg(&thandle, reply_text);
+	}
+
+	tga_sdestroy(&thandle);
+	return ok;
+}
+
+
+static bool do_unpin(const struct gwbot_thread *thread, char *reply_text,
+		     const tga_unpin_cm_t *arg)
+{
+	int ret;
+	bool ok = true;
+	tga_handle_t thandle;
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_unpin_chat_msg(&thandle, arg);
+
+
+	if (ret) {
+		pr_err("tga_unpin_chat_msg() on do_pin(): " PRERF,
+		       PREAR(-ret));
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: tga_unpin_chat_msg(): " PRERF, PREAR(-ret));
+	} else {
+		ok = process_json_msg(&thandle, reply_text);
+	}
+
+	tga_sdestroy(&thandle);
+	return ok;
+}
+
+
 static int kick_or_unban(const struct gwbot_thread *thread,
 			 struct tgev *evt, uint64_t target_uid,
 			 const char *reason, bool is_unban)
@@ -411,6 +468,74 @@ static int kick_or_unban(const struct gwbot_thread *thread,
 	}
 
 out:
+	return send_reply(thread, evt, reply_text, reply_to_msg_id);
+}
+
+
+static int mute_or_unmute(const struct gwbot_thread *thread, struct tgev *evt,
+			  uint64_t target_uid, const char *reason,
+			  bool is_unmute)
+{
+	bool tmp;
+	char reply_text[RTB_SIZE];
+	uint64_t reply_to_msg_id;
+	struct tgev *reply_to;
+
+	tmp = do_mute(thread, reply_text, &(const tga_restrict_cm_t){
+		.chat_id = tge_get_chat_id(evt),
+		.user_id = target_uid,
+		.until_date = 0,
+		.permissions = {
+			.can_send_messages = is_unmute,
+			.can_send_media_messages = is_unmute,
+			.can_send_polls = is_unmute,
+			.can_send_other_messages = is_unmute,
+			.can_add_web_page_previews = is_unmute,
+			.can_change_info = is_unmute,
+			.can_invite_users = is_unmute,
+			.can_pin_messages = is_unmute
+		}
+	});
+
+	reply_to_msg_id = tge_get_msg_id(evt);
+
+	if (!tmp)
+		goto out;
+
+
+	reply_to = tge_get_reply_to(evt);
+	if (reply_to) {
+		size_t pos = 0, sps = sizeof(reply_text);
+		const struct tgevi_from *fr = tge_get_from(reply_to);
+
+		if (fr) {
+			sps -= 18;
+			pos  = gen_name_link(reply_text, sps, fr->id,
+					     fr->first_name, fr->last_name);
+			sps -= pos;
+			memcpy(reply_text + pos, " has been ", 10);
+			pos += 10;
+		} else {
+			memcpy(reply_text + pos, "(unknown) has been ", 19);
+			pos += 19;
+		}
+
+		if (is_unmute) {
+			memcpy(reply_text + pos, "unmuted!", 9);
+			pos += 8;
+		} else {
+			memcpy(reply_text + pos, "muted!", 7);
+			pos += 6;
+		}
+
+
+		if (reason)
+			snprintf(reply_text + pos, sps, "\n<b>Reason:</b> %s",
+				 reason);
+	}
+
+out:
+	
 	return send_reply(thread, evt, reply_text, reply_to_msg_id);
 }
 
@@ -470,6 +595,238 @@ static int exec_adm_cmd_unban(const struct gwbot_thread *thread,
 }
 
 
+static int exec_adm_cmd_kick(const struct gwbot_thread *thread,
+			     struct tgev *evt, uint64_t target_uid,
+			     const char *reason)
+{
+	return kick_or_unban(thread, evt, target_uid, reason, false);
+}
+
+
+static int exec_adm_cmd_mute(const struct gwbot_thread *thread, struct tgev *evt,
+			     uint64_t target_uid, const char *reason)
+{
+	return mute_or_unmute(thread, evt, target_uid, reason, false);
+}
+
+
+static int exec_adm_cmd_unmute(const struct gwbot_thread *thread,
+			       struct tgev *evt,
+			       uint64_t target_uid, const char *reason)
+{
+	return mute_or_unmute(thread, evt, target_uid, reason, true);
+}
+
+
+static int exec_adm_cmd_pin(const struct gwbot_thread *thread, struct tgev *evt)
+{
+	bool tmp;
+	char reply_text[RTB_SIZE];
+	const char *rep = reply_text;
+	uint64_t reply_to_msg_id;
+	struct tgev *reply_to;
+
+	reply_to = tge_get_reply_to(evt);
+	reply_to_msg_id = tge_get_msg_id(reply_to);
+	if (reply_to_msg_id == 0) {
+		rep = "Please reply to message to be pinned!";
+		goto out;
+	}
+
+	tmp = do_pin(thread, reply_text, &(const tga_pin_cm_t){
+		.chat_id = tge_get_chat_id(evt),
+		.message_id = reply_to_msg_id,
+		.disable_notification = false
+	});
+
+	if (!tmp)
+		goto out;
+
+	snprintf(reply_text, RTB_SIZE, "Message %" PRIu64 " has been pinned!",
+		 reply_to_msg_id);
+
+out:
+	return send_reply(thread, evt, rep, tge_get_msg_id(evt));
+}
+
+
+static int exec_adm_cmd_unpin(const struct gwbot_thread *thread, struct tgev *evt)
+{
+	bool tmp;
+	char reply_text[RTB_SIZE];
+	const char *rep = reply_text;
+	uint64_t reply_to_msg_id;
+	struct tgev *reply_to;
+
+	reply_to = tge_get_reply_to(evt);
+	reply_to_msg_id = tge_get_msg_id(reply_to);
+	if (reply_to_msg_id == 0) {
+		rep = "Please reply to message to be unpinned!";
+		goto out;
+	}
+
+	tmp = do_unpin(thread, reply_text, &(const tga_unpin_cm_t){
+		.chat_id = tge_get_chat_id(evt),
+		.message_id = reply_to_msg_id
+	});
+
+	if (!tmp)
+		goto out;
+
+	snprintf(reply_text, RTB_SIZE, "Message %" PRIu64 " has been unpinned!",
+		 reply_to_msg_id);
+
+out:
+	return send_reply(thread, evt, rep, tge_get_msg_id(evt));
+}
+
+
+static inline void construct_report_reply(char *rep_p, size_t sps,
+					  struct tga_chat_member *admins,
+					  size_t admin_c)
+{
+
+	memcpy(rep_p, "Ping admins!\n", 14);
+	sps   -= 13;
+	rep_p += 13;
+
+	for (size_t i = 0; i < admin_c; i++) {
+		size_t tmp;
+		struct tga_user *user = &admins[i].user;
+		const char *fn = user->first_name;
+
+		if (user->is_bot)
+			continue;
+
+		tmp = (size_t)snprintf(rep_p, sps,
+				       "<a href=\"tg://user?id=%" PRIu64 "\">",
+				       user->id);
+
+		rep_p += tmp;
+		sps   -= tmp;
+
+		tmp = htmlspecialchars(rep_p, sps, fn, strnlen(fn, 0xfful));
+
+		if (tmp > 0)
+			tmp--;
+
+		rep_p += tmp;
+		sps   -= tmp;
+
+		memcpy(rep_p, "</a> ", 6);
+		rep_p += 5;
+		sps   -= 5;
+	}
+}
+
+
+static int exec_usr_cmd_report(const struct gwbot_thread *thread,
+			       struct tgev *evt)
+{
+	int ret;
+	size_t sps;
+	size_t admin_c = 0;
+	tga_handle_t thandle;
+	char reply_text[4096];
+	char *rep_p = reply_text;
+	json_object *json_obj = NULL;
+	const char *json_plain = NULL;
+	struct tga_chat_member *admins = NULL;
+
+	sps = sizeof(reply_text);
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_get_chat_admins(&thandle, tge_get_chat_id(evt));
+	if (ret) {
+		snprintf(reply_text, sps, "Error: tga_get_chat_admins(): "
+			 PRERF, PREAR(-ret));
+		goto out;
+	}
+
+
+	json_plain = tge_get_res_body(&thandle);
+	if (!json_plain) {
+		ret = -EINVAL;
+		snprintf(reply_text, sps, "Error: tge_get_res_body(): "
+			 PRERF, PREAR(EINVAL));
+		goto out;
+	}
+
+
+	json_obj = json_tokener_parse(json_plain);
+	if (!json_obj) {
+		ret = -EINVAL;
+		snprintf(reply_text, sps, "Error: json_tokener_parse(): "
+			 PRERF, PREAR(EINVAL));
+		goto out;
+	}
+
+
+	ret = parse_tga_admins(json_obj, &admins, &admin_c);
+	if (ret) {
+		snprintf(reply_text, sps, "Error: parse_tga_admins(): "
+			 PRERF, PREAR(-ret));
+		goto out;
+	}
+
+
+	construct_report_reply(rep_p, sps, admins, admin_c);
+
+out:
+	if (json_obj)
+		json_object_put(json_obj);
+
+	free(admins);
+	tga_sdestroy(&thandle);
+	return send_reply(thread, evt, reply_text, tge_get_msg_id(evt));
+}
+
+
+static inline bool strtolower_cp(char *dest, const char *src, size_t dst_len)
+{
+	size_t i = 0;
+
+	while (src[i]) {
+		char c = src[i];
+		dest[i] = ('A' <= c && c <= 'Z') ? c + 32 : c;
+
+		if (++i >= dst_len)
+			return false;
+	}
+	dest[i] = '\0';
+	return true;
+}
+
+
+static inline bool is_an_admin_mention(const char *tx)
+{
+	char yx[10];
+
+	if (*tx != '@')
+		return false;
+
+	tx++;
+	if (!strtolower_cp(yx, tx, sizeof(yx) - 1))
+		return false;
+
+	if (strncmp("admin", yx, 5))
+		return false;
+
+	tx += 5;
+
+	/*
+	 * Match also @admins
+	 */
+	if (*tx == 's')
+		tx++;
+
+	if ((*tx != '\0') && !is_ws(*tx))
+		return false;
+
+	return true;
+}
+
+
 int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 				     struct tgev *evt)
 {
@@ -478,7 +835,7 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 	int ret = -ECANCELED;
 	struct tgev *reply_to;
 	mod_cmd_t cmd = CMD_NOP;
-	uint64_t user_id, target_uid;
+	uint64_t user_id, target_uid = 0;
 	const char *reason = NULL, *tx = tge_get_text(evt);
 
 
@@ -489,10 +846,18 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 	c = *tx++;
 	if ((c != '!') && (c != '/') && (c != '.') && (c != '~')) {
 
+		if (is_an_admin_mention(tx - 1)) {
+			cmd      = USR_CMD_REPORT;
+			user_id  = tge_get_user_id(evt);
+			reply_to = tge_get_reply_to(evt);
+			goto out_run_priv_chk;
+		}
+
 		return ret;
 	}
 
-	strtolower_cp(yx, tx, sizeof(yx) - 1);
+	if (!strtolower_cp(yx, tx, sizeof(yx) - 1))
+		return ret;
 
 	c =
 	(!strncmp("ban",     yx, 3) && (tx += 3) && (cmd = ADM_CMD_BAN))     ||
@@ -520,7 +885,7 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 		if (cmd != USR_CMD_REPORT && !reply_to)
 			return ret;
 
-		goto run_module;
+		goto out_run;
 	}
 
 
@@ -536,7 +901,7 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 
 	reason = tx;
 
-run_module:
+out_run:
 	if (!reply_to) {
 
 		if (!reason)
@@ -552,12 +917,14 @@ run_module:
 	}
 
 
+out_run_priv_chk:
 	if ((cmd & ADMIN_CMD_BITS) && !is_privileged_user(thread, evt, user_id))
 		return 0;
 
 
 	switch (cmd) {
 	case CMD_NOP:
+		panic("Got CMD_NOP in admin module");
 		abort();
 	case ADM_CMD_BAN:
 		ret = exec_adm_cmd_ban(thread, evt, target_uid, reason);
@@ -566,13 +933,27 @@ run_module:
 		ret = exec_adm_cmd_unban(thread, evt, target_uid, reason);
 		break;
 	case ADM_CMD_KICK:
+		ret = exec_adm_cmd_kick(thread, evt, target_uid, reason);
+		break;
 	case ADM_CMD_WARN:
+		break;
 	case ADM_CMD_MUTE:
+		ret = exec_adm_cmd_mute(thread, evt, target_uid, reason);
+		break;
 	case ADM_CMD_TMUTE:
+		break;
 	case ADM_CMD_UNMUTE:
+		ret = exec_adm_cmd_unmute(thread, evt, target_uid, reason);
+		break;
 	case ADM_CMD_PIN:
+		ret = exec_adm_cmd_pin(thread, evt);
+		break;
 	case ADM_CMD_UNPIN:
+		ret = exec_adm_cmd_unpin(thread, evt);
+		break;
 	case USR_CMD_REPORT:
+		ret = exec_usr_cmd_report(thread, evt);
+		break;
 	case USR_CMD_DELVOTE:
 		break;
 	}
