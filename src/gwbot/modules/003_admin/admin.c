@@ -698,9 +698,10 @@ static inline void construct_report_reply(char *rep_p, size_t sps,
 		if (user->is_bot)
 			continue;
 
-		tmp = (size_t)snprintf(rep_p, sps,
-				       "<a href=\"tg://user?id=%" PRIu64 "\">",
-				       user->id);
+		sps -= 6;
+		tmp  = (size_t)snprintf(rep_p, sps,
+					"<a href=\"tg://user?id=%" PRIu64 "\">",
+					user->id);
 
 		rep_p += tmp;
 		sps   -= tmp;
@@ -715,7 +716,6 @@ static inline void construct_report_reply(char *rep_p, size_t sps,
 
 		memcpy(rep_p, "</a> ", 6);
 		rep_p += 5;
-		sps   -= 5;
 	}
 }
 
