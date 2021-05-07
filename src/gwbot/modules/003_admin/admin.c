@@ -800,10 +800,9 @@ static inline bool strtolower_cp(char *dest, const char *src, size_t dst_len)
 
 static inline bool is_an_admin_mention(const char *tx)
 {
-	char c, yx[10];
+	char yx[10];
 
-	c = *tx;
-	if ((c != '!') && (c != '/') && (c != '.') && (c != '~'))
+	if (*tx != '@')
 		return false;
 
 	tx++;
@@ -871,6 +870,7 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 	(!strncmp("pin",     yx, 3) && (tx += 3) && (cmd = ADM_CMD_PIN))     ||
 	(!strncmp("unpin",   yx, 5) && (tx += 5) && (cmd = ADM_CMD_UNPIN))   ||
 	(!strncmp("report",  yx, 6) && (tx += 6) && (cmd = USR_CMD_REPORT))  ||
+	(!strncmp("admin",   yx, 5) && (tx += 5) && (cmd = USR_CMD_REPORT))  ||
 	(!strncmp("delvote", yx, 7) && (tx += 7) && (cmd = USR_CMD_DELVOTE));
 
 
