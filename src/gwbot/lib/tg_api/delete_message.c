@@ -15,7 +15,7 @@ int tga_delete_message(tga_handle_t *handle, const tga_delete_message_t *ctx)
 		ctx->message_id);
 
 	tga_set_body(handle,buf);
-	tga_set_method(handle, "deleteMessage");
+	tga_set_method(handle,"deleteMessage");
 	return tg_api_post(handle);
 }
 			
