@@ -159,5 +159,6 @@ static __always_inline const char *tge_get_res_body(tga_handle_t *handle)
 #include <gwbot/lib/tg_api/pin_chat_message.h>
 #include <gwbot/lib/tg_api/unpin_chat_message.h>
 #include <gwbot/lib/tg_api/get_chat_administrators.h>
+#include <gwbot/lib/tg_api/delete_message.h>
 
 #endif /* #ifndef GWBOT__LIB__TG_API_H */
