@@ -929,8 +929,6 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 out_run:
 	if (!reply_to) {
 
-		printf("test\n");
-
 		if (!reason) {
 
 			if (cmd == USR_CMD_REPORT)
