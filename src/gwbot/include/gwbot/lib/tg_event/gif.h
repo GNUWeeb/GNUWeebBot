@@ -2,9 +2,9 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_event/gif.h
  *
- *  gif message header for events
+ *  GIF message event header for events
  *
- *  Copyright (C) 2021 - aliwoto
+ *  Copyright (C) 2021  Aliwoto
  */
 
 

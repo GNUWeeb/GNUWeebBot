@@ -454,8 +454,8 @@ static __always_inline int parse_tgevi_chat(json_object *jchat,
 #include <gwbot/lib/tg_event/photo.h>
 #include <gwbot/lib/tg_event/sticker.h>
 #include <gwbot/lib/tg_event/gif.h>
+#include <gwbot/lib/tg_event/unknown.h>
 #undef INCLUDE_SUB_TG_EVENT
-
 
 struct tgev {
 	/* 
@@ -471,12 +471,13 @@ struct tgev {
 	uint64_t	update_id;
 	tgev_type_t	type;
 	bool		is_replied_node;
-	struct_pad(0, 3);
+
 	union {
 		struct tgev_gif		msg_gif;
 		struct tgev_text	msg_text;
 		struct tgev_photo	msg_photo;
 		struct tgev_sticker	msg_sticker;
+		struct tgev_unknown	msg_unknown;
 	};
 };
 
@@ -487,7 +488,6 @@ int tg_event_load_str(const char *json_str, struct tgev *evt);
 void tg_event_destroy(struct tgev *evt);
 int parse_message_json_obj(json_object *jmsg, struct tgev *evt);
 
-#define TGEV_JSON_REPLY_TO ((void *)1)
 
 static inline struct tgev *parse_replied_msg(json_object *jmsg)
 {
@@ -499,7 +499,7 @@ static inline struct tgev *parse_replied_msg(json_object *jmsg)
 		return NULL;
 	}
 	reply_to->is_replied_node = true;
-	reply_to->json = TGEV_JSON_REPLY_TO;
+	reply_to->json = jmsg;
 
 	return reply_to;
 }
@@ -511,6 +511,7 @@ static inline struct tgev *parse_replied_msg(json_object *jmsg)
 #include <gwbot/lib/tg_event/photo.h>
 #include <gwbot/lib/tg_event/sticker.h>
 #include <gwbot/lib/tg_event/gif.h>
+#include <gwbot/lib/tg_event/unknown.h>
 #undef SUB_TG_EVENT_CIRCULAR_INLINE
 #undef INCLUDE_SUB_TG_EVENT
 
@@ -538,7 +539,7 @@ static inline int64_t tge_get_chat_id(struct tgev *evt)
 {
 	switch (evt->type) {
 	case TGEV_UNKNOWN:
-		break;
+		return evt->msg_unknown.chat.id;
 	case TGEV_TEXT:
 		return evt->msg_text.chat.id;
 	case TGEV_PHOTO:
@@ -575,7 +576,7 @@ static inline uint64_t tge_get_msg_id(struct tgev *evt)
 {
 	switch (evt->type) {
 	case TGEV_UNKNOWN:
-		break;
+		return evt->msg_unknown.msg_id;
 	case TGEV_TEXT:
 		return evt->msg_text.msg_id;
 	case TGEV_PHOTO:
@@ -593,7 +594,7 @@ static inline const struct tgevi_from *tge_get_from(struct tgev *evt)
 {
 	switch (evt->type) {
 	case TGEV_UNKNOWN:
-		break;
+		return &evt->msg_unknown.from;
 	case TGEV_TEXT:
 		return &evt->msg_text.from;
 	case TGEV_PHOTO:
@@ -611,7 +612,7 @@ static inline uint64_t tge_get_user_id(struct tgev *evt)
 {
 	switch (evt->type) {
 	case TGEV_UNKNOWN:
-		break;
+		return evt->msg_unknown.from.id;
 	case TGEV_TEXT:
 		return evt->msg_text.from.id;
 	case TGEV_PHOTO:

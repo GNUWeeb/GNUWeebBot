@@ -3,11 +3,11 @@
 
 $json = <<<'JSON'
 {
-    "update_id": 346122579,
+    "update_id": 346121425,
     "message": {
-        "message_id": 3319,
+        "message_id": 3228,
         "from": {
-            "id": 243692602,
+            "id": 243692601,
             "is_bot": false,
             "first_name": "Ammar",
             "last_name": "Faizi",
@@ -20,9 +20,9 @@ $json = <<<'JSON'
             "username": "GNUWeebTDD",
             "type": "supergroup"
         },
-        "date": 1620224616,
+        "date": 1620143639,
         "reply_to_message": {
-            "message_id": 3318,
+            "message_id": 3224,
             "from": {
                 "id": 243692601,
                 "is_bot": false,
@@ -37,10 +37,35 @@ $json = <<<'JSON'
                 "username": "GNUWeebTDD",
                 "type": "supergroup"
             },
-            "date": 1620224611,
-            "text": "test pin message"
+            "date": 1620143045,
+            "new_chat_participant": {
+                "id": 243692601,
+                "is_bot": false,
+                "first_name": "Ammar",
+                "last_name": "Faizi",
+                "username": "ammarfaizi2",
+                "language_code": "en"
+            },
+            "new_chat_member": {
+                "id": 243692601,
+                "is_bot": false,
+                "first_name": "Ammar",
+                "last_name": "Faizi",
+                "username": "ammarfaizi2",
+                "language_code": "en"
+            },
+            "new_chat_members": [
+                {
+                    "id": 243692601,
+                    "is_bot": false,
+                    "first_name": "Ammar",
+                    "last_name": "Faizi",
+                    "username": "ammarfaizi2",
+                    "language_code": "en"
+                }
+            ]
         },
-        "text": ".unpin"
+        "text": ".unban test"
     }
 }
 JSON; /* end JSON */

@@ -2,10 +2,11 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_event/photo.h
  *
- *  Text message header for events
+ *  Photo message event header for events
  *
- *  Copyright (C) 2021  aliwoto
+ *  Copyright (C) 2021  Aliwoto
  */
+
 
 #ifndef GWBOT__LIB__TG_EVENT__PHOTO_H
 #define GWBOT__LIB__TG_EVENT__PHOTO_H

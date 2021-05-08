@@ -108,8 +108,9 @@ int parse_tga_admins(json_object *obj, struct tga_chat_member **admins,
 		if (json_object_object_get_ex(user_obj, "lang", &tmp) && tmp) {
 			const char *lang = json_object_get_string(tmp);
 			if (lang) {
-				strncpy(user->lang, lang, 4);
-				user->lang[3] = '\0';
+				strncpy(user->lang, lang,
+					sizeof(user->lang) - 1);
+				user->lang[sizeof(user->lang) - 1] = '\0';
 			}
 		}
 
