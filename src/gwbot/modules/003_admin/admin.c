@@ -462,9 +462,14 @@ static int kick_or_unban(const struct gwbot_thread *thread,
 		}
 
 
-		if (reason)
-			snprintf(reply_text + pos, sps, "\n<b>Reason:</b> %s",
-				 reason);
+		if (reason) {
+			memcpy(reply_text + pos, "\n<b>Message:</b> ", 18);
+			pos += 17;
+			sps -= 18;
+			pos += htmlspecialchars(reply_text + pos, sps, reason,
+						strnlen(reason, sps));
+			reply_text[pos - 1] = '\0';
+		}
 	}
 
 out:
@@ -529,9 +534,14 @@ static int mute_or_unmute(const struct gwbot_thread *thread, struct tgev *evt,
 		}
 
 
-		if (reason)
-			snprintf(reply_text + pos, sps, "\n<b>Reason:</b> %s",
-				 reason);
+		if (reason) {
+			memcpy(reply_text + pos, "\n<b>Message:</b> ", 18);
+			pos += 17;
+			sps -= 18;
+			pos += htmlspecialchars(reply_text + pos, sps, reason,
+						strnlen(reason, sps));
+			reply_text[pos - 1] = '\0';
+		}
 	}
 
 out:
@@ -578,9 +588,14 @@ static int exec_adm_cmd_ban(const struct gwbot_thread *thread, struct tgev *evt,
 			sps -= 15;
 		}
 
-		if (reason)
-			snprintf(reply_text + pos, sps, "\n<b>Reason:</b> %s",
-				 reason);
+		if (reason) {
+			memcpy(reply_text + pos, "\n<b>Message:</b> ", 18);
+			pos += 17;
+			sps -= 18;
+			pos += htmlspecialchars(reply_text + pos, sps, reason,
+						strnlen(reason, sps));
+			reply_text[pos - 1] = '\0';
+		}
 	}
 out:
 	return send_reply(thread, evt, reply_text, reply_to_msg_id);
@@ -786,12 +801,16 @@ out:
 }
 
 
-static inline bool strtolower_cp(char *dest, const char *src, size_t dst_len)
+static bool strtolower_cp(char *dest, const char *src, size_t dst_len)
 {
 	size_t i = 0;
 
-	while (src[i]) {
+	while (true) {
 		char c = src[i];
+
+		if ((c == '\0') || is_ws(c))
+			break;
+
 		dest[i] = ('A' <= c && c <= 'Z') ? c + 32 : c;
 
 		if (++i >= dst_len)
@@ -802,7 +821,7 @@ static inline bool strtolower_cp(char *dest, const char *src, size_t dst_len)
 }
 
 
-static inline bool is_an_admin_mention(const char *tx)
+static bool is_an_admin_mention(const char *tx)
 {
 	char yx[10];
 
@@ -970,4 +989,3 @@ out_run_priv_chk:
 
 	return ret;
 }
-

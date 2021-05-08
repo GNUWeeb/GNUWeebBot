@@ -3,15 +3,16 @@
 
 $json = <<<'JSON'
 {
-    "update_id": 346125131,
+    "update_id": 346121425,
     "message": {
-        "message_id": 3606,
+        "message_id": 3228,
         "from": {
-            "id": 1472415329,
+            "id": 243692601,
             "is_bot": false,
-            "first_name": "todayisold",
-            "last_name": "\ud83c\udf41",
-            "username": "Mysticial"
+            "first_name": "Ammar",
+            "last_name": "Faizi",
+            "username": "ammarfaizi2",
+            "language_code": "en"
         },
         "chat": {
             "id": -1001347566306,
@@ -19,15 +20,16 @@ $json = <<<'JSON'
             "username": "GNUWeebTDD",
             "type": "supergroup"
         },
-        "date": 1620405040,
+        "date": 1620143639,
         "reply_to_message": {
-            "message_id": 3606,
+            "message_id": 3224,
             "from": {
-                "id": 1472415329,
+                "id": 243692601,
                 "is_bot": false,
-                "first_name": "todayisold",
-                "last_name": "\ud83c\udf41",
-                "username": "Mysticial"
+                "first_name": "Ammar",
+                "last_name": "Faizi",
+                "username": "ammarfaizi2",
+                "language_code": "en"
             },
             "chat": {
                 "id": -1001347566306,
@@ -35,24 +37,35 @@ $json = <<<'JSON'
                 "username": "GNUWeebTDD",
                 "type": "supergroup"
             },
-            "date": 1620405036,
-            "text": "@admin",
-            "entities": [
+            "date": 1620143045,
+            "new_chat_participant": {
+                "id": 243692601,
+                "is_bot": false,
+                "first_name": "Ammar",
+                "last_name": "Faizi",
+                "username": "ammarfaizi2",
+                "language_code": "en"
+            },
+            "new_chat_member": {
+                "id": 243692601,
+                "is_bot": false,
+                "first_name": "Ammar",
+                "last_name": "Faizi",
+                "username": "ammarfaizi2",
+                "language_code": "en"
+            },
+            "new_chat_members": [
                 {
-                    "offset": 0,
-                    "length": 6,
-                    "type": "mention"
+                    "id": 243692601,
+                    "is_bot": false,
+                    "first_name": "Ammar",
+                    "last_name": "Faizi",
+                    "username": "ammarfaizi2",
+                    "language_code": "en"
                 }
             ]
         },
-        "text": "@admin",
-        "entities": [
-            {
-                "offset": 0,
-                "length": 6,
-                "type": "bot_command"
-            }
-        ]
+        "text": ".debug"
     }
 }
 JSON; /* end JSON */
