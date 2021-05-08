@@ -2,7 +2,7 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_event/gif.h
  *
- *  gif message header for events
+ *  GIF message header for events
  *
  *  Copyright (C) 2021 - aliwoto
  */

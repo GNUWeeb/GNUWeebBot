@@ -2,7 +2,7 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_event/photo.h
  *
- *  Text message header for events
+ *  Photo message header for events
  *
  *  Copyright (C) 2021  aliwoto
  */

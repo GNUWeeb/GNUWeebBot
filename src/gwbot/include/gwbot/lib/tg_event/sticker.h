@@ -2,7 +2,7 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_event/sticker.h
  *
- *  Text sticker header for events
+ *  Sticker message header for events
  *
  *  Copyright (C) 2021 - aliwoto
  */

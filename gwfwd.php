@@ -65,7 +65,7 @@ $json = <<<'JSON'
                 }
             ]
         },
-        "text": ".debug"
+        "text": ".unban test"
     }
 }
 JSON; /* end JSON */

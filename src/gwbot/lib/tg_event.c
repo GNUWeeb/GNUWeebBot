@@ -54,23 +54,24 @@ int parse_message_json_obj(json_object *jmsg, struct tgev *evt)
 	int ret;
 
 	ret = parse_event_text(jmsg, evt);
-	if (ret == 0 || ret != -ECANCELED)
+	if (ret != -ECANCELED)
 		return ret;
 
 	ret = parse_event_photo(jmsg, evt);
-	if (ret == 0 || ret != -ECANCELED)
+	if (ret != -ECANCELED)
 		return ret;
 
 	ret = parse_event_sticker(jmsg, evt);
-	if (ret == 0 || ret != -ECANCELED)
+	if (ret != -ECANCELED)
 		return ret;
 
 	ret = parse_event_gif(jmsg, evt);
-	if (ret == 0 || ret != -ECANCELED)
+	if (ret != -ECANCELED)
 		return ret;
 
+	ret = parse_event_unknown(jmsg, evt);
 	evt->type = TGEV_UNKNOWN;
-	return ret;
+	return 0;
 }
 
 
@@ -88,7 +89,7 @@ int parse_message(json_object *json_obj, struct tgev *evt)
 
 	ret = parse_message_json_obj(jmsg, evt);
 	if (evt->type == TGEV_UNKNOWN)
-		pr_err("Unknown event from JSON");
+		prl_notice(2, "Unknown event from JSON");
 
 	return ret;
 }
@@ -235,9 +236,8 @@ void tg_event_destroy(struct tgev *evt)
 	if (evt->is_replied_node)
 		return;
 
-	if (unlikely(evt->json == NULL || evt->json == TGEV_JSON_REPLY_TO))
+	if (unlikely(evt->json == NULL))
 		return;
-
 
 	ret = json_object_put(evt->json);
 	evt->json = NULL;
