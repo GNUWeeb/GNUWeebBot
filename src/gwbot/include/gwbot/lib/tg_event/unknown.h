@@ -2,10 +2,11 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_event/unknown.h
  *
- *  Text text header for events
+ *  Unknown message event header for events
  *
  *  Copyright (C) 2021  Ammar Faizi
  */
+
 
 #ifndef GWBOT__LIB__TG_EVENT__UNKNOWN_H
 #define GWBOT__LIB__TG_EVENT__UNKNOWN_H

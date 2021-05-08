@@ -2,10 +2,12 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_event/text.h
  *
- *  Text message header for events
+ *  Text message event header for events
  *
- *  Copyright (C) 2021 - aliwoto
+ *  Copyright (C) 2021  Aliwoto
+ *  Copyright (C) 2021  Ammar Faizi
  */
+
 
 #ifndef GWBOT__LIB__TG_EVENT__TEXT_H
 #define GWBOT__LIB__TG_EVENT__TEXT_H

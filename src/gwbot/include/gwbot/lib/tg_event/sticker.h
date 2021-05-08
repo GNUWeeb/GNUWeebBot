@@ -2,10 +2,11 @@
 /*
  *  src/gwbot/include/gwbot/lib/tg_event/sticker.h
  *
- *  Sticker message header for events
+ *  Sticker message event header for events
  *
- *  Copyright (C) 2021 - aliwoto
+ *  Copyright (C) 2021  Aliwoto
  */
+
 
 #ifndef GWBOT__LIB__TG_EVENT__STICKER_H
 #define GWBOT__LIB__TG_EVENT__STICKER_H
