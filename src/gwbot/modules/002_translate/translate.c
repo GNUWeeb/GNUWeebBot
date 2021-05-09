@@ -291,7 +291,7 @@ static size_t translate_write_callback(void *data, size_t size, size_t nmemb,
 
 
 	if ((add_len + len) >= (CURL_BUFFER_SIZE - 1u))
-		/* 
+		/*
 		 * Run out of space
 		 */
 		return 0;

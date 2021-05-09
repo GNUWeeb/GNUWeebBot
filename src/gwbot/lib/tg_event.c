@@ -105,11 +105,11 @@ static int internal_tg_event_load_str(const char *json_str, size_t length,
 		return ret;
 
 	ret = parse_update_id(evt->json, evt);
-	if (unlikely(ret != 0)) 
+	if (unlikely(ret != 0))
 		goto out_err;
 
 	ret = parse_message(evt->json, evt);
-	if (unlikely(ret != 0)) 
+	if (unlikely(ret != 0))
 		goto out_err;
 
 	return 0;
@@ -172,7 +172,7 @@ int tg_event_load_str(const char *json_str, struct tgev *evt)
 static void destroy_reply_to_msg(struct tgev *evt)
 {
 	tg_event_destroy(evt);
-	free(evt);	
+	free(evt);
 }
 
 

@@ -140,7 +140,7 @@ int tg_api_post(tga_handle_t *handle)
 	{
 		const char *cptr;
 		size_t rcx = 0, rdx = 0;
-		
+
 		memcpy(url, "https://api.telegram.org/bot", 28);
 		rcx += 28;
 

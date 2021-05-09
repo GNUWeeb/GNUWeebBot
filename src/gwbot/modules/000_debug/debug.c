@@ -44,7 +44,7 @@ static int send_debug_message(const struct gwbot_thread *thread,
 		.chat_id          = tge_get_chat_id(evt),
 		.reply_to_msg_id  = tge_get_msg_id(evt),
 		.text             = reply_text,
-		.parse_mode       = PARSE_MODE_HTML 
+		.parse_mode       = PARSE_MODE_HTML
 	});
 	tga_sdestroy(&thandle);
 
