@@ -252,7 +252,7 @@ static int init_state(struct gwbot_state *state)
 	if (unlikely(err))
 		return err;
 
-	if (unlikely(tss_init(&state->chan_stk, thread_c) == NULL)) 
+	if (unlikely(tss_init(&state->chan_stk, thread_c) == NULL))
 		return -ENOMEM;
 
 	if (unlikely(tss_init(&state->thread_stk, thread_c) == NULL))

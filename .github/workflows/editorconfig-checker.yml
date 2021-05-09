@@ -1,0 +1,29 @@
+name: Editorconfig Checker
+
+on:
+  push:
+    branches: [ master, ammarfaizi2-dev ]
+  pull_request:
+    branches: [ master, ammarfaizi2-dev ]
+    
+jobs:
+  main:
+    name: editorconfig-checker
+    strategy:
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Dependencies
+      run:  sudo apt update -y --fix-missing; sudo apt install wget;
+
+    - name: Download and extract editorconfig checker
+      run: mkdir .editorconfig.tmp &&
+           cd .editorconfig.tmp &&
+           wget https://github.com/editorconfig-checker/editorconfig-checker/releases/download/2.3.5/ec-linux-amd64.tar.gz &&
+           tar xzf ec-linux-amd64.tar.gz;
+
+    - name: Run editorconfig-checker
+      run: .editorconfig.tmp/bin/ec-linux-amd64

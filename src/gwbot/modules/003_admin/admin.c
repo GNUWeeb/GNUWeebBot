@@ -114,7 +114,7 @@ static int send_reply(const struct gwbot_thread *thread, struct tgev *evt,
 
 static int send_eperm(const struct gwbot_thread *thread, struct tgev *evt)
 {
-	static const char reply_text[] 
+	static const char reply_text[]
 		= "Error: Operation not permitted (errno=EPERM) (code=1)";
 
 	return send_reply(thread, evt, reply_text, tge_get_msg_id(evt));
@@ -545,7 +545,7 @@ static int mute_or_unmute(const struct gwbot_thread *thread, struct tgev *evt,
 	}
 
 out:
-	
+
 	return send_reply(thread, evt, reply_text, reply_to_msg_id);
 }
 
@@ -928,8 +928,6 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 
 out_run:
 	if (!reply_to) {
-
-		printf("test\n");
 
 		if (!reason) {
 

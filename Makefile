@@ -196,10 +196,15 @@ ifeq ($(LTO),1)
 	LDFLAGS		:= $(LDFLAGS) -flto
 endif
 
+ifeq ($(B_NATIVE),1)
+	CFM_FLAGS = -march=native -mtune=native
+endif
+
 
 CCXXFLAGS := \
 	$(WARN_FLAGS) \
 	$(CCXXFLAGS) \
+	$(CFM_FLAGS) \
 	-fstrict-aliasing \
 	-fstack-protector-strong \
 	-fno-omit-frame-pointer \
