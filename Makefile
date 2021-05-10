@@ -392,7 +392,7 @@ run_vg: $(TARGET_BIN)
 
 
 tools/indent_check: tools/indent_check.c
-	$(CC) $(<) -Wall -Wextra -O3 -o $(@)
+	$(CC) $(<) -Wall -Wextra -Wpedantic -O3 -o $(@)
 
 
 check_indent: tools/indent_check

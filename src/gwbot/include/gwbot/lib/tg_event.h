@@ -416,8 +416,7 @@ static __always_inline int parse_tgevi_chat(json_object *jchat,
 				return -EINVAL;
 
 			}
-			chat->all_admins =
-				json_object_get_boolean(res)  ? true : false;
+			chat->all_admins = json_object_get_boolean(res);
 		}
 
 		if (unlikely(!json_object_object_get_ex(jchat, "title",

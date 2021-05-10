@@ -116,8 +116,7 @@ static __always_inline int parse_event_gif(json_object *jgif,
 
 	}
 
-	if (egif->is_forwarded)
-	{
+	if (egif->is_forwarded) {
 		if (unlikely(!json_object_object_get_ex(jgif,
 						"forward_date", &res))) {
 			/*
