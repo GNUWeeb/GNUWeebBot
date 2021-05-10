@@ -34,6 +34,7 @@ static int indent_check(const char *fn)
 			       lineno);
 		}
 	}
+	fclose(handle);
 
 	return ret;
 }
