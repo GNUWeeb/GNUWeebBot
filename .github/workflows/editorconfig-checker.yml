@@ -17,7 +17,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Install Dependencies
-      run:  sudo apt update -y --fix-missing; sudo apt install wget;
+      run:  sudo apt update -y --fix-missing; sudo apt install wget gcc clang;
 
     - name: Download and extract editorconfig checker
       run: mkdir .editorconfig.tmp &&
@@ -27,3 +27,7 @@ jobs:
 
     - name: Run editorconfig-checker
       run: .editorconfig.tmp/bin/ec-linux-amd64
+
+    - name: Run indentation checker
+      run: make check_indent
+ 

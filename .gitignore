@@ -13,3 +13,4 @@
 # Ignore used config
 /*.ini
 build.dir
+/tools/indent_check

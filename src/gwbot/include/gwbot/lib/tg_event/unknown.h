@@ -132,17 +132,17 @@ static __always_inline int parse_event_unknown(json_object *jmsg,
 	} else {
 		uint16_t entity_c;
 
- 		entity_c = (uint16_t)json_object_array_length(res);
- 		if (likely(entity_c == 0u)) {
- 			eukw->entity_c = 0u;
+		entity_c = (uint16_t)json_object_array_length(res);
+		if (likely(entity_c == 0u)) {
+			eukw->entity_c = 0u;
 			eukw->entities = NULL;
- 			goto parse_reply_to;
- 		}
+			goto parse_reply_to;
+		}
 
- 		eukw->entity_c = entity_c;
- 		if (unlikely(parse_tgevi_entities(res, entity_c,
- 						 &eukw->entities) < 0))
- 			return -EINVAL;
+		eukw->entity_c = entity_c;
+		if (unlikely(parse_tgevi_entities(res, entity_c,
+						 &eukw->entities) < 0))
+			return -EINVAL;
 	}
 
 

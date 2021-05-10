@@ -148,17 +148,17 @@ static __always_inline int parse_event_text(json_object *jmsg, struct tgev *evt)
 	} else {
 		uint16_t entity_c;
 
- 		entity_c = (uint16_t)json_object_array_length(res);
- 		if (likely(entity_c == 0u)) {
- 			etext->entity_c = 0u;
+		entity_c = (uint16_t)json_object_array_length(res);
+		if (likely(entity_c == 0u)) {
+			etext->entity_c = 0u;
 			etext->entities = NULL;
- 			goto parse_reply_to;
- 		}
+			goto parse_reply_to;
+		}
 
- 		etext->entity_c = entity_c;
- 		if (unlikely(parse_tgevi_entities(res, entity_c,
- 						 &etext->entities) < 0))
- 			return -EINVAL;
+		etext->entity_c = entity_c;
+		if (unlikely(parse_tgevi_entities(res, entity_c,
+						 &etext->entities) < 0))
+			return -EINVAL;
 	}
 
 

@@ -391,5 +391,12 @@ run_vg: $(TARGET_BIN)
 	$(VG) $(VGFLAGS) ./$(TARGET_BIN) -c config_1.ini
 
 
+tools/indent_check: tools/indent_check.c
+	$(CC) $(<) -Wall -Wextra -O3 -o $(@)
+
+
+check_indent: tools/indent_check
+	tools/indent_check src/gwbot
+
 
 .PHONY: all clean clean_all release_pack __build_release_pack run_vg test_all

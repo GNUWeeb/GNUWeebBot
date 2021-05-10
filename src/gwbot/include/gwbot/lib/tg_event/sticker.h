@@ -139,14 +139,14 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 	if (unlikely(ret != 0))
 		return ret;
 
-        if (unlikely(!json_object_object_get_ex(jstk, "message_id", &res))) {
+	if (unlikely(!json_object_object_get_ex(jstk, "message_id", &res))) {
 		pr_err("Cannot find \"message_id\" key on sticker event");
 		return -EINVAL;
 	}
 	estk->msg_id = json_object_get_uint64(res);
 
 
-        if (unlikely(!json_object_object_get_ex(jstk, "from", &res))) {
+	if (unlikely(!json_object_object_get_ex(jstk, "from", &res))) {
 		pr_err("Cannot find \"from\" key on sticker event");
 		return -EINVAL;
 	}
@@ -200,7 +200,7 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 	}
 
 
-        if (unlikely(!json_object_object_get_ex(jstk, "chat", &res))) {
+	if (unlikely(!json_object_object_get_ex(jstk, "chat", &res))) {
 		pr_err("Cannot find \"chat\" key on sticker event");
 		return -EINVAL;
 	}
@@ -216,7 +216,7 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 
 
 
-        if (unlikely(!json_object_object_get_ex(jstk, "date", &res))) {
+	if (unlikely(!json_object_object_get_ex(jstk, "date", &res))) {
 		pr_err("Cannot find \"date\" key on sticker event");
 		return -EINVAL;
 	}
