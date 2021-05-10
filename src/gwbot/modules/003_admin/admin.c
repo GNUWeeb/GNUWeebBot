@@ -105,7 +105,7 @@ static int send_reply(const struct gwbot_thread *thread, struct tgev *evt,
 	});
 
 	if (ret)
- 		pr_err("tga_send_msg() on send_reply(): " PRERF, PREAR(-ret));
+		pr_err("tga_send_msg() on send_reply(): " PRERF, PREAR(-ret));
 
 	tga_sdestroy(&thandle);
 	return 0;

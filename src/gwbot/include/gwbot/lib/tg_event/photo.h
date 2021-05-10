@@ -20,16 +20,16 @@
 struct tgev_photo {
 	uint64_t		msg_id;
 	struct tgevi_from	from;
-        struct tgevi_from	forward_from;
+	struct tgevi_from	forward_from;
 	const char 		*fwd_sender_name;
 	struct tgevi_chat	chat;
 	struct tgevi_chat	sender_chat;
 	time_t			date;
 	time_t			forward_date;
-        bool                    is_forwarded;
+	bool			is_forwarded;
 	bool			is_unknown_fwd;
 	/* How many photo[n] there are? */
-	uint16_t		photo_c; 
+	uint16_t		photo_c;
 	struct tgevi_file	*photo;
 
 	const char		*caption;
@@ -98,20 +98,20 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 	ephoto = &evt->msg_photo;
 	evt->type = TGEV_PHOTO;
 
-        ephoto->photo_c = (uint16_t)json_object_array_length(res);
-        if (unlikely(parse_tgevi_photos(res, ephoto->photo_c,
- 						 &ephoto->photo) < 0))
- 			return -EINVAL;
+	ephoto->photo_c = (uint16_t)json_object_array_length(res);
+	if (unlikely(parse_tgevi_photos(res, ephoto->photo_c,
+						 &ephoto->photo) < 0))
+			return -EINVAL;
 
 
-        if (unlikely(!json_object_object_get_ex(jphoto, "message_id", &res))) {
+	if (unlikely(!json_object_object_get_ex(jphoto, "message_id", &res))) {
 		pr_err("Cannot find \"message_id\" key on photo event");
 		return -EINVAL;
 	}
 	ephoto->msg_id = json_object_get_uint64(res);
 
 
-        if (unlikely(!json_object_object_get_ex(jphoto, "from", &res))) {
+	if (unlikely(!json_object_object_get_ex(jphoto, "from", &res))) {
 		pr_err("Cannot find \"from\" key on photo event");
 		return -EINVAL;
 	}
@@ -121,11 +121,11 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 
 
 	if (likely(!json_object_object_get_ex(jphoto, "forward_from", &res))) {
-		/* 
+		/*
 		 * `forward_from` is not mandatory, but we should also check
 		 * the `forward_sender_name` parameter for unknown forward.
 		 */
-		if (likely(!json_object_object_get_ex(jphoto, 
+		if (likely(!json_object_object_get_ex(jphoto,
 						"forward_sender_name", &res)))
 		{
 			ephoto->forward_date	= 0;
@@ -148,12 +148,12 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 
 	if (ephoto->is_forwarded)
 	{
-		if (unlikely(!json_object_object_get_ex(jphoto, 
+		if (unlikely(!json_object_object_get_ex(jphoto,
 						"forward_date", &res))) {
 			/*
-			 * `forward_date` is originaly not mandatory, 
-		 	 * but since there is `forward_from` parameter, 
-		 	 * there SHOULD be `forward_date` parameter. 
+			 * `forward_date` is originaly not mandatory,
+		 	 * but since there is `forward_from` parameter,
+		 	 * there SHOULD be `forward_date` parameter.
 			 */
 			pr_err("Cannot find \"forward_date\" key on text "
 								"event");
@@ -163,7 +163,7 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 		}
 	}
 
-        if (unlikely(!json_object_object_get_ex(jphoto, "chat", &res))) {
+	if (unlikely(!json_object_object_get_ex(jphoto, "chat", &res))) {
 		pr_err("Cannot find \"chat\" key on photo event");
 		return -EINVAL;
 	}
@@ -177,7 +177,7 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 			return ret;
 	}
 
-        if (unlikely(!json_object_object_get_ex(jphoto, "date", &res))) {
+	if (unlikely(!json_object_object_get_ex(jphoto, "date", &res))) {
 		pr_err("Cannot find \"date\" key on photo event");
 		return -EINVAL;
 	}
@@ -185,7 +185,7 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 
 	if (unlikely(!json_object_object_get_ex(jphoto, "caption", &res))) {
 		/*
-		 * `caption` is not mandatory, and since there is 
+		 * `caption` is not mandatory, and since there is
 		 *  no caption, there is no `caption_entities`
 		 */
 		ephoto->caption = NULL;
@@ -198,8 +198,8 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 
 
 
-        if (unlikely(!json_object_object_get_ex(jphoto, "caption_entities",
-        					&res))) {
+	if (unlikely(!json_object_object_get_ex(jphoto, "caption_entities",
+						&res))) {
 		/* `entities` is not mandatory */
 		ephoto->caption_entity_c = 0u;
 		ephoto->caption_entities = NULL;
@@ -207,17 +207,17 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 		uint16_t entity_c;
 		struct tgevi_entity **cp_ent;
 
- 		entity_c = (uint16_t)json_object_array_length(res);
- 		if (likely(entity_c == 0u)) {
- 			ephoto->caption_entity_c = 0u;
+		entity_c = (uint16_t)json_object_array_length(res);
+		if (likely(entity_c == 0u)) {
+			ephoto->caption_entity_c = 0u;
 			ephoto->caption_entities = NULL;
- 			goto parse_reply_to;
- 		}
+			goto parse_reply_to;
+		}
 
- 		cp_ent = &ephoto->caption_entities;
- 		ephoto->caption_entity_c = entity_c;
- 		if (unlikely(parse_tgevi_entities(res, entity_c, cp_ent) < 0))
- 			return -EINVAL;
+		cp_ent = &ephoto->caption_entities;
+		ephoto->caption_entity_c = entity_c;
+		if (unlikely(parse_tgevi_entities(res, entity_c, cp_ent) < 0))
+			return -EINVAL;
 	}
 
 

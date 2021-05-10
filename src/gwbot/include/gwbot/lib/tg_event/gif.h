@@ -66,21 +66,21 @@ static __always_inline int parse_event_gif(json_object *jgif,
 	ret = parse_tgevi_media(res, &egif->animation);
 	if (unlikely(ret != 0))
 		return ret;
-	
+
 	if (unlikely(!json_object_object_get_ex(jgif, "document", &res))) {
 		pr_err("Cannot find \"document\" key on gif event");
 		return -EINVAL;
 	}
 	ret = parse_tgevi_file(res, &egif->document);
 
-        if (unlikely(!json_object_object_get_ex(jgif, "message_id", &res))) {
+	if (unlikely(!json_object_object_get_ex(jgif, "message_id", &res))) {
 		pr_err("Cannot find \"message_id\" key on gif event");
 		return -EINVAL;
 	}
 	egif->msg_id = json_object_get_uint64(res);
 
 
-        if (unlikely(!json_object_object_get_ex(jgif, "from", &res))) {
+	if (unlikely(!json_object_object_get_ex(jgif, "from", &res))) {
 		pr_err("Cannot find \"from\" key on gif event");
 		return -EINVAL;
 	}
@@ -90,11 +90,11 @@ static __always_inline int parse_event_gif(json_object *jgif,
 
 
 	if (likely(!json_object_object_get_ex(jgif, "forward_from", &res))) {
-		/* 
+		/*
 		 * `forward_from` is not mandatory, but we should also check
 		 * the `forward_sender_name` parameter for unknown forward.
 		 */
-		if (likely(!json_object_object_get_ex(jgif, 
+		if (likely(!json_object_object_get_ex(jgif,
 						"forward_sender_name", &res)))
 		{
 			egif->forward_date	= 0;
@@ -116,26 +116,25 @@ static __always_inline int parse_event_gif(json_object *jgif,
 
 	}
 
-	if (egif->is_forwarded)
-	{
-		if (unlikely(!json_object_object_get_ex(jgif, 
+	if (egif->is_forwarded) {
+		if (unlikely(!json_object_object_get_ex(jgif,
 						"forward_date", &res))) {
 			/*
-			 * `forward_date` is originaly not mandatory, 
-		 	 * but since there is `forward_from` parameter, 
-		 	 * there SHOULD be `forward_date` parameter. 
+			 * `forward_date` is originaly not mandatory,
+		 	 * but since there is `forward_from` parameter,
+		 	 * there SHOULD be `forward_date` parameter.
 			 */
 			pr_err("Cannot find \"forward_date\" key on gif "
 							"event");
 			return -EINVAL;
 		} else {
-			egif->forward_date = 
+			egif->forward_date =
 				(time_t)json_object_get_int64(res);
 		}
 	}
 
 
-        if (unlikely(!json_object_object_get_ex(jgif, "chat", &res))) {
+	if (unlikely(!json_object_object_get_ex(jgif, "chat", &res))) {
 		pr_err("Cannot find \"chat\" key on gif event");
 		return -EINVAL;
 	}
@@ -149,7 +148,7 @@ static __always_inline int parse_event_gif(json_object *jgif,
 			return ret;
 	}
 
-        if (unlikely(!json_object_object_get_ex(jgif, "date", &res))) {
+	if (unlikely(!json_object_object_get_ex(jgif, "date", &res))) {
 		pr_err("Cannot find \"date\" key on gif event");
 		return -EINVAL;
 	}
@@ -157,7 +156,7 @@ static __always_inline int parse_event_gif(json_object *jgif,
 
 	if (unlikely(!json_object_object_get_ex(jgif, "caption", &res))) {
 		/*
-		 * `caption` is not mandatory, and since there is 
+		 * `caption` is not mandatory, and since there is
 		 *  no caption, there is no `caption_entities`
 		 */
 		egif->caption = NULL;
@@ -170,8 +169,8 @@ static __always_inline int parse_event_gif(json_object *jgif,
 
 
 
-        if (unlikely(!json_object_object_get_ex(jgif, "caption_entities",
-        					&res))) {
+	if (unlikely(!json_object_object_get_ex(jgif, "caption_entities",
+						&res))) {
 		/* `entities` is not mandatory */
 		egif->caption_entity_c = 0u;
 		egif->caption_entities = NULL;
@@ -179,18 +178,18 @@ static __always_inline int parse_event_gif(json_object *jgif,
 		uint16_t entity_c;
 		struct tgevi_entity **cp_ent;
 
- 		entity_c = (uint16_t)json_object_array_length(res);
- 		if (likely(entity_c == 0u)) {
- 			egif->caption_entity_c = 0u;
+		entity_c = (uint16_t)json_object_array_length(res);
+		if (likely(entity_c == 0u)) {
+			egif->caption_entity_c = 0u;
 			egif->caption_entities = NULL;
- 			goto parse_reply_to;
- 		}
+			goto parse_reply_to;
+		}
 
- 		cp_ent = &egif->caption_entities;
- 		egif->caption_entity_c = entity_c;
+		cp_ent = &egif->caption_entities;
+		egif->caption_entity_c = entity_c;
 		ret = parse_tgevi_entities(res, entity_c, cp_ent);
- 		if (unlikely(ret < 0))
- 			return ret;
+		if (unlikely(ret < 0))
+			return ret;
 	}
 
 

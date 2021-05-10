@@ -8,7 +8,6 @@
  */
 
 #include <gwbot/gwbot.h>
-#include <gwbot/gwchan.h>
 #include <gwbot/lib/que.h>
 #include <gwbot/gwthread.h>
 #include <gwbot/lib/string.h>

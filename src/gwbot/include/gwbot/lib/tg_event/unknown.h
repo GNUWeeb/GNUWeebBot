@@ -64,11 +64,11 @@ static __always_inline int parse_event_unknown(json_object *jmsg,
 
 
 	if (likely(!json_object_object_get_ex(jmsg, "forward_from", &res))) {
-		/* 
+		/*
 		 * `forward_from` is not mandatory, but we should also check
 		 * the `forward_sender_name` parameter for unknown forward.
 		 */
-		if (likely(!json_object_object_get_ex(jmsg, 
+		if (likely(!json_object_object_get_ex(jmsg,
 						"forward_sender_name", &res))) {
 			eukw->forward_date      = 0ul;
 			eukw->is_forwarded 	= false;
@@ -89,12 +89,12 @@ static __always_inline int parse_event_unknown(json_object *jmsg,
 	}
 
 	if (unlikely(eukw->is_forwarded)) {
-		if (unlikely(!json_object_object_get_ex(jmsg, 
+		if (unlikely(!json_object_object_get_ex(jmsg,
 						"forward_date", &res))) {
 			/*
-			 * `forward_date` is originaly not mandatory, 
-		 	 * but since there is `forward_from` parameter, 
-		 	 * there SHOULD be `forward_date` parameter. 
+			 * `forward_date` is originaly not mandatory,
+		 	 * but since there is `forward_from` parameter,
+		 	 * there SHOULD be `forward_date` parameter.
 			 */
 			pr_err("Cannot find \"forward_date\" key on text "
 			       "event");
@@ -132,17 +132,17 @@ static __always_inline int parse_event_unknown(json_object *jmsg,
 	} else {
 		uint16_t entity_c;
 
- 		entity_c = (uint16_t)json_object_array_length(res);
- 		if (likely(entity_c == 0u)) {
- 			eukw->entity_c = 0u;
+		entity_c = (uint16_t)json_object_array_length(res);
+		if (likely(entity_c == 0u)) {
+			eukw->entity_c = 0u;
 			eukw->entities = NULL;
- 			goto parse_reply_to;
- 		}
+			goto parse_reply_to;
+		}
 
- 		eukw->entity_c = entity_c;
- 		if (unlikely(parse_tgevi_entities(res, entity_c,
- 						 &eukw->entities) < 0))
- 			return -EINVAL;
+		eukw->entity_c = entity_c;
+		if (unlikely(parse_tgevi_entities(res, entity_c,
+						 &eukw->entities) < 0))
+			return -EINVAL;
 	}
 
 

@@ -111,7 +111,7 @@ static __always_inline int parse_tgevi_file(json_object *jfile,
 	} else {
 		file->file_name = json_object_get_string(res);
 	}
-	
+
 	if (unlikely(!json_object_object_get_ex(jfile, "mime_type", &res))) {
 		/* `mime_type` is not mandatory */
 		file->mime_type = NULL;
@@ -125,7 +125,7 @@ static __always_inline int parse_tgevi_file(json_object *jfile,
 	}
 	file->file_id = json_object_get_string(res);
 
-	if (unlikely(!json_object_object_get_ex(jfile, 
+	if (unlikely(!json_object_object_get_ex(jfile,
 					"file_unique_id", &res))) {
 		pr_err("Cannot find \"file_unique_id\" key in \"file\"");
 		return -EINVAL;
@@ -144,7 +144,7 @@ static __always_inline int parse_tgevi_file(json_object *jfile,
 		file->height = 0u;
 	} else {
 		file->width = (uint16_t)json_object_get_uint64(res);
-		if (unlikely(!json_object_object_get_ex(jfile, "height", 
+		if (unlikely(!json_object_object_get_ex(jfile, "height",
 								&res))) {
 			/*
 		 	* `height` is originally not mandatory, but since
@@ -156,8 +156,6 @@ static __always_inline int parse_tgevi_file(json_object *jfile,
 		}
 		file->height = (uint16_t)json_object_get_uint64(res);
 	}
-	
-
 
 	return 0;
 }
@@ -196,7 +194,7 @@ static __always_inline int parse_tgevi_media(json_object *jmdia,
 		imdia->height = 0u;
 	} else {
 		imdia->width = (uint16_t)json_object_get_uint64(res);
-		if (unlikely(!json_object_object_get_ex(jmdia, "height", 
+		if (unlikely(!json_object_object_get_ex(jmdia, "height",
 								&res))) {
 			/*
 		 	* `height` is originally not mandatory, but since
@@ -208,7 +206,7 @@ static __always_inline int parse_tgevi_media(json_object *jmdia,
 		}
 		imdia->height = (uint16_t)json_object_get_uint64(res);
 	}
-	
+
 	if (unlikely(!json_object_object_get_ex(jmdia, "title", &res))) {
 		/* `title` is not mandatory */
 		imdia->title = NULL;
@@ -251,7 +249,6 @@ static __always_inline int parse_tgevi_media(json_object *jmdia,
 		ret = parse_tgevi_file(jmdia, &imdia->thumb);
 		if (unlikely(ret != 0))
 			return ret;
-		
 	}
 	return 0;
 }
@@ -393,7 +390,6 @@ static __always_inline int parse_tgevi_chat(json_object *jchat,
 		pr_err("Unknown \"type\" on key \"chat\": \"%s\"", type);
 		return -EINVAL;
 	}
-	
 
 	if (chat->type == TGEV_CHAT_PRIVATE) {
 		chat->title = NULL;
@@ -412,19 +408,18 @@ static __always_inline int parse_tgevi_chat(json_object *jchat,
 		}
 	} else {
 		if (chat->type == TGEV_CHAT_GROUP) {
-			if (unlikely(!json_object_object_get_ex(jchat, 
-					"all_members_are_administrators", 
+			if (unlikely(!json_object_object_get_ex(jchat,
+					"all_members_are_administrators",
 								&res))) {
 				pr_err("Cannot find \"all_admins\" "
 						"on key \"chat\"");
 				return -EINVAL;
 
 			}
-			chat->all_admins = 
-				json_object_get_boolean(res)  ? true : false;
+			chat->all_admins = json_object_get_boolean(res);
 		}
-		
-		if (unlikely(!json_object_object_get_ex(jchat, "title", 
+
+		if (unlikely(!json_object_object_get_ex(jchat, "title",
 								&res))) {
 			/*
 			 * `title` is mandatory, bacause the type is
@@ -458,7 +453,7 @@ static __always_inline int parse_tgevi_chat(json_object *jchat,
 #undef INCLUDE_SUB_TG_EVENT
 
 struct tgev {
-	/* 
+	/*
 	 * We need to hold the JSON object to release
 	 * the resource, as it holds the reference
 	 * to `const char *`.
