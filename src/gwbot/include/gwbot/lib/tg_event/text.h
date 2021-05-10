@@ -80,11 +80,11 @@ static __always_inline int parse_event_text(json_object *jmsg, struct tgev *evt)
 
 
 	if (likely(!json_object_object_get_ex(jmsg, "forward_from", &res))) {
-		/* 
+		/*
 		 * `forward_from` is not mandatory, but we should also check
 		 * the `forward_sender_name` parameter for unknown forward.
 		 */
-		if (likely(!json_object_object_get_ex(jmsg, 
+		if (likely(!json_object_object_get_ex(jmsg,
 						"forward_sender_name", &res))) {
 			etext->forward_date     = 0ul;
 			etext->is_forwarded 	= false;
@@ -103,14 +103,14 @@ static __always_inline int parse_event_text(json_object *jmsg, struct tgev *evt)
 		etext->is_unknown_fwd	= false;
 		etext->fwd_sender_name 	= NULL;
 	}
-	
+
 	if (unlikely(etext->is_forwarded)) {
-		if (unlikely(!json_object_object_get_ex(jmsg, 
+		if (unlikely(!json_object_object_get_ex(jmsg,
 						"forward_date", &res))) {
 			/*
-			 * `forward_date` is originaly not mandatory, 
-		 	 * but since there is `forward_from` parameter, 
-		 	 * there SHOULD be `forward_date` parameter. 
+			 * `forward_date` is originaly not mandatory,
+		 	 * but since there is `forward_from` parameter,
+		 	 * there SHOULD be `forward_date` parameter.
 			 */
 			pr_err("Cannot find \"forward_date\" key on text "
 			       "event");

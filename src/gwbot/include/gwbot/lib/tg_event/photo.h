@@ -29,7 +29,7 @@ struct tgev_photo {
         bool                    is_forwarded;
 	bool			is_unknown_fwd;
 	/* How many photo[n] there are? */
-	uint16_t		photo_c; 
+	uint16_t		photo_c;
 	struct tgevi_file	*photo;
 
 	const char		*caption;
@@ -121,11 +121,11 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 
 
 	if (likely(!json_object_object_get_ex(jphoto, "forward_from", &res))) {
-		/* 
+		/*
 		 * `forward_from` is not mandatory, but we should also check
 		 * the `forward_sender_name` parameter for unknown forward.
 		 */
-		if (likely(!json_object_object_get_ex(jphoto, 
+		if (likely(!json_object_object_get_ex(jphoto,
 						"forward_sender_name", &res)))
 		{
 			ephoto->forward_date	= 0;
@@ -148,12 +148,12 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 
 	if (ephoto->is_forwarded)
 	{
-		if (unlikely(!json_object_object_get_ex(jphoto, 
+		if (unlikely(!json_object_object_get_ex(jphoto,
 						"forward_date", &res))) {
 			/*
-			 * `forward_date` is originaly not mandatory, 
-		 	 * but since there is `forward_from` parameter, 
-		 	 * there SHOULD be `forward_date` parameter. 
+			 * `forward_date` is originaly not mandatory,
+		 	 * but since there is `forward_from` parameter,
+		 	 * there SHOULD be `forward_date` parameter.
 			 */
 			pr_err("Cannot find \"forward_date\" key on text "
 								"event");
@@ -185,7 +185,7 @@ static __always_inline int parse_event_photo(json_object *jphoto,
 
 	if (unlikely(!json_object_object_get_ex(jphoto, "caption", &res))) {
 		/*
-		 * `caption` is not mandatory, and since there is 
+		 * `caption` is not mandatory, and since there is
 		 *  no caption, there is no `caption_entities`
 		 */
 		ephoto->caption = NULL;

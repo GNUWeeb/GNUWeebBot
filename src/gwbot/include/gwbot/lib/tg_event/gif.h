@@ -66,7 +66,7 @@ static __always_inline int parse_event_gif(json_object *jgif,
 	ret = parse_tgevi_media(res, &egif->animation);
 	if (unlikely(ret != 0))
 		return ret;
-	
+
 	if (unlikely(!json_object_object_get_ex(jgif, "document", &res))) {
 		pr_err("Cannot find \"document\" key on gif event");
 		return -EINVAL;
@@ -90,11 +90,11 @@ static __always_inline int parse_event_gif(json_object *jgif,
 
 
 	if (likely(!json_object_object_get_ex(jgif, "forward_from", &res))) {
-		/* 
+		/*
 		 * `forward_from` is not mandatory, but we should also check
 		 * the `forward_sender_name` parameter for unknown forward.
 		 */
-		if (likely(!json_object_object_get_ex(jgif, 
+		if (likely(!json_object_object_get_ex(jgif,
 						"forward_sender_name", &res)))
 		{
 			egif->forward_date	= 0;
@@ -118,18 +118,18 @@ static __always_inline int parse_event_gif(json_object *jgif,
 
 	if (egif->is_forwarded)
 	{
-		if (unlikely(!json_object_object_get_ex(jgif, 
+		if (unlikely(!json_object_object_get_ex(jgif,
 						"forward_date", &res))) {
 			/*
-			 * `forward_date` is originaly not mandatory, 
-		 	 * but since there is `forward_from` parameter, 
-		 	 * there SHOULD be `forward_date` parameter. 
+			 * `forward_date` is originaly not mandatory,
+		 	 * but since there is `forward_from` parameter,
+		 	 * there SHOULD be `forward_date` parameter.
 			 */
 			pr_err("Cannot find \"forward_date\" key on gif "
 							"event");
 			return -EINVAL;
 		} else {
-			egif->forward_date = 
+			egif->forward_date =
 				(time_t)json_object_get_int64(res);
 		}
 	}
@@ -157,7 +157,7 @@ static __always_inline int parse_event_gif(json_object *jgif,
 
 	if (unlikely(!json_object_object_get_ex(jgif, "caption", &res))) {
 		/*
-		 * `caption` is not mandatory, and since there is 
+		 * `caption` is not mandatory, and since there is
 		 *  no caption, there is no `caption_entities`
 		 */
 		egif->caption = NULL;

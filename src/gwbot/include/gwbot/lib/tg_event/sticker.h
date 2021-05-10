@@ -71,13 +71,13 @@ static __always_inline int parse_tgevi_sticker(json_object *jstk,
 	}
 	sane_strncpy(istk->emoji, json_object_get_string(res),
 			     sizeof(istk->emoji));
-	
+
 	if (unlikely(!json_object_object_get_ex(jstk, "set_name", &res))) {
 		pr_err("Cannot find \"set_name\" key on sticker event");
 		return -EINVAL;
 	}
 	istk->set_name = json_object_get_string(res);
-	
+
 	if (unlikely(!json_object_object_get_ex(jstk, "is_animated", &res))) {
 		pr_err("Cannot find \"is_animated\" key on sticker event");
 		return -EINVAL;
@@ -90,7 +90,7 @@ static __always_inline int parse_tgevi_sticker(json_object *jstk,
 	}
 	istk->file_id = json_object_get_string(res);
 
-	if (unlikely(!json_object_object_get_ex(jstk, "file_unique_id", 
+	if (unlikely(!json_object_object_get_ex(jstk, "file_unique_id",
 						&res))) {
 		pr_err("Cannot find \"file_unique_id\" key on sticker event");
 		return -EINVAL;
@@ -138,9 +138,6 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 	ret = parse_tgevi_sticker(res, &estk->sticker);
 	if (unlikely(ret != 0))
 		return ret;
-	
-
-
 
         if (unlikely(!json_object_object_get_ex(jstk, "message_id", &res))) {
 		pr_err("Cannot find \"message_id\" key on sticker event");
@@ -159,11 +156,11 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 
 
 	if (likely(!json_object_object_get_ex(jstk, "forward_from", &res))) {
-		/* 
+		/*
 		 * `forward_from` is not mandatory, but we should also check
 		 * the `forward_sender_name` parameter for unknown forward.
 		 */
-		if (likely(!json_object_object_get_ex(jstk, 
+		if (likely(!json_object_object_get_ex(jstk,
 						"forward_sender_name", &res)))
 		{
 			estk->forward_date	= 0;
@@ -187,12 +184,12 @@ static __always_inline int parse_event_sticker(json_object *jstk,
 
 	if (estk->is_forwarded)
 	{
-		if (unlikely(!json_object_object_get_ex(jstk, 
+		if (unlikely(!json_object_object_get_ex(jstk,
 						"forward_date", &res))) {
 			/*
-			 * `forward_date` is originaly not mandatory, 
-		 	 * but since there is `forward_from` parameter, 
-		 	 * there SHOULD be `forward_date` parameter. 
+			 * `forward_date` is originaly not mandatory,
+		 	 * but since there is `forward_from` parameter,
+		 	 * there SHOULD be `forward_date` parameter.
 			 */
 			pr_err("Cannot find \"forward_date\" key on sticker "
 							"event");
