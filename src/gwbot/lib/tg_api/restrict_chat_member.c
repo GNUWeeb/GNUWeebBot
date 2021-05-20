@@ -12,6 +12,12 @@ int tga_restrict_chat_member(tga_handle_t *handle, const tga_restrict_cm_t *ctx)
 	const tga_res_perm_t *perm = &ctx->permissions;
 
 	pos += (size_t)snprintf(buf + pos, space,
+		 /*
+		  * Building JSON object is expensive.
+		  *
+		  * This JSON is so simple that we can
+		  * easily use snprintf format as template.
+		  */
 		 "{"
 		 	"\"user_id\":%" PRIu64 ","
 		 	"\"chat_id\":%" PRId64 ","
