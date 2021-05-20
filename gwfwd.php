@@ -3,9 +3,9 @@
 
 $json = <<<'JSON'
 {
-    "update_id": 346121425,
+    "update_id": 346134787,
     "message": {
-        "message_id": 3228,
+        "message_id": 4007,
         "from": {
             "id": 243692601,
             "is_bot": false,
@@ -20,9 +20,9 @@ $json = <<<'JSON'
             "username": "GNUWeebTDD",
             "type": "supergroup"
         },
-        "date": 1620143639,
+        "date": 1621503523,
         "reply_to_message": {
-            "message_id": 3224,
+            "message_id": 4006,
             "from": {
                 "id": 243692601,
                 "is_bot": false,
@@ -37,35 +37,10 @@ $json = <<<'JSON'
                 "username": "GNUWeebTDD",
                 "type": "supergroup"
             },
-            "date": 1620143045,
-            "new_chat_participant": {
-                "id": 243692601,
-                "is_bot": false,
-                "first_name": "Ammar",
-                "last_name": "Faizi",
-                "username": "ammarfaizi2",
-                "language_code": "en"
-            },
-            "new_chat_member": {
-                "id": 243692601,
-                "is_bot": false,
-                "first_name": "Ammar",
-                "last_name": "Faizi",
-                "username": "ammarfaizi2",
-                "language_code": "en"
-            },
-            "new_chat_members": [
-                {
-                    "id": 243692601,
-                    "is_bot": false,
-                    "first_name": "Ammar",
-                    "last_name": "Faizi",
-                    "username": "ammarfaizi2",
-                    "language_code": "en"
-                }
-            ]
+            "date": 1621503517,
+            "text": "test"
         },
-        "text": ".unban test"
+        "text": ".delete"
     }
 }
 JSON; /* end JSON */
