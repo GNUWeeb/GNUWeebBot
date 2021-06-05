@@ -746,6 +746,14 @@ static int exec_adm_cmd_delete(const struct gwbot_thread *thread, struct tgev *e
 	if (!tmp)
 		goto out;
 
+	tmp = do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
+		.chat_id = tge_get_chat_id(evt),
+		.message_id = tge_get_msg_id(evt)
+	});
+
+	if (!tmp)
+		goto out;
+
 	snprintf(reply_text, RTB_SIZE, "Message %" PRIu64 " has been deleted!",
 		 reply_to_msg_id);
 
