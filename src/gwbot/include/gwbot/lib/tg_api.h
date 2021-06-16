@@ -152,6 +152,7 @@ static __always_inline const char *tge_get_res_body(tga_handle_t *handle)
 	return handle->res.body;
 }
 
+#include <gwbot/lib/tg_api/delete_message.h>
 #include <gwbot/lib/tg_api/kick_chat_member.h>
 #include <gwbot/lib/tg_api/send_message.h>
 #include <gwbot/lib/tg_api/unban_chat_member.h>

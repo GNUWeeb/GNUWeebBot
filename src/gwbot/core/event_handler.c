@@ -4,7 +4,7 @@
 #include <gwbot/module.h>
 #include <gwbot/event_handler.h>
 
-#include "module_table.h"
+#include "../module_table.h"
 
 static bool is_mod_initialized = false;
 

@@ -45,8 +45,9 @@ typedef enum _mod_cmd_t {
 	ADM_CMD_UNMUTE	= (1u << 6u),
 	ADM_CMD_PIN	= (1u << 7u),
 	ADM_CMD_UNPIN	= (1u << 8u),
-	USR_CMD_REPORT	= (1u << 9u),
-	USR_CMD_DELVOTE	= (1u << 10u),
+	ADM_CMD_DELETE	= (1u << 9u),
+	USR_CMD_REPORT	= (1u << 10u),
+	USR_CMD_DELVOTE	= (1u << 11u),
 } mod_cmd_t;
 
 
@@ -63,7 +64,8 @@ typedef enum _mod_cmd_t {
 		ADM_CMD_TMUTE 	|	\
 		ADM_CMD_UNMUTE	|	\
 		ADM_CMD_PIN	|	\
-		ADM_CMD_UNPIN		\
+		ADM_CMD_UNPIN	|	\
+		ADM_CMD_DELETE		\
 	)
 
 
@@ -417,6 +419,31 @@ static bool do_unpin(const struct gwbot_thread *thread, char *reply_text,
 }
 
 
+static int do_del_msg(const struct gwbot_thread *thread, char *reply_text,
+		      const tga_delete_msg_t *arg)
+{
+	int ret;
+	bool ok = true;
+	tga_handle_t thandle;
+
+	tga_screate(&thandle, thread->state->cfg->cred.token);
+	ret = tga_delete_msg(&thandle, arg);
+
+
+	if (ret) {
+		pr_err("tga_delete_msg() on do_pin(): " PRERF,
+		       PREAR(-ret));
+		snprintf(reply_text, RTB_SIZE,
+			 "Error: tga_delete_msg(): " PRERF, PREAR(-ret));
+	} else {
+		ok = process_json_msg(&thandle, reply_text);
+	}
+
+	tga_sdestroy(&thandle);
+	return ok;
+}
+
+
 static int kick_or_unban(const struct gwbot_thread *thread,
 			 struct tgev *evt, uint64_t target_uid,
 			 const char *reason, bool is_unban)
@@ -696,6 +723,45 @@ out:
 }
 
 
+static int exec_adm_cmd_delete(const struct gwbot_thread *thread, struct tgev *evt)
+{
+	bool tmp;
+	char reply_text[RTB_SIZE];
+	const char *rep = reply_text;
+	uint64_t reply_to_msg_id;
+	struct tgev *reply_to;
+
+	reply_to = tge_get_reply_to(evt);
+	reply_to_msg_id = tge_get_msg_id(reply_to);
+	if (reply_to_msg_id == 0) {
+		rep = "Please reply to message to be unpinned!";
+		goto out;
+	}
+
+	tmp = do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
+		.chat_id = tge_get_chat_id(evt),
+		.message_id = reply_to_msg_id
+	});
+
+	if (!tmp)
+		goto out;
+
+	tmp = do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
+		.chat_id = tge_get_chat_id(evt),
+		.message_id = tge_get_msg_id(evt)
+	});
+
+	if (!tmp)
+		goto out;
+
+	snprintf(reply_text, RTB_SIZE, "Message %" PRIu64 " has been deleted!",
+		 reply_to_msg_id);
+
+out:
+	return send_reply(thread, evt, rep, tge_get_msg_id(evt));
+}
+
+
 static inline void construct_report_reply(char *rep_p, size_t sps,
 					  struct tga_chat_member *admins,
 					  size_t admin_c)
@@ -892,6 +958,8 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 	(!strncmp("unmute",  yx, 6) && (tx += 6) && (cmd = ADM_CMD_UNMUTE))  ||
 	(!strncmp("pin",     yx, 3) && (tx += 3) && (cmd = ADM_CMD_PIN))     ||
 	(!strncmp("unpin",   yx, 5) && (tx += 5) && (cmd = ADM_CMD_UNPIN))   ||
+	(!strncmp("delete",  yx, 6) && (tx += 6) && (cmd = ADM_CMD_DELETE))  ||
+	(!strncmp("del",     yx, 3) && (tx += 3) && (cmd = ADM_CMD_DELETE))  ||
 	(!strncmp("report",  yx, 6) && (tx += 6) && (cmd = USR_CMD_REPORT))  ||
 	(!strncmp("admin",   yx, 5) && (tx += 5) && (cmd = USR_CMD_REPORT))  ||
 	(!strncmp("delvote", yx, 7) && (tx += 7) && (cmd = USR_CMD_DELVOTE));
@@ -900,13 +968,12 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 	if (!c)
 		return ret;
 
-
 	user_id  = tge_get_user_id(evt);
 	reply_to = tge_get_reply_to(evt);
 
+
 	c = *tx;
 	if (!c) {
-
 		if (cmd != USR_CMD_REPORT && !reply_to)
 			return ret;
 
@@ -977,6 +1044,9 @@ out_run_priv_chk:
 		break;
 	case ADM_CMD_PIN:
 		ret = exec_adm_cmd_pin(thread, evt);
+		break;
+	case ADM_CMD_DELETE:
+		ret = exec_adm_cmd_delete(thread, evt);
 		break;
 	case ADM_CMD_UNPIN:
 		ret = exec_adm_cmd_unpin(thread, evt);

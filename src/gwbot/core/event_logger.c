@@ -30,6 +30,12 @@ static __always_inline void *internal_gw_event_logger(struct gwbot_state *state)
 again:
 	gw_mutex_lock(&state->log_lock);
 	gw_cond_timedwait_rel(&state->log_cond, &state->log_lock, 1);
+
+
+
+
+
+
 	gw_mutex_unlock(&state->log_lock);
 
 	if (!state->stop_el)
