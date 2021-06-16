@@ -37,17 +37,19 @@ int GWMOD_SHUTDOWN_DEFINE(003_admin, struct gwbot_state *state)
 typedef enum _mod_cmd_t {
 	CMD_NOP		= 0u,
 	ADM_CMD_BAN	= (1u << 0u),
-	ADM_CMD_UNBAN	= (1u << 1u),
-	ADM_CMD_KICK	= (1u << 2u),
-	ADM_CMD_WARN	= (1u << 3u),
-	ADM_CMD_MUTE	= (1u << 4u),
-	ADM_CMD_TMUTE	= (1u << 5u),
-	ADM_CMD_UNMUTE	= (1u << 6u),
-	ADM_CMD_PIN	= (1u << 7u),
-	ADM_CMD_UNPIN	= (1u << 8u),
-	ADM_CMD_DELETE	= (1u << 9u),
-	USR_CMD_REPORT	= (1u << 10u),
-	USR_CMD_DELVOTE	= (1u << 11u),
+	ADM_CMD_SBAN	= (1u << 1u),
+	ADM_CMD_UNBAN	= (1u << 2u),
+	ADM_CMD_KICK	= (1u << 3u),
+	ADM_CMD_SKICK	= (1u << 4u),
+	ADM_CMD_WARN	= (1u << 5u),
+	ADM_CMD_MUTE	= (1u << 6u),
+	ADM_CMD_TMUTE	= (1u << 7u),
+	ADM_CMD_UNMUTE	= (1u << 8u),
+	ADM_CMD_PIN	= (1u << 9u),
+	ADM_CMD_UNPIN	= (1u << 10u),
+	ADM_CMD_DELETE	= (1u << 11u),
+	USR_CMD_REPORT	= (1u << 12u),
+	USR_CMD_DELVOTE	= (1u << 13u),
 } mod_cmd_t;
 
 
@@ -57,8 +59,10 @@ typedef enum _mod_cmd_t {
 #define ADMIN_CMD_BITS			\
 	(				\
 		ADM_CMD_BAN	|	\
+		ADM_CMD_SBAN	|	\
 		ADM_CMD_UNBAN	|	\
 		ADM_CMD_KICK	|	\
+		ADM_CMD_SKICK	|	\
 		ADM_CMD_WARN	|	\
 		ADM_CMD_MUTE 	|	\
 		ADM_CMD_TMUTE 	|	\
@@ -446,7 +450,7 @@ static int do_del_msg(const struct gwbot_thread *thread, char *reply_text,
 
 static int kick_or_unban(const struct gwbot_thread *thread,
 			 struct tgev *evt, uint64_t target_uid,
-			 const char *reason, bool is_unban)
+			 const char *reason, bool is_unban, bool silent)
 {
 	bool tmp;
 	struct tgev *reply_to;
@@ -462,6 +466,9 @@ static int kick_or_unban(const struct gwbot_thread *thread,
 	reply_to_msg_id = tge_get_msg_id(evt);
 	if (!tmp)
 		goto out;
+
+	if (silent)
+		return 0;
 
 	reply_to = tge_get_reply_to(evt);
 	if (reply_to) {
@@ -578,16 +585,16 @@ out:
 
 
 static int exec_adm_cmd_ban(const struct gwbot_thread *thread, struct tgev *evt,
-			    uint64_t target_uid, const char *reason)
+			    uint64_t target_uid, const char *reason, bool silent)
 {
 	bool tmp;
 	struct tgev *reply_to;
 	uint64_t reply_to_msg_id;
 	char reply_text[RTB_SIZE];
-
+	int64_t chat_id = tge_get_chat_id(evt);
 
 	tmp = do_kick(thread, reply_text, &(const tga_kick_cm_t){
-		.chat_id = tge_get_chat_id(evt),
+		.chat_id = chat_id,
 		.user_id = target_uid,
 		.until_date = 0,
 		.revoke_msg = true
@@ -596,6 +603,28 @@ static int exec_adm_cmd_ban(const struct gwbot_thread *thread, struct tgev *evt,
 	reply_to_msg_id = tge_get_msg_id(evt);
 	if (!tmp)
 		goto out;
+
+	if (silent) {
+		/*
+		 * Delete the command and the replied message.
+		 */
+
+		tmp = do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
+			.chat_id = chat_id,
+			.message_id = reply_to_msg_id
+		});
+
+		reply_to = tge_get_reply_to(evt);
+		if (!reply_to)
+			return 0;
+
+		tmp = do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
+			.chat_id = chat_id,
+			.message_id = tge_get_msg_id(reply_to)
+		});
+
+		return 0;
+	}
 
 	reply_to = tge_get_reply_to(evt);
 	if (reply_to) {
@@ -633,15 +662,41 @@ static int exec_adm_cmd_unban(const struct gwbot_thread *thread,
 			      struct tgev *evt, uint64_t target_uid,
 			      const char *reason)
 {
-	return kick_or_unban(thread, evt, target_uid, reason, true);
+	bool silent = false;
+	return kick_or_unban(thread, evt, target_uid, reason, true, silent);
 }
 
 
 static int exec_adm_cmd_kick(const struct gwbot_thread *thread,
 			     struct tgev *evt, uint64_t target_uid,
-			     const char *reason)
+			     const char *reason, bool silent)
 {
-	return kick_or_unban(thread, evt, target_uid, reason, false);
+	int ret = kick_or_unban(thread, evt, target_uid, reason, false, silent);
+
+	if (!ret && silent) {
+		char reply_text[RTB_SIZE];
+		int64_t chat_id = tge_get_chat_id(evt);
+
+		/*
+		 * Delete the command and the replied message.
+		 */
+		struct tgev *reply_to = tge_get_reply_to(evt);
+
+		do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
+			.chat_id = chat_id,
+			.message_id = tge_get_msg_id(evt)
+		});
+
+		if (!reply_to)
+			return 0;
+
+		do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
+			.chat_id = chat_id,
+			.message_id = tge_get_msg_id(reply_to)
+		});
+	}
+
+	return ret;
 }
 
 
@@ -950,8 +1005,10 @@ int GWMOD_ENTRY_DEFINE(003_admin, const struct gwbot_thread *thread,
 
 	c =
 	(!strncmp("ban",     yx, 3) && (tx += 3) && (cmd = ADM_CMD_BAN))     ||
+	(!strncmp("sban",    yx, 4) && (tx += 4) && (cmd = ADM_CMD_SBAN))    ||
 	(!strncmp("unban",   yx, 5) && (tx += 5) && (cmd = ADM_CMD_UNBAN))   ||
 	(!strncmp("kick",    yx, 4) && (tx += 4) && (cmd = ADM_CMD_KICK))    ||
+	(!strncmp("skick",   yx, 5) && (tx += 5) && (cmd = ADM_CMD_SKICK))   ||
 	(!strncmp("warn",    yx, 4) && (tx += 4) && (cmd = ADM_CMD_WARN))    ||
 	(!strncmp("mute",    yx, 4) && (tx += 4) && (cmd = ADM_CMD_MUTE))    ||
 	(!strncmp("tmute",   yx, 5) && (tx += 5) && (cmd = ADM_CMD_TMUTE))   ||
@@ -1024,13 +1081,17 @@ out_run_priv_chk:
 		panic("Got CMD_NOP in admin module");
 		abort();
 	case ADM_CMD_BAN:
-		ret = exec_adm_cmd_ban(thread, evt, target_uid, reason);
+	case ADM_CMD_SBAN:
+		ret = exec_adm_cmd_ban(thread, evt, target_uid, reason,
+				       cmd == ADM_CMD_SBAN);
 		break;
 	case ADM_CMD_UNBAN:
 		ret = exec_adm_cmd_unban(thread, evt, target_uid, reason);
 		break;
 	case ADM_CMD_KICK:
-		ret = exec_adm_cmd_kick(thread, evt, target_uid, reason);
+	case ADM_CMD_SKICK:
+		ret = exec_adm_cmd_kick(thread, evt, target_uid, reason,
+					cmd == ADM_CMD_SKICK);
 		break;
 	case ADM_CMD_WARN:
 		break;
