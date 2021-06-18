@@ -614,6 +614,9 @@ static int exec_adm_cmd_ban(const struct gwbot_thread *thread, struct tgev *evt,
 			.message_id = reply_to_msg_id
 		});
 
+		if (!tmp)
+			goto out;
+
 		reply_to = tge_get_reply_to(evt);
 		if (!reply_to)
 			return 0;
@@ -622,6 +625,9 @@ static int exec_adm_cmd_ban(const struct gwbot_thread *thread, struct tgev *evt,
 			.chat_id = chat_id,
 			.message_id = tge_get_msg_id(reply_to)
 		});
+
+		if (!tmp)
+			goto out;
 
 		return 0;
 	}
@@ -674,26 +680,38 @@ static int exec_adm_cmd_kick(const struct gwbot_thread *thread,
 	int ret = kick_or_unban(thread, evt, target_uid, reason, false, silent);
 
 	if (!ret && silent) {
+		int tmp;
 		char reply_text[RTB_SIZE];
 		int64_t chat_id = tge_get_chat_id(evt);
+		uint64_t msg_id = tge_get_msg_id(evt);
 
 		/*
 		 * Delete the command and the replied message.
 		 */
 		struct tgev *reply_to = tge_get_reply_to(evt);
 
-		do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
+		tmp = do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
 			.chat_id = chat_id,
-			.message_id = tge_get_msg_id(evt)
+			.message_id = msg_id
 		});
+
+		if (!tmp)
+			goto out_err;
 
 		if (!reply_to)
 			return 0;
 
-		do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
+		tmp = do_del_msg(thread, reply_text, &(const tga_delete_msg_t){
 			.chat_id = chat_id,
 			.message_id = tge_get_msg_id(reply_to)
 		});
+
+		if (!tmp)
+			goto out_err;
+
+		return ret;
+	out_err:
+		return send_reply(thread, evt, reply_text, msg_id);
 	}
 
 	return ret;
