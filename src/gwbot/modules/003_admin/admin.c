@@ -839,11 +839,9 @@ static inline void construct_report_reply(char *rep_p, size_t sps,
 					  struct tga_chat_member *admins,
 					  size_t admin_c)
 {
-
-	memcpy(rep_p, "Ping admins!\n", 14);
-	sps   -= 13;
-	rep_p += 13;
-
+	memcpy(rep_p, "Reported to admins!\n", 21);
+	sps   -= 20;
+	rep_p += 20;
 	for (size_t i = 0; i < admin_c; i++) {
 		size_t tmp;
 		struct tga_user *user = &admins[i].user;
@@ -852,14 +850,15 @@ static inline void construct_report_reply(char *rep_p, size_t sps,
 		if (user->is_bot)
 			continue;
 
+		/* Preserve space for "</a>\n" */
 		sps -= 6;
 		tmp  = (size_t)snprintf(rep_p, sps,
+					"Cc: "
 					"<a href=\"tg://user?id=%" PRIu64 "\">",
 					user->id);
 
 		rep_p += tmp;
 		sps   -= tmp;
-
 		tmp = htmlspecialchars(rep_p, sps, fn, strnlen(fn, 0xfful));
 
 		if (tmp > 0)
@@ -868,7 +867,7 @@ static inline void construct_report_reply(char *rep_p, size_t sps,
 		rep_p += tmp;
 		sps   -= tmp;
 
-		memcpy(rep_p, "</a> ", 6);
+		memcpy(rep_p, "</a>\n", 6);
 		rep_p += 5;
 	}
 }
